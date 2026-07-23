@@ -25,6 +25,12 @@ Libs/*.dll
 # Publish thumbnail (pulled from a separate assets repo at release time).
 thumbnail.png
 
+# AgilePlus local operational state (durable specs remain tracked separately).
+.agileplus/*.db
+.agileplus/*.db-shm
+.agileplus/*.db-wal
+.agileplus/cache/
+
 # IDE
 .vs/
 .idea/

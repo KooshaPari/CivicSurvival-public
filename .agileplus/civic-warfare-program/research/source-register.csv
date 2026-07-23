@@ -1,0 +1,30 @@
+source_id,category,title,url_or_path,license_or_authority,usage
+SRC-001,repository,CivicSurvival public source,https://github.com/Theorist100/CivicSurvival-public,PolyForm-Strict-1.0.0,authoritative baseline
+SRC-002,architecture,Hexagonal Architecture,https://alistair.cockburn.us/hexagonal-architecture,primary author,ports and adapters rationale
+SRC-003,architecture,Event Sourcing Pattern,https://learn.microsoft.com/en-us/azure/architecture/patterns/event-sourcing,Microsoft,selective journal rationale
+SRC-004,architecture,CQRS Pattern,https://learn.microsoft.com/en-us/azure/architecture/patterns/cqrs,Microsoft,command and projection split
+SRC-005,game-design,Cities Skylines II Economy and Production,https://www.paradoxinteractive.com/games/cities-skylines-ii/features/economy-production,Paradox,city economy integration
+SRC-006,game-design,Hearts of Iron IV naval invasion design,https://store.steampowered.com/news/posts/?appids=394360&enddate=1458121896,Paradox,amphibious prerequisites
+SRC-007,game-design,Manor Lords Warfare,https://wiki.hoodedhorse.com/Manor_Lords/Warfare,Hooded Horse,population and formation coupling
+SRC-008,game-design,Anno 1800 Art of War,https://www.anno-union.com/devblog-the-art-of-war-i/,Ubisoft,deterrence and naval economy
+SRC-009,game-design,They Are Billions,https://www.theyarebillions.com/TheyAreBillions/,Numantian Games,layered defense and breach cascades
+SRC-010,ai,HTN and Behavior Trees,https://ojs.aaai.org/index.php/AIIDE/article/view/13044,AAAI,hybrid agent planning
+SRC-011,ai,Modular Influence Maps,https://www.gdcvault.com/play/1025243/Spatial-Knowledge-Representation-through-Modular,GDC,spatial knowledge layers
+SRC-012,interop,Interoptopus,https://github.com/ralfbiedert/interoptopus,MIT,Rust to C sharp ABI generation
+SRC-013,schema,FlatBuffers evolution,https://flatbuffers.dev/evolution/,Apache-2.0,cross-language versioned messages
+SRC-014,serialization,Serde,https://github.com/serde-rs/serde,MIT OR Apache-2.0,Rust internal serialization
+SRC-015,math,fixed,https://docs.rs/fixed/latest/fixed/,MIT OR Apache-2.0,authoritative fixed-point math
+SRC-016,graph,petgraph,https://docs.rs/petgraph/latest/petgraph/,MIT OR Apache-2.0,theater and logistics graphs
+SRC-017,spatial,rstar,https://docs.rs/crate/rstar/latest,MIT OR Apache-2.0,derived spatial index
+SRC-018,ai,bonsai behavior tree,https://github.com/Sollimann/bonsai,MIT,mission execution adapter
+SRC-019,hash,BLAKE3,https://github.com/BLAKE3-team/BLAKE3,CC0 OR Apache-2.0,replay state hashes
+SRC-020,compression,zstd,https://github.com/facebook/zstd,BSD OR GPL-2.0,snapshot compression
+SRC-021,optimization,JuMP,https://jump.dev/JuMP.jl/stable/,MPL-2.0,offline calibration
+SRC-022,optimization,HiGHS,https://highs.dev/,MIT,offline LP MIP optimization
+SRC-023,reference,OpenRA,https://github.com/OpenRA/OpenRA,GPL-3.0,reference deterministic commands and replays
+SRC-024,reference,Warzone 2100,https://github.com/Warzone2100/warzone2100,GPL-2.0-or-later,reference persistent bases and AI
+SRC-025,reference,Freeciv,https://github.com/freeciv/freeciv,GPL-2.0-or-later,reference diplomacy and faction AI
+SRC-026,language,Mojo manual,https://docs.modular.com/mojo/manual/,Modular terms,experimental compute research only
+SRC-027,language,Julia embedding,https://docs.julialang.org/en/v1/manual/embedding/,MIT,offline analysis integration
+SRC-028,language,Zig documentation,https://ziglang.org/documentation/master/,MIT,cross-build and ABI tooling candidate
+SRC-029,language,Vale,https://vale.dev/,alpha research language,research only
