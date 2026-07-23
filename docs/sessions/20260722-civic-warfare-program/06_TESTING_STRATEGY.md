@@ -7,3 +7,7 @@ former user-scoped `Mod.props` import, then green after the project boundary was
 The installed-game adapter is intentionally excluded from this public test: it requires legally local
 CS2 assemblies, the modding toolkit, and omitted private generators. That lane must produce separate
 native launch smoke evidence on a licensed host.
+
+The public workflow also runs version/privacy/license/notice/size checks, UI Vitest and lint-rule tests,
+declaration typechecking, strict ESLint, and production-only npm audit. The full dev dependency audit is
+reported as a remediation artifact because the current lockfile has seven known findings.
