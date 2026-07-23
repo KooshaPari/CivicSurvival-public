@@ -50,7 +50,7 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
 - AgilePlus: 20 WPs registered in ignored operational DB `.agileplus/civic-warfare-program-v4.db`.
 - Canonical DAG/WBS: complete; CLI's false fully serial overlap graph is superseded by `plan.md`.
 - Architecture/data model/public contracts: complete for planning baseline.
-- Governance/dashboard/checklist/validation: complete; publication pending.
+- Governance/dashboard/checklist/validation: complete; branch publication complete.
 - Gameplay implementation: intentionally not started.
 
 ## Anti-Drift Rules
@@ -64,8 +64,7 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
 
 ## Next Meaningful Work
 
-1. Enrich all 20 WP prompts with canonical dependencies, ownership, validation, and evidence outputs.
-2. Run traceability, placeholder, DAG-cycle, source-register, JSON/schema, and Git-diff validation.
-3. Record unavailable `flatc` validation as a WP02 environment prerequisite.
-4. Commit, push the feature branch to the fork, and run Airlock v2.
-5. Only after the planning program is accepted, begin WP01 and keep the production warfare gate closed until it passes.
+1. Begin WP01 on the published feature branch.
+2. Restore a reproducible public audit build and baseline C# test/CI surface.
+3. Resolve release metadata, privacy wording, dependency, and module-size gates.
+4. Publish WP01 go/no-go evidence; keep production warfare implementation closed until it passes.

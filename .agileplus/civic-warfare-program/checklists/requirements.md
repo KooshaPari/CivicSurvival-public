@@ -15,4 +15,4 @@
 - [x] WP01 blocks production warfare implementation until public build/tests/CI pass.
 - [x] Artifact validation report passes without specification defects.
 - [x] Independent review approves the artifact set.
-- [ ] Feature branch is committed, pushed, and Airlock-snapshotted.
+- [x] Feature branch is committed and pushed; Airlock evidence is captured after this status update.

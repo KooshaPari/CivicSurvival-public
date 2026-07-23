@@ -39,9 +39,8 @@ WP01 [planned] public audit build/test gate; next eligible lane
 
 ## Next Meaningful Work
 
-1. Complete planning validation, review, commit, push, and Airlock snapshot.
-2. Start WP01 only: public audit build, baseline C# tests, CI, release/privacy/dependency/module hygiene.
-3. Keep production warfare code closed until WP01 publishes accepted go/no-go evidence.
+1. Start WP01 only: public audit build, baseline C# tests, CI, release/privacy/dependency/module hygiene.
+2. Keep production warfare code closed until WP01 publishes accepted go/no-go evidence.
 
 ## Refresh Commands
 
