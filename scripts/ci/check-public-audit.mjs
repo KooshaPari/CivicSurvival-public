@@ -16,6 +16,9 @@ if (!manifest.website_url || manifest.website_url.includes("yourusername")) fail
 const privacy = await read("PRIVACY.md");
 if (/opt[- ]out/i.test(privacy)) failures.push("privacy policy still uses opt-out diagnostics language");
 if (!/opt-in, disabled by default/i.test(privacy)) failures.push("privacy policy must state diagnostics are opt-in and disabled by default");
+for (const disclosed of ["ExceptionCode", "Phase"]) {
+  if (!privacy.includes(disclosed)) failures.push(`privacy policy does not disclose crash field: ${disclosed}`);
+}
 
 for (const file of ["LICENSE", "NOTICE.md", "Assets/LICENSE", "Assets/README.md"]) {
   try { await stat(path.join(root, file)); } catch { failures.push(`missing license/notice file: ${file}`); }

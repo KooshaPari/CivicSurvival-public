@@ -55,6 +55,7 @@ of the functional event stream above, which Online sends regardless):
 - A random install/player ID generated locally by the mod. This random ID is created on first launch and stored only on your machine; it is sent to the server only after you enable Online. It links your sessions to each other but is not tied to your real-world identity.
 - A random session ID
 - Crash reports and CivicSurvival error stack traces
+- Crash metadata includes a coarse `ExceptionCode` and lifecycle `Phase`; these are categorical diagnostics, not raw memory or personal identifiers.
 - For native crashes, the faulting module name and instruction offset only — read locally from
   the crash dump on next launch to tell whether the mod or the base game crashed. The crash dump
   file itself, its memory contents, and any embedded screenshot are **not** sent; file-system

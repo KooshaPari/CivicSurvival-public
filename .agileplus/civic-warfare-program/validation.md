@@ -24,6 +24,8 @@
 | Module sizes | pass | largest planning artifact is 287 lines, below 350-line target |
 | Diff hygiene | pass | `git diff --check` exited 0 |
 | AgilePlus state | pass | dashboard reports 20 planned and 0 doing/review/done/blocked |
+| WP01 public policy runner | pass | version/privacy/license/localization/source-root/file-size checks; 0 npm audit findings |
+| UI quality suite | pass | 9 Vitest files / 23 tests, 20 lint-rule tests, declarations, strict ESLint |
 
 ## AgilePlus Runtime Validation
 

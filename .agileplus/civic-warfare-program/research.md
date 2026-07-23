@@ -31,7 +31,7 @@ The project has unusually strong domain vocabulary, single-writer ECS ownership,
 - The UI production dependency audit is clean. The complete dev audit reports seven findings: six high and one low across `@babel/core`, `brace-expansion`, `fast-uri`, `immutable`, `js-yaml`, `undici`, and `vite`.
 - Versions disagree: project 0.3.24, manifest 1.0.0, UI mod metadata 0.1.0, inner README 0.9.0-rc.1.
 - en-US, uk-UA, and new zh-CN each contain 3,531 scalar leaves with exact key parity.
-- Runtime/UI defaults show diagnostics off until opt-in, while `PRIVACY.md` describes optional diagnostics as opt-out. Policy and UI wording must agree.
+- Runtime/UI defaults show diagnostics off until opt-in; WP01 reconciled `PRIVACY.md` wording and added disclosure for coarse crash `ExceptionCode` and lifecycle `Phase` fields.
 
 ## Existing Gameplay and Extension Seams
 
