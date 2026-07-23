@@ -1,9 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <Import Project="$([System.Environment]::GetEnvironmentVariable('CSII_TOOLPATH', 'EnvironmentVariableTarget.User'))\Mod.props" />
-
     <PropertyGroup>
-        <TargetFramework>net48</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <LangVersion>latest</LangVersion>
         <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
@@ -12,9 +10,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Reference Include="Newtonsoft.Json"><Private>false</Private></Reference>
-        <Reference Update="System"><Private>false</Private></Reference>
-        <Reference Update="System.Core"><Private>false</Private></Reference>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     </ItemGroup>
 
 </Project>

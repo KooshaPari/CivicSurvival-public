@@ -1,3 +1,9 @@
 # Testing Strategy Index
 
-See `.agileplus/civic-warfare-program/validation.md` and each work package's acceptance and evidence sections. The first mandatory proof is a fresh-clone public audit build plus baseline C# test suite; the native simulation proof is two identical 10,000-tick replay hashes.
+WP01 public baseline: `bash tests/public-audit/test_contracts_build.sh` verifies that the contracts
+project has no private CS2 toolkit import and compiles under `net8.0`. It was recorded red against the
+former user-scoped `Mod.props` import, then green after the project boundary was made self-contained.
+
+The installed-game adapter is intentionally excluded from this public test: it requires legally local
+CS2 assemblies, the modding toolkit, and omitted private generators. That lane must produce separate
+native launch smoke evidence on a licensed host.
