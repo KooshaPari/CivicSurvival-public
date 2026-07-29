@@ -53,6 +53,7 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
 - Governance/dashboard/checklist/validation: complete; branch publication complete.
 - WP01: public audit green; conditional NO-GO remains for production warfare until licensed adapter and AgilePlus evidence paths exist.
 - WP02-A reconnaissance: native workspace absent; ABI/schema risks recorded in `wp01-go-no-go.md`.
+- WP02-A boundary slice: pinned Rust workspace now exists under `native/` with five inward-directed crates and locked smoke tests; FlatBuffers/FFI implementation remains pending.
 - Gameplay implementation: intentionally not started.
 
 ## Anti-Drift Rules

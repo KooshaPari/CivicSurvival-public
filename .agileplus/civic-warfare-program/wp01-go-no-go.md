@@ -49,3 +49,8 @@ Before combat or economy behavior, implement the native boundary: pinned Cargo w
 roots and generated bindings, stable FFI errors/status serialization, panic containment, bounded buffers,
 transactional save-load semantics, and golden vectors for empty batches, duplicate commands, invalid
 handles, ABI mismatch, and insufficient output buffers.
+
+The first WP02-A workspace slice is now present under `native/` with model,
+rules, application, FFI, and headless crates plus a locked toolchain and
+architecture smoke test. It is intentionally a boundary skeleton, not a claim
+that FlatBuffers or the final C ABI are complete.

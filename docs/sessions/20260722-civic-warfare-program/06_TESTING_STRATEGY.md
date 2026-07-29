@@ -11,3 +11,7 @@ native launch smoke evidence on a licensed host.
 The public workflow also runs version/privacy/license/notice/size checks, UI Vitest and lint-rule tests,
 declaration typechecking, strict ESLint, and production-only npm audit. The full dev dependency audit is
 reported as a remediation artifact because the current lockfile has seven known findings.
+
+WP02-A adds a pinned Rust 1.89 workspace smoke lane: `bash tests/wp02/test_native_workspace.sh`.
+It verifies the five-crate inward dependency graph and runs locked unit/doc tests; FlatBuffers and the
+final FFI conformance suite remain deliberately pending until `flatc` is pinned.

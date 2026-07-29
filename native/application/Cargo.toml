@@ -1,0 +1,8 @@
+[package]
+name = "civic-application"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+civic-model = { path = "../model" }
+civic-rules = { path = "../rules" }
