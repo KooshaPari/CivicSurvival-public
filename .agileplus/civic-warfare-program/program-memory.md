@@ -60,6 +60,7 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
 - WP02-A generated verification: pinned `flatc` plus exact Rust `flatbuffers` runtime now validates a real `CSWP` Envelope and rejects truncation and bad identifiers; local Homebrew `flatc 25.12.19` reproduced the gate.
 - WP02-A FFI verifier integration: `native/ffi/build.rs` generates bindings at build time and `civic-ffi` now rejects malformed nonempty config/save/command envelopes as `CSW_SCHEMA_MISMATCH` or `CSW_CORRUPT_DATA`; empty bootstrap buffers remain allowed.
 - WP02-A payload typing: `csw_load` now requires `RootPayload::SaveEnvelope` and `csw_submit_commands` requires `RootPayload::CommandBatch`; generic Envelope validation remains separate from authoritative decode/serialization.
+- WP02-A semantic gates: SaveEnvelope versions are checked against ABI/schema/save/RNG version 1 and required save vectors must be present; command batches require schema version 1. Failed create paths clear the caller output handle before returning.
 - Gameplay implementation: intentionally not started.
 
 ## Anti-Drift Rules

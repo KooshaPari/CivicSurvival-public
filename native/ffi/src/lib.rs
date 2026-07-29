@@ -13,6 +13,9 @@ use warfare_generated::civic_survival::warfare::contracts::{
 };
 
 pub const ABI_VERSION: u32 = 1;
+const SCHEMA_VERSION: u32 = 1;
+const SAVE_VERSION: u32 = 1;
+const RNG_VERSION: u32 = 1;
 const STATUS_LEN: usize = 40;
 
 #[repr(C)]
@@ -102,6 +105,51 @@ fn verify_envelope(
     }
 }
 
+fn validate_command_batch(bytes: *const u8, len: usize) -> CswResult {
+    let bytes = unsafe { std::slice::from_raw_parts(bytes, len) };
+    let envelope = match root_as_envelope(bytes) {
+        Ok(value) => value,
+        Err(_) => return CswResult::CorruptData,
+    };
+    let Some(batch) = envelope.payload_as_command_batch() else {
+        return CswResult::SchemaMismatch;
+    };
+    if batch.schema_version() != SCHEMA_VERSION {
+        return CswResult::UnsupportedVersion;
+    }
+    CswResult::Ok
+}
+
+fn validate_save_envelope(bytes: *const u8, len: usize) -> CswResult {
+    let bytes = unsafe { std::slice::from_raw_parts(bytes, len) };
+    let envelope = match root_as_envelope(bytes) {
+        Ok(value) => value,
+        Err(_) => return CswResult::CorruptData,
+    };
+    let Some(save) = envelope.payload_as_save_envelope() else {
+        return CswResult::SchemaMismatch;
+    };
+    if save.abi_version() != ABI_VERSION {
+        return CswResult::AbiMismatch;
+    }
+    if save.schema_version() != SCHEMA_VERSION
+        || save.save_version() != SAVE_VERSION
+        || save.rng_version() != RNG_VERSION
+    {
+        return CswResult::UnsupportedVersion;
+    }
+    if save.campaign_id().is_none()
+        || save.rules_manifest_hash().is_none()
+        || save.snapshot().is_none()
+        || save.journal_checkpoint().is_none()
+        || save.canonical_hash().is_none()
+        || save.checksum().is_none()
+    {
+        return CswResult::InvalidArgument;
+    }
+    CswResult::Ok
+}
+
 fn status_bytes(runtime: &Runtime) -> [u8; STATUS_LEN] {
     let mut bytes = [0; STATUS_LEN];
     bytes[0..4].copy_from_slice(&ABI_VERSION.to_le_bytes());
@@ -126,7 +174,11 @@ pub extern "C" fn csw_create(
     out_runtime: *mut *mut CswRuntime,
 ) -> CswResult {
     guarded(|| {
-        if out_runtime.is_null() || (config.is_null() && config_len != 0) {
+        if out_runtime.is_null() {
+            return CswResult::InvalidArgument;
+        }
+        unsafe { *out_runtime = ptr::null_mut() };
+        if config.is_null() && config_len != 0 {
             return CswResult::InvalidArgument;
         }
         let verification = verify_envelope(config, config_len, None);
@@ -150,6 +202,10 @@ pub extern "C" fn csw_load(
     if verification != CswResult::Ok {
         return verification;
     }
+    let semantic = validate_save_envelope(save, save_len);
+    if semantic != CswResult::Ok {
+        return semantic;
+    }
     csw_create(ptr::null(), 0, out_runtime)
 }
 
@@ -167,6 +223,10 @@ pub extern "C" fn csw_submit_commands(
         let verification = verify_envelope(batch, batch_len, Some(expected));
         if verification != CswResult::Ok {
             return verification;
+        }
+        let semantic = validate_command_batch(batch, batch_len);
+        if semantic != CswResult::Ok {
+            return semantic;
         }
         runtime_ref(runtime.cast_const()).map_or_else(|error| error, |value| {
             let _ = value;

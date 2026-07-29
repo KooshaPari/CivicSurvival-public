@@ -38,3 +38,6 @@ config/save/command buffers are rejected unless they carry a valid Envelope
 identifier and verifier-safe offsets.
 FFI unit coverage rejects a structurally valid but wrong union kind for load
 and submit while preserving empty bootstrap construction.
+Semantic gates now require SaveEnvelope ABI/schema/save/RNG version 1 plus
+required save vectors, and CommandBatch schema version 1; hash/checksum
+verification and state replacement remain pending.
