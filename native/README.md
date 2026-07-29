@@ -19,5 +19,11 @@ projection deltas carry explicit removals, alerts, and explanations. The
 static boundary test catches regressions while pinned `flatc` conformance is
 still a WP02 follow-up.
 
+`civic-ffi` now builds as `cdylib`/`rlib` and exposes a no-op, panic-contained
+transport lifecycle: create/load/destroy, bounded step/submit calls, and
+caller-owned status/error/poll/save buffers. It intentionally does not parse
+FlatBuffers or claim gameplay behavior; generated verifier integration and
+golden malformed-buffer vectors are the next gate.
+
 The exact Rust toolchain is pinned in `rust-toolchain.toml`; `Cargo.lock` is
 committed even though this first slice has no external crates.

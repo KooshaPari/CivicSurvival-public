@@ -22,3 +22,7 @@ roots, and projection schemas without removals, alerts, or explanations.
 FlatBuffers `v25.12.19` compiler when present and otherwise reports a visible
 deferred gate; CI must install that exact compiler before accepting generated
 bindings.
+The FFI crate builds as both `cdylib` and `rlib`; its three focused tests cover
+create/load/destroy, invalid handles, required-length/no-partial-write
+semantics, bounded stepping, and empty output buffers. This is transport
+evidence only, not gameplay or schema-decoding evidence.

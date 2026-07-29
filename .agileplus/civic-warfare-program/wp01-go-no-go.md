@@ -53,4 +53,6 @@ handles, ABI mismatch, and insufficient output buffers.
 The first WP02-A workspace slice is now present under `native/` with model,
 rules, application, FFI, and headless crates plus a locked toolchain and
 architecture smoke test. It is intentionally a boundary skeleton, not a claim
-that FlatBuffers or the final C ABI are complete.
+that FlatBuffers or the final C ABI are complete. The FFI crate now has a
+panic-contained no-op lifecycle and bounded-buffer tests; generated schema
+verification and gameplay behavior remain explicitly absent.

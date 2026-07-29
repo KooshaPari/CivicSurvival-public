@@ -10,3 +10,4 @@ done
 [[ "$(grep -c '^name = ' "$repo_root/native/Cargo.toml")" -eq 0 ]]
 grep -q 'members = \["model", "rules", "application", "ffi", "headless"\]' "$repo_root/native/Cargo.toml"
 cargo test --manifest-path "$repo_root/native/Cargo.toml" --workspace --locked
+cargo build --manifest-path "$repo_root/native/Cargo.toml" --package civic-ffi --locked

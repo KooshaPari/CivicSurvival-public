@@ -6,7 +6,7 @@
 |---|---|
 | `csw_abi_version` | returns packed major/minor ABI version without initialization |
 | `csw_create` | validates config/rules buffer and returns opaque runtime handle |
-| `csw_load` | validates complete save before replacing handle state |
+| `csw_load` | validates a complete save and returns a new handle; the caller swaps it only after success |
 | `csw_submit_commands` | validates one FlatBuffers batch and queues idempotent commands |
 | `csw_step` | advances a bounded number of fixed ticks from one observation batch |
 | `csw_poll_into` | writes one projection/outcome batch into caller buffer or reports required size |
@@ -69,7 +69,7 @@ Rust application ports are narrow capabilities: `SpatialIndex`, `Planner`, `Rand
 
 ## Save Contract
 
-Load is transactional: decode header and bounds, verify checksum/hash, verify ABI/schema/rules/RNG versions, decode to temporary canonical state, validate invariants, then swap. Failure leaves prior state and source bytes untouched. There is no legacy warfare save shim.
+Load is transactional: decode header and bounds, verify checksum/hash, verify ABI/schema/rules/RNG versions, decode to temporary canonical state, validate invariants, then return a new handle for the caller to swap. Failure leaves the caller's existing handle and source bytes untouched. There is no legacy warfare save shim.
 
 ## Projection Contract
 

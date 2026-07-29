@@ -6,6 +6,7 @@ bin/
 obj/
 Library/
 dist/
+native/target/
 
 # Node / UI
 node_modules/
