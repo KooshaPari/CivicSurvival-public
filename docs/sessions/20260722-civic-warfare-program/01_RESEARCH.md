@@ -15,3 +15,6 @@ See `.agileplus/civic-warfare-program/research.md`, `research/source-register.cs
   add a generated discriminant field. The schema now uses a table `Envelope`
   root around the command/projection/save union rather than treating a
   projection table as the only wire root.
+- The upstream release index identifies `v25.12.19` as the current dated
+  FlatBuffers release. It is recorded in `native/flatbuffers-toolchain.toml`
+  for compiler/runtime lockstep; local `flatc` is still absent.

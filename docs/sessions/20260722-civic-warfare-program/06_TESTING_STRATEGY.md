@@ -18,3 +18,7 @@ final FFI conformance suite remain deliberately pending until `flatc` is pinned.
 The companion `bash tests/wp02/test_contract_boundaries.sh` compiles the C
 header and rejects platform-dependent status structs, unframed FlatBuffers
 roots, and projection schemas without removals, alerts, or explanations.
+`bash tests/wp02/test_flatc_conformance.sh` enforces the pinned
+FlatBuffers `v25.12.19` compiler when present and otherwise reports a visible
+deferred gate; CI must install that exact compiler before accepting generated
+bindings.

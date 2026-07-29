@@ -1,0 +1,5 @@
+# FlatBuffers uses date-based releases rather than SemVer. Keep compiler and
+# generated runtimes on the same release line.
+release = "25.12.19"
+source = "https://github.com/google/flatbuffers"
+tag = "v25.12.19"

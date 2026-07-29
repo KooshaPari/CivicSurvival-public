@@ -97,6 +97,7 @@ table SaveEnvelope {
 union RootPayload { CommandBatch, ProjectionDelta, SaveEnvelope }
 
 table Envelope {
+  // Union fields reserve the hidden discriminant at id 0; payload is id 1.
   payload:RootPayload (id: 1);
 }
 
