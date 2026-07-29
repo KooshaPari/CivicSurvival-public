@@ -41,4 +41,6 @@ jobs:
         working-directory: CivicSurvival/UI
         run: npm audit --omit=dev --audit-level=high
       - name: Native workspace boundary tests
-        run: bash tests/wp02/test_native_workspace.sh
+        run: |
+          bash tests/wp02/test_native_workspace.sh
+          bash tests/wp02/test_contract_boundaries.sh
