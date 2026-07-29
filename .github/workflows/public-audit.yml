@@ -53,3 +53,4 @@ jobs:
           bash tests/wp02/test_native_workspace.sh
           bash tests/wp02/test_contract_boundaries.sh
           bash tests/wp02/test_flatc_conformance.sh
+          bash tests/wp02/test_ffi_abi.sh

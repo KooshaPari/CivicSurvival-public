@@ -26,3 +26,7 @@ The FFI crate builds as both `cdylib` and `rlib`; its three focused tests cover
 create/load/destroy, invalid handles, required-length/no-partial-write
 semantics, bounded stepping, and empty output buffers. This is transport
 evidence only, not gameplay or schema-decoding evidence.
+`bash tests/wp02/test_ffi_abi.sh` additionally links a C11 smoke fixture against
+the produced cdylib and exercises exported ABI version, create, status, and
+destroy symbols. The current load/submit/poll/save paths remain explicit stubs:
+they do not validate or serialize FlatBuffers yet.

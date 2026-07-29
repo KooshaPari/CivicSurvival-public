@@ -56,6 +56,7 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
 - WP02-A boundary slice: pinned Rust workspace now exists under `native/` with five inward-directed crates and locked smoke tests; FlatBuffers/FFI implementation remains pending.
 - WP02-A contract hardening: status now uses caller-owned serialized bytes (`csw_status_into`), FlatBuffers are framed by `Envelope`/`RootPayload`, and projection deltas expose removals, alerts, and explanations; static boundary checks pass while pinned `flatc` conformance remains pending.
 - WP02-A FFI slice: `civic-ffi` now exports a panic-contained no-op lifecycle as `cdylib`/`rlib`, with bounded buffer and handle tests; it deliberately does not claim FlatBuffers decoding or gameplay.
+- WP02-A ABI smoke: `tests/wp02/test_ffi_abi.sh` links `ffi_smoke.c` against the produced cdylib and passes; load/submit/poll/save remain explicit stubs pending generated verifier integration.
 - Gameplay implementation: intentionally not started.
 
 ## Anti-Drift Rules
