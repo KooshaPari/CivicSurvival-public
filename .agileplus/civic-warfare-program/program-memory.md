@@ -51,6 +51,8 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
 - Canonical DAG/WBS: complete; CLI's false fully serial overlap graph is superseded by `plan.md`.
 - Architecture/data model/public contracts: complete for planning baseline.
 - Governance/dashboard/checklist/validation: complete; branch publication complete.
+- WP01: public audit green; conditional NO-GO remains for production warfare until licensed adapter and AgilePlus evidence paths exist.
+- WP02-A reconnaissance: native workspace absent; ABI/schema risks recorded in `wp01-go-no-go.md`.
 - Gameplay implementation: intentionally not started.
 
 ## Anti-Drift Rules
@@ -64,7 +66,7 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
 
 ## Next Meaningful Work
 
-1. Begin WP01 on the published feature branch.
-2. Restore a reproducible public audit build and baseline C# test/CI surface.
-3. Resolve release metadata, privacy wording, dependency, and module-size gates.
-4. Publish WP01 go/no-go evidence; keep production warfare implementation closed until it passes.
+1. Close the AgilePlus evidence-recording gap without direct database fabrication.
+2. Obtain licensed game-adapter build and launch-smoke evidence.
+3. Begin WP02-A native ABI, schema, FFI, and golden-vector boundary work.
+4. Keep production warfare implementation closed until WP01 is formally accepted.

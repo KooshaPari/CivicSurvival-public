@@ -10,7 +10,7 @@ Architecture      [##########] 100%  contexts, ownership, runtime, failure polic
 Data/contracts    [##########] 100%  model + ABI + C header + FlatBuffers draft
 DAG/WBS           [##########] 100%  20/20 WPs registered and mapped
 Implementation    [..........]   0%  0/120 FRs accepted
-Quality gates     [..........]   0%  WP01 not started
+Quality gates     [######....]  60%  public audit green; licensed adapter/evidence recording pending
 ```
 
 ## Live WP State
@@ -26,7 +26,7 @@ Quality gates     [..........]   0%  WP01 not started
 ## Current DAG
 
 ```text
-WP01 [planned] public audit build/test gate; next eligible lane
+WP01 [review] public audit green; formal evidence and licensed adapter pending
   -> WP02 [planned] architecture/contracts/ABI
   -> WP03 [planned] deterministic kernel/replay
   -> WP04 [planned] geography/LOD
@@ -39,8 +39,8 @@ WP01 [planned] public audit build/test gate; next eligible lane
 
 ## Next Meaningful Work
 
-1. Start WP01 only: public audit build, baseline C# tests, CI, release/privacy/dependency/module hygiene.
-2. Keep production warfare code closed until WP01 publishes accepted go/no-go evidence.
+1. Close the AgilePlus evidence-recording gap and obtain licensed adapter evidence for WP01.
+2. Begin WP02-A native ABI/schema boundary work behind the conditional gate.
 
 ## Refresh Commands
 
