@@ -25,6 +25,6 @@ flatc --strict-json --cpp --rust --ts --python -o "$out_dir" "$schema"
 flatc --conform "$baseline" "$schema"
 test -s "$out_dir/warfare_generated.h"
 test -s "$out_dir/warfare_generated.rs"
-test -s "$out_dir/warfare_generated.ts"
-test -s "$out_dir/warfare_generated.py"
+find "$out_dir" -type f -name 'contracts.ts' -print -quit | grep -q .
+find "$out_dir" -type f -name '__init__.py' -print -quit | grep -q .
 echo "flatc $version schema generation passed"

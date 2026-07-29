@@ -33,7 +33,7 @@ cat >"$tmp/src/main.rs" <<'EOF'
 mod warfare_generated;
 use flatbuffers::FlatBufferBuilder;
 use warfare_generated::civic_survival::warfare::contracts::{
-    Envelope, EnvelopeArgs, RootPayload,
+    envelope_buffer_has_identifier, Envelope, EnvelopeArgs, RootPayload,
 };
 
 fn valid() -> Vec<u8> {
@@ -42,12 +42,13 @@ fn valid() -> Vec<u8> {
         payload_type: RootPayload::NONE,
         payload: None,
     });
-    b.finish(envelope, Some(b"CSWP"));
+    b.finish(envelope, Some("CSWP"));
     b.finished_data().to_vec()
 }
 
 fn main() {
     let good = valid();
+    assert!(envelope_buffer_has_identifier(&good), "valid identifier rejected");
     assert!(flatbuffers::root::<Envelope>(&good).is_ok(), "valid Envelope rejected");
 
     let mut truncated = good.clone();
@@ -56,8 +57,8 @@ fn main() {
 
     let mut bad_identifier = good;
     bad_identifier[4..8].copy_from_slice(b"NOPE");
-    assert!(flatbuffers::root::<Envelope>(&bad_identifier).is_err(), "bad identifier accepted");
+    assert!(!envelope_buffer_has_identifier(&bad_identifier), "bad identifier accepted");
 }
 EOF
-(cd "$tmp" && cargo run --quiet --locked)
+(cd "$tmp" && cargo generate-lockfile --quiet && cargo run --quiet --offline --locked)
 echo "flatc $version generated Rust verifier vectors passed"

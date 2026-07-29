@@ -26,6 +26,9 @@ FlatBuffers or claim gameplay behavior; generated verifier integration and
 golden malformed-buffer vectors are the next gate. The C11 fixture at
 `tests/wp02/ffi_smoke.c` proves that the exported library links and executes;
 load/submit/poll/save are still intentionally non-authoritative stubs.
+CI also generates Rust bindings with the pinned FlatBuffers runtime and runs
+valid/truncated/bad-identifier verifier vectors before this FFI is allowed to
+decode payloads.
 
 The exact Rust toolchain is pinned in `rust-toolchain.toml`; `Cargo.lock` is
 committed even though this first slice has no external crates.

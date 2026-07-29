@@ -30,3 +30,6 @@ evidence only, not gameplay or schema-decoding evidence.
 the produced cdylib and exercises exported ABI version, create, status, and
 destroy symbols. The current load/submit/poll/save paths remain explicit stubs:
 they do not validate or serialize FlatBuffers yet.
+`bash tests/wp02/test_flatbuffer_verifier.sh` generates Rust bindings with the
+pinned compiler, builds an exact-runtime temporary crate, and proves valid
+`CSWP` envelopes, truncation rejection, and identifier rejection.
