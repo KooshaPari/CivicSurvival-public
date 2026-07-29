@@ -58,6 +58,7 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
 - WP02-A FFI slice: `civic-ffi` now exports a panic-contained no-op lifecycle as `cdylib`/`rlib`, with bounded buffer and handle tests; it deliberately does not claim FlatBuffers decoding or gameplay.
 - WP02-A ABI smoke: `tests/wp02/test_ffi_abi.sh` links `ffi_smoke.c` against the produced cdylib and passes; load/submit/poll/save remain explicit stubs pending generated verifier integration.
 - WP02-A generated verification: pinned `flatc` plus exact Rust `flatbuffers` runtime now validates a real `CSWP` Envelope and rejects truncation and bad identifiers; local Homebrew `flatc 25.12.19` reproduced the gate.
+- WP02-A FFI verifier integration: `native/ffi/build.rs` generates bindings at build time and `civic-ffi` now rejects malformed nonempty config/save/command envelopes as `CSW_SCHEMA_MISMATCH` or `CSW_CORRUPT_DATA`; empty bootstrap buffers remain allowed.
 - Gameplay implementation: intentionally not started.
 
 ## Anti-Drift Rules

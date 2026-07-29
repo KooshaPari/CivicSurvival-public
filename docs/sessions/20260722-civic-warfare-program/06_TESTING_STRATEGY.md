@@ -33,3 +33,6 @@ they do not validate or serialize FlatBuffers yet.
 `bash tests/wp02/test_flatbuffer_verifier.sh` generates Rust bindings with the
 pinned compiler, builds an exact-runtime temporary crate, and proves valid
 `CSWP` envelopes, truncation rejection, and identifier rejection.
+The same generated module is now used inside `civic-ffi` via `build.rs`; nonempty
+config/save/command buffers are rejected unless they carry a valid Envelope
+identifier and verifier-safe offsets.

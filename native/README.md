@@ -28,7 +28,9 @@ golden malformed-buffer vectors are the next gate. The C11 fixture at
 load/submit/poll/save are still intentionally non-authoritative stubs.
 CI also generates Rust bindings with the pinned FlatBuffers runtime and runs
 valid/truncated/bad-identifier verifier vectors before this FFI is allowed to
-decode payloads.
+decode payloads. Building `civic-ffi` locally now requires `flatc` 25.12.19
+on `PATH` (or `CIVIC_FLATC=/path/to/flatc`); this is intentional so the FFI
+cannot silently compile against stale generated bindings.
 
 The exact Rust toolchain is pinned in `rust-toolchain.toml`; `Cargo.lock` is
 committed even though this first slice has no external crates.
