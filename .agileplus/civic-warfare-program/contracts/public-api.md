@@ -11,7 +11,7 @@
 | `csw_step` | advances a bounded number of fixed ticks from one observation batch |
 | `csw_poll_into` | writes one projection/outcome batch into caller buffer or reports required size |
 | `csw_save_into` | writes canonical snapshot/journal checkpoint into caller buffer |
-| `csw_status` | returns non-allocating health/version/tick/revision counters |
+| `csw_status_into` | serializes versioned health/version/tick/revision counters into a caller-owned buffer |
 | `csw_last_error_into` | copies bounded diagnostic text for the calling thread/handle |
 | `csw_destroy` | invalidates and releases handle; null is a no-op |
 
@@ -30,6 +30,8 @@ The kernel deduplicates `command_id`. Accepted same-tick commands sort by schedu
 ## Schema Evolution
 
 - FlatBuffers field IDs are never reused; removed fields remain reserved.
+- Wire payloads use the `Envelope` root and `RootPayload` union; direct tables are
+  nested payloads, not independently framed roots.
 - New optional fields and enum values require old-reader behavior tests.
 - Required semantic changes increment schema major and save major.
 - `flatc --conform` compares every revision to the checked-in baseline.
@@ -71,4 +73,4 @@ Load is transactional: decode header and bounds, verify checksum/hash, verify AB
 
 ## Projection Contract
 
-Projection batches are immutable and knowledge-scoped. A projection declares campaign, observer faction/player, base revision, new revision, tick, state hash, changed views, removals, alerts, command decisions, and explanations. C# rejects gaps and requests a full snapshot; it never guesses missing deltas.
+Projection batches are immutable and knowledge-scoped. A projection declares campaign, observer faction/player, base revision, new revision, tick, state hash, changed views, removals, alerts, command decisions, and explanations. C# rejects gaps and requests a full snapshot; it never guesses missing deltas. `csw_status_into` follows the same caller-owned-buffer rule, so no language-dependent C struct crosses the ABI.

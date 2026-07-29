@@ -15,3 +15,6 @@ reported as a remediation artifact because the current lockfile has seven known 
 WP02-A adds a pinned Rust 1.89 workspace smoke lane: `bash tests/wp02/test_native_workspace.sh`.
 It verifies the five-crate inward dependency graph and runs locked unit/doc tests; FlatBuffers and the
 final FFI conformance suite remain deliberately pending until `flatc` is pinned.
+The companion `bash tests/wp02/test_contract_boundaries.sh` compiles the C
+header and rejects platform-dependent status structs, unframed FlatBuffers
+roots, and projection schemas without removals, alerts, or explanations.

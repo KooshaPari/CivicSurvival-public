@@ -33,16 +33,6 @@ typedef enum CswResult {
     CSW_INTERNAL_PANIC = 13
 } CswResult;
 
-typedef struct CswStatus {
-    uint32_t abi_version;
-    uint32_t schema_version;
-    uint32_t save_version;
-    uint32_t runtime_state;
-    uint64_t tick;
-    uint64_t revision;
-    uint64_t last_sequence;
-} CswStatus;
-
 CSW_API uint32_t csw_abi_version(void);
 CSW_API CswResult csw_create(const uint8_t *config, size_t config_len, CswRuntime **out_runtime);
 CSW_API CswResult csw_load(const uint8_t *save, size_t save_len, CswRuntime **out_runtime);
@@ -50,7 +40,8 @@ CSW_API CswResult csw_submit_commands(CswRuntime *runtime, const uint8_t *batch,
 CSW_API CswResult csw_step(CswRuntime *runtime, const uint8_t *observations, size_t observations_len, uint32_t max_ticks);
 CSW_API CswResult csw_poll_into(CswRuntime *runtime, uint8_t *out, size_t out_len, size_t *required_len);
 CSW_API CswResult csw_save_into(CswRuntime *runtime, uint8_t *out, size_t out_len, size_t *required_len);
-CSW_API CswResult csw_status(const CswRuntime *runtime, CswStatus *out_status);
+/* Status is serialized into a caller-owned, versioned byte buffer. */
+CSW_API CswResult csw_status_into(const CswRuntime *runtime, uint8_t *out, size_t out_len, size_t *required_len);
 CSW_API CswResult csw_last_error_into(const CswRuntime *runtime, uint8_t *out, size_t out_len, size_t *required_len);
 CSW_API void csw_destroy(CswRuntime *runtime);
 

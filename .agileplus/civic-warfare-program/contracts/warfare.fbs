@@ -74,6 +74,9 @@ table ProjectionDelta {
   decisions:[CommandDecision] (id: 6);
   outcomes:[OutcomeEnvelope] (id: 7);
   views:[ubyte] (id: 8);
+  removals:[ubyte] (id: 9);
+  alerts:[ubyte] (id: 10);
+  explanations:[ubyte] (id: 11);
 }
 
 table SaveEnvelope {
@@ -91,5 +94,11 @@ table SaveEnvelope {
   checksum:[ubyte] (id: 11);
 }
 
-root_type ProjectionDelta;
+union RootPayload { CommandBatch, ProjectionDelta, SaveEnvelope }
+
+table Envelope {
+  payload:RootPayload (id: 1);
+}
+
+root_type Envelope;
 file_identifier "CSWP";
