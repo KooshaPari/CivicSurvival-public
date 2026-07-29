@@ -32,5 +32,10 @@ decode payloads. Building `civic-ffi` locally now requires `flatc` 25.12.19
 on `PATH` (or `CIVIC_FLATC=/path/to/flatc`); this is intentional so the FFI
 cannot silently compile against stale generated bindings.
 
+Transport typing is explicit: load requires a `SaveEnvelope`, command
+submission requires a `CommandBatch`, and generic construction may use an
+empty bootstrap buffer or any structurally valid envelope. Payload decoding,
+state replacement, and output serialization remain future slices.
+
 The exact Rust toolchain is pinned in `rust-toolchain.toml`; `Cargo.lock` is
 committed even though this first slice has no external crates.

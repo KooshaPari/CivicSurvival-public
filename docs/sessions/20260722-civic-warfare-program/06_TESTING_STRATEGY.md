@@ -36,3 +36,5 @@ pinned compiler, builds an exact-runtime temporary crate, and proves valid
 The same generated module is now used inside `civic-ffi` via `build.rs`; nonempty
 config/save/command buffers are rejected unless they carry a valid Envelope
 identifier and verifier-safe offsets.
+FFI unit coverage rejects a structurally valid but wrong union kind for load
+and submit while preserving empty bootstrap construction.

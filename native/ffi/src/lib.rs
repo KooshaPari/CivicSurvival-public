@@ -75,18 +75,31 @@ fn copy_bytes(out: *mut u8, out_len: usize, required_len: *mut usize, bytes: &[u
     CswResult::Ok
 }
 
-fn verify_envelope(bytes: *const u8, len: usize) -> CswResult {
+fn verify_envelope(
+    bytes: *const u8,
+    len: usize,
+    expected_kind: Option<warfare_generated::civic_survival::warfare::contracts::RootPayload>,
+) -> CswResult {
     if bytes.is_null() && len != 0 {
         return CswResult::InvalidArgument;
     }
     if len == 0 {
-        return CswResult::Ok;
+        return if expected_kind.is_some() { CswResult::InvalidArgument } else { CswResult::Ok };
     }
     let bytes = unsafe { std::slice::from_raw_parts(bytes, len) };
     if !envelope_buffer_has_identifier(bytes) {
         return CswResult::SchemaMismatch;
     }
-    root_as_envelope(bytes).map_or(CswResult::CorruptData, |_| CswResult::Ok)
+    match root_as_envelope(bytes) {
+        Ok(envelope) => {
+            if expected_kind.is_some_and(|kind| envelope.payload_type() != kind) {
+                CswResult::SchemaMismatch
+            } else {
+                CswResult::Ok
+            }
+        }
+        Err(_) => CswResult::CorruptData,
+    }
 }
 
 fn status_bytes(runtime: &Runtime) -> [u8; STATUS_LEN] {
@@ -116,7 +129,7 @@ pub extern "C" fn csw_create(
         if out_runtime.is_null() || (config.is_null() && config_len != 0) {
             return CswResult::InvalidArgument;
         }
-        let verification = verify_envelope(config, config_len);
+        let verification = verify_envelope(config, config_len, None);
         if verification != CswResult::Ok {
             return verification;
         }
@@ -132,7 +145,12 @@ pub extern "C" fn csw_load(
     save_len: usize,
     out_runtime: *mut *mut CswRuntime,
 ) -> CswResult {
-    csw_create(save, save_len, out_runtime)
+    let expected = warfare_generated::civic_survival::warfare::contracts::RootPayload::SaveEnvelope;
+    let verification = verify_envelope(save, save_len, Some(expected));
+    if verification != CswResult::Ok {
+        return verification;
+    }
+    csw_create(ptr::null(), 0, out_runtime)
 }
 
 #[unsafe(no_mangle)]
@@ -145,7 +163,8 @@ pub extern "C" fn csw_submit_commands(
         if batch.is_null() && batch_len != 0 {
             return CswResult::InvalidArgument;
         }
-        let verification = verify_envelope(batch, batch_len);
+        let expected = warfare_generated::civic_survival::warfare::contracts::RootPayload::CommandBatch;
+        let verification = verify_envelope(batch, batch_len, Some(expected));
         if verification != CswResult::Ok {
             return verification;
         }
@@ -269,7 +288,7 @@ mod tests {
     #[test]
     fn step_and_empty_output_calls_are_bounded() {
         let mut handle = ptr::null_mut();
-        assert_eq!(csw_load(ptr::null(), 0, &mut handle), CswResult::Ok);
+        assert_eq!(csw_create(ptr::null(), 0, &mut handle), CswResult::Ok);
         assert_eq!(csw_step(handle, ptr::null(), 0, 3), CswResult::Ok);
         let mut status = [0; STATUS_LEN];
         let mut required = 0;
@@ -286,7 +305,7 @@ mod tests {
         let valid = valid_envelope();
         let mut handle = ptr::null_mut();
         assert_eq!(csw_create(valid.as_ptr(), valid.len(), &mut handle), CswResult::Ok);
-        assert_eq!(csw_submit_commands(handle, valid.as_ptr(), valid.len()), CswResult::Ok);
+        assert_eq!(csw_submit_commands(handle, valid.as_ptr(), valid.len()), CswResult::SchemaMismatch);
 
         let mut truncated = valid.clone();
         truncated.pop();
@@ -296,6 +315,7 @@ mod tests {
         wrong_identifier[4..8].copy_from_slice(b"NOPE");
         let mut replacement = ptr::null_mut();
         assert_eq!(csw_load(wrong_identifier.as_ptr(), wrong_identifier.len(), &mut replacement), CswResult::SchemaMismatch);
+        assert_eq!(csw_load(ptr::null(), 0, &mut replacement), CswResult::InvalidArgument);
         csw_destroy(handle);
     }
 }
