@@ -1,0 +1,15 @@
+namespace CivicSurvival.Warfare.Contracts;
+
+enum CommandKind : ushort { None, SetPolicy, SetDelegation, Procure, Construct, Mobilize, AssignForce, CreateOperation, UpdateOperation, CancelOperation, SetMission, Negotiate, ConductCovertOperation, RespondToCivilEvent }
+enum DecisionCode : ushort { Accepted, Duplicate, RevisionConflict, Unauthorized, InvalidConfiguration, MissingPrerequisite, InsufficientResources, InvalidTarget, Expired, RejectedByPolicy }
+
+table CommandEnvelope { command_id:[ubyte] (id: 0); campaign_id:[ubyte] (id: 1); issuer_id:[ubyte] (id: 2); submitted_tick:ulong (id: 3); scheduled_tick:ulong (id: 4); priority:int (id: 5); expected_revision:ulong (id: 6); kind:CommandKind (id: 7); payload:[ubyte] (id: 8); }
+table CommandBatch { schema_version:uint (id: 0); commands:[CommandEnvelope] (id: 1); }
+table CommandDecision { command_id:[ubyte] (id: 0); code:DecisionCode (id: 1); reason_key:string (id: 2); validated_revision:ulong (id: 3); details:[ubyte] (id: 4); }
+table OutcomeEnvelope { command_id:[ubyte] (id: 0); tick:ulong (id: 1); sequence:ulong (id: 2); context:ushort (id: 3); kind:ushort (id: 4); payload:[ubyte] (id: 5); }
+table ProjectionDelta { campaign_id:[ubyte] (id: 0); observer_id:[ubyte] (id: 1); base_revision:ulong (id: 2); new_revision:ulong (id: 3); tick:ulong (id: 4); state_hash:[ubyte] (id: 5); decisions:[CommandDecision] (id: 6); outcomes:[OutcomeEnvelope] (id: 7); views:[ubyte] (id: 8); removals:[ubyte] (id: 9); alerts:[ubyte] (id: 10); explanations:[ubyte] (id: 11); }
+table SaveEnvelope { abi_version:uint (id: 0); schema_version:uint (id: 1); save_version:uint (id: 2); rng_version:uint (id: 3); campaign_id:[ubyte] (id: 4); rules_manifest_hash:[ubyte] (id: 5); tick:ulong (id: 6); revision:ulong (id: 7); snapshot:[ubyte] (id: 8); journal_checkpoint:[ubyte] (id: 9); canonical_hash:[ubyte] (id: 10); checksum:[ubyte] (id: 11); }
+union RootPayload { CommandBatch, ProjectionDelta, SaveEnvelope }
+table Envelope { payload:RootPayload (id: 1); }
+root_type Envelope;
+file_identifier "CSWP";
