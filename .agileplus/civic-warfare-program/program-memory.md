@@ -61,6 +61,7 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
 - WP02-A FFI verifier integration: `native/ffi/build.rs` generates bindings at build time and `civic-ffi` now rejects malformed nonempty config/save/command envelopes as `CSW_SCHEMA_MISMATCH` or `CSW_CORRUPT_DATA`; empty bootstrap buffers remain allowed.
 - WP02-A payload typing: `csw_load` now requires `RootPayload::SaveEnvelope` and `csw_submit_commands` requires `RootPayload::CommandBatch`; generic Envelope validation remains separate from authoritative decode/serialization.
 - WP02-A semantic gates: SaveEnvelope versions are checked against ABI/schema/save/RNG version 1 and required save vectors must be present; command batches require schema version 1. Failed create paths clear the caller output handle before returning.
+- WP02-A transactional load: minimal valid SaveEnvelope and CommandBatch vectors now pass; load constructs a temporary runtime with saved tick/revision and publishes the handle only after version, required-vector, and fixed-width hash/ID checks.
 - Gameplay implementation: intentionally not started.
 
 ## Anti-Drift Rules

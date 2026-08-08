@@ -41,3 +41,6 @@ and submit while preserving empty bootstrap construction.
 Semantic gates now require SaveEnvelope ABI/schema/save/RNG version 1 plus
 required save vectors, and CommandBatch schema version 1; hash/checksum
 verification and state replacement remain pending.
+Minimal typed CommandBatch and SaveEnvelope vectors now pass; `csw_load`
+publishes a candidate runtime only after metadata and fixed-width vector checks,
+and restores saved tick/revision counters.

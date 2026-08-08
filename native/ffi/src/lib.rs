@@ -9,7 +9,7 @@ mod warfare_generated {
 }
 
 use warfare_generated::civic_survival::warfare::contracts::{
-    envelope_buffer_has_identifier, root_as_envelope,
+    envelope_buffer_has_identifier, root_as_envelope, RootPayload,
 };
 
 pub const ABI_VERSION: u32 = 1;
@@ -138,16 +138,34 @@ fn validate_save_envelope(bytes: *const u8, len: usize) -> CswResult {
     {
         return CswResult::UnsupportedVersion;
     }
-    if save.campaign_id().is_none()
-        || save.rules_manifest_hash().is_none()
-        || save.snapshot().is_none()
-        || save.journal_checkpoint().is_none()
-        || save.canonical_hash().is_none()
-        || save.checksum().is_none()
+    let Some(campaign_id) = save.campaign_id() else { return CswResult::InvalidArgument };
+    let Some(rules_hash) = save.rules_manifest_hash() else { return CswResult::InvalidArgument };
+    let Some(snapshot) = save.snapshot() else { return CswResult::InvalidArgument };
+    let Some(checkpoint) = save.journal_checkpoint() else { return CswResult::InvalidArgument };
+    let Some(canonical_hash) = save.canonical_hash() else { return CswResult::InvalidArgument };
+    let Some(checksum) = save.checksum() else { return CswResult::InvalidArgument };
+    if campaign_id.len() != 16
+        || rules_hash.len() != 32
+        || snapshot.is_empty()
+        || checkpoint.is_empty()
+        || canonical_hash.len() != 32
+        || checksum.len() != 32
     {
         return CswResult::InvalidArgument;
     }
     CswResult::Ok
+}
+
+fn runtime_from_save(bytes: *const u8, len: usize) -> Result<Runtime, CswResult> {
+    let slice = unsafe { std::slice::from_raw_parts(bytes, len) };
+    let envelope = root_as_envelope(slice).map_err(|_| CswResult::CorruptData)?;
+    let save = envelope.payload_as_save_envelope().ok_or(CswResult::SchemaMismatch)?;
+    Ok(Runtime {
+        tick: save.tick(),
+        revision: save.revision(),
+        last_sequence: 0,
+        last_error: Vec::new(),
+    })
 }
 
 fn status_bytes(runtime: &Runtime) -> [u8; STATUS_LEN] {
@@ -197,16 +215,27 @@ pub extern "C" fn csw_load(
     save_len: usize,
     out_runtime: *mut *mut CswRuntime,
 ) -> CswResult {
-    let expected = warfare_generated::civic_survival::warfare::contracts::RootPayload::SaveEnvelope;
-    let verification = verify_envelope(save, save_len, Some(expected));
-    if verification != CswResult::Ok {
-        return verification;
-    }
-    let semantic = validate_save_envelope(save, save_len);
-    if semantic != CswResult::Ok {
-        return semantic;
-    }
-    csw_create(ptr::null(), 0, out_runtime)
+    guarded(|| {
+        if out_runtime.is_null() {
+            return CswResult::InvalidArgument;
+        }
+        unsafe { *out_runtime = ptr::null_mut() };
+        let expected = RootPayload::SaveEnvelope;
+        let verification = verify_envelope(save, save_len, Some(expected));
+        if verification != CswResult::Ok {
+            return verification;
+        }
+        let semantic = validate_save_envelope(save, save_len);
+        if semantic != CswResult::Ok {
+            return semantic;
+        }
+        let candidate = match runtime_from_save(save, save_len) {
+            Ok(value) => Box::new(value),
+            Err(error) => return error,
+        };
+        unsafe { *out_runtime = Box::into_raw(candidate).cast::<CswRuntime>() };
+        CswResult::Ok
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -308,13 +337,59 @@ pub extern "C" fn csw_last_error_into(
 mod tests {
     use super::*;
     use flatbuffers::FlatBufferBuilder;
-    use warfare_generated::civic_survival::warfare::contracts::{Envelope, EnvelopeArgs, RootPayload};
+    use warfare_generated::civic_survival::warfare::contracts::{
+        CommandBatch, CommandBatchArgs, Envelope, EnvelopeArgs, SaveEnvelope, SaveEnvelopeArgs,
+    };
 
     fn valid_envelope() -> Vec<u8> {
         let mut builder = FlatBufferBuilder::new();
         let envelope = Envelope::create(&mut builder, &EnvelopeArgs {
             payload_type: RootPayload::NONE,
             payload: None,
+        });
+        builder.finish(envelope, Some("CSWP"));
+        builder.finished_data().to_vec()
+    }
+
+    fn valid_command_batch() -> Vec<u8> {
+        let mut builder = FlatBufferBuilder::new();
+        let batch = CommandBatch::create(&mut builder, &CommandBatchArgs {
+            schema_version: SCHEMA_VERSION,
+            commands: None,
+        });
+        let envelope = Envelope::create(&mut builder, &EnvelopeArgs {
+            payload_type: RootPayload::CommandBatch,
+            payload: Some(batch.as_union_value()),
+        });
+        builder.finish(envelope, Some("CSWP"));
+        builder.finished_data().to_vec()
+    }
+
+    fn valid_save_envelope() -> Vec<u8> {
+        let mut builder = FlatBufferBuilder::new();
+        let campaign_id = builder.create_vector(&[0x11u8; 16]);
+        let rules_hash = builder.create_vector(&[0x22u8; 32]);
+        let snapshot = builder.create_vector(&[0x33u8, 0x44]);
+        let checkpoint = builder.create_vector(&[0x55u8]);
+        let canonical_hash = builder.create_vector(&[0x66u8; 32]);
+        let checksum = builder.create_vector(&[0x77u8; 32]);
+        let save = SaveEnvelope::create(&mut builder, &SaveEnvelopeArgs {
+            abi_version: ABI_VERSION,
+            schema_version: SCHEMA_VERSION,
+            save_version: SAVE_VERSION,
+            rng_version: RNG_VERSION,
+            campaign_id: Some(campaign_id),
+            rules_manifest_hash: Some(rules_hash),
+            tick: 7,
+            revision: 9,
+            snapshot: Some(snapshot),
+            journal_checkpoint: Some(checkpoint),
+            canonical_hash: Some(canonical_hash),
+            checksum: Some(checksum),
+        });
+        let envelope = Envelope::create(&mut builder, &EnvelopeArgs {
+            payload_type: RootPayload::SaveEnvelope,
+            payload: Some(save.as_union_value()),
         });
         builder.finish(envelope, Some("CSWP"));
         builder.finished_data().to_vec()
@@ -376,6 +451,26 @@ mod tests {
         let mut replacement = ptr::null_mut();
         assert_eq!(csw_load(wrong_identifier.as_ptr(), wrong_identifier.len(), &mut replacement), CswResult::SchemaMismatch);
         assert_eq!(csw_load(ptr::null(), 0, &mut replacement), CswResult::InvalidArgument);
+        csw_destroy(handle);
+    }
+
+    #[test]
+    fn typed_vectors_are_accepted_and_load_is_transactional() {
+        let command_batch = valid_command_batch();
+        let mut handle = ptr::null_mut();
+        assert_eq!(csw_create(ptr::null(), 0, &mut handle), CswResult::Ok);
+        assert_eq!(csw_submit_commands(handle, command_batch.as_ptr(), command_batch.len()), CswResult::Ok);
+
+        let save = valid_save_envelope();
+        let mut loaded = ptr::null_mut();
+        assert_eq!(csw_load(save.as_ptr(), save.len(), &mut loaded), CswResult::Ok);
+        assert!(!loaded.is_null());
+        let mut status = [0; STATUS_LEN];
+        let mut required = 0;
+        assert_eq!(csw_status_into(loaded, status.as_mut_ptr(), status.len(), &mut required), CswResult::Ok);
+        assert_eq!(u64::from_le_bytes(status[16..24].try_into().unwrap()), 7);
+        assert_eq!(u64::from_le_bytes(status[24..32].try_into().unwrap()), 9);
+        csw_destroy(loaded);
         csw_destroy(handle);
     }
 }
