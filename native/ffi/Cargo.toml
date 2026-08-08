@@ -10,3 +10,4 @@ crate-type = ["cdylib", "rlib"]
 civic-application = { path = "../application" }
 civic-model = { path = "../model" }
 flatbuffers = "=25.12.19"
+blake3 = "=1.8.6"

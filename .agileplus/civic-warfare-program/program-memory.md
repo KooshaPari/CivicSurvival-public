@@ -62,6 +62,7 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
 - WP02-A payload typing: `csw_load` now requires `RootPayload::SaveEnvelope` and `csw_submit_commands` requires `RootPayload::CommandBatch`; generic Envelope validation remains separate from authoritative decode/serialization.
 - WP02-A semantic gates: SaveEnvelope versions are checked against ABI/schema/save/RNG version 1 and required save vectors must be present; command batches require schema version 1. Failed create paths clear the caller output handle before returning.
 - WP02-A transactional load: minimal valid SaveEnvelope and CommandBatch vectors now pass; load constructs a temporary runtime with saved tick/revision and publishes the handle only after version, required-vector, and fixed-width hash/ID checks.
+- WP02-A save integrity/round-trip: SaveEnvelope state now uses domain-separated, length-framed BLAKE3 canonical and checksum digests; `csw_save_into` deterministically rebuilds a verified SaveEnvelope, and load/save round-trip plus tamper rejection are covered by native tests.
 - Gameplay implementation: intentionally not started.
 
 ## Anti-Drift Rules

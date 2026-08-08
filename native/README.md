@@ -19,11 +19,10 @@ projection deltas carry explicit removals, alerts, and explanations. The
 static boundary test catches regressions while pinned `flatc` conformance is
 still a WP02 follow-up.
 
-`civic-ffi` now builds as `cdylib`/`rlib` and exposes a no-op, panic-contained
+`civic-ffi` now builds as `cdylib`/`rlib` and exposes a panic-contained
 transport lifecycle: create/load/destroy, bounded step/submit calls, and
-caller-owned status/error/poll/save buffers. It intentionally does not parse
-FlatBuffers or claim gameplay behavior; generated verifier integration and
-golden malformed-buffer vectors are the next gate. The C11 fixture at
+caller-owned status/error/poll/save buffers. It does not claim gameplay behavior.
+The C11 fixture at
 `tests/wp02/ffi_smoke.c` proves that the exported library links and executes;
 load/submit/poll/save are still intentionally non-authoritative stubs.
 CI also generates Rust bindings with the pinned FlatBuffers runtime and runs
@@ -34,8 +33,10 @@ cannot silently compile against stale generated bindings.
 
 Transport typing is explicit: load requires a `SaveEnvelope`, command
 submission requires a `CommandBatch`, and generic construction may use an
-empty bootstrap buffer or any structurally valid envelope. Payload decoding,
-state replacement, and output serialization remain future slices.
+empty bootstrap buffer or any structurally valid envelope. Save state is
+validated with domain-separated, length-framed BLAKE3 canonical/checksum
+digests before publication; `csw_save_into` deterministically rebuilds the
+verified envelope, with native round-trip and tamper tests.
 
 The exact Rust toolchain is pinned in `rust-toolchain.toml`; `Cargo.lock` is
-committed even though this first slice has no external crates.
+committed, including the pinned BLAKE3 integrity dependency.
