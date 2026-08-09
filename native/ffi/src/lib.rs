@@ -10,7 +10,7 @@ mod warfare_generated {
 }
 
 use warfare_generated::civic_survival::warfare::contracts::{
-    envelope_buffer_has_identifier, root_as_envelope, CommandKind, Envelope, EnvelopeArgs, RootPayload,
+    envelope_buffer_has_identifier, root_as_envelope, CommandDecision, CommandDecisionArgs, CommandKind, DecisionCode, Envelope, EnvelopeArgs, ProjectionDelta, ProjectionDeltaArgs, RootPayload,
     SaveEnvelope, SaveEnvelopeArgs,
 };
 
@@ -334,6 +334,34 @@ fn save_bytes(runtime: &Runtime) -> Result<Vec<u8>, CswResult> {
     Ok(builder.finished_data().to_vec())
 }
 
+fn projection_bytes(runtime: &Runtime) -> Result<Vec<u8>, CswResult> {
+    if !runtime.initialized { return Err(CswResult::InvalidState); }
+    let mut builder = flatbuffers::FlatBufferBuilder::new();
+    let mut decisions = Vec::with_capacity(runtime.accepted_command_ids.len());
+    for id in &runtime.accepted_command_ids {
+        let command_id = builder.create_vector(id);
+        let reason = builder.create_string("accepted");
+        decisions.push(CommandDecision::create(&mut builder, &CommandDecisionArgs {
+            command_id: Some(command_id), code: DecisionCode::Accepted,
+            reason_key: Some(reason), validated_revision: runtime.revision, details: None,
+        }));
+    }
+    let decisions = builder.create_vector(&decisions);
+    let campaign_id = builder.create_vector(&runtime.campaign_id);
+    let observer_id = builder.create_vector(&[0u8; ID_LEN]);
+    let state_hash = builder.create_vector(&runtime.canonical_hash);
+    let delta = ProjectionDelta::create(&mut builder, &ProjectionDeltaArgs {
+        campaign_id: Some(campaign_id), observer_id: Some(observer_id),
+        base_revision: runtime.revision.saturating_sub(1), new_revision: runtime.revision,
+        tick: runtime.tick, state_hash: Some(state_hash), decisions: Some(decisions),
+        outcomes: None, views: None, removals: None, alerts: None, explanations: None,
+    });
+    let payload = delta.as_union_value();
+    let envelope = Envelope::create(&mut builder, &EnvelopeArgs { payload_type: RootPayload::ProjectionDelta, payload: Some(payload) });
+    builder.finish(envelope, Some("CSWP"));
+    Ok(builder.finished_data().to_vec())
+}
+
 #[unsafe(no_mangle)]
 pub extern "C" fn csw_abi_version() -> u32 {
     ABI_VERSION
@@ -445,7 +473,7 @@ pub extern "C" fn csw_poll_into(
     out_len: usize,
     required_len: *mut usize,
 ) -> CswResult {
-    guarded(|| unsafe { runtime_ref(runtime.cast_const()).map_or_else(|error| error, |_| copy_bytes(out, out_len, required_len, &[])) })
+    guarded(|| unsafe { runtime_ref(runtime.cast_const()).map_or_else(|error| error, |value| match projection_bytes(value) { Ok(bytes) => copy_bytes(out, out_len, required_len, &bytes), Err(error) => error }) })
 }
 
 #[unsafe(no_mangle)]

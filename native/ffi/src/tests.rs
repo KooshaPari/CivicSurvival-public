@@ -117,8 +117,7 @@
         let mut required = 0;
         assert_eq!(csw_status_into(handle, status.as_mut_ptr(), status.len(), &mut required), CswResult::Ok);
         assert_eq!(u64::from_le_bytes(status[16..24].try_into().unwrap()), 3);
-        assert_eq!(csw_poll_into(handle, ptr::null_mut(), 0, &mut required), CswResult::Ok);
-        assert_eq!(required, 0);
+        assert_eq!(csw_poll_into(handle, ptr::null_mut(), 0, &mut required), CswResult::InvalidState);
         assert_eq!(csw_save_into(handle, ptr::null_mut(), 0, &mut required), CswResult::InvalidState);
         csw_destroy(handle);
     }
