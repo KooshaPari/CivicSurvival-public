@@ -21,6 +21,9 @@ const RNG_VERSION: u32 = 1;
 const STATUS_LEN: usize = 40;
 const ID_LEN: usize = 16;
 const MAX_COMMANDS_PER_BATCH: usize = 256;
+const MAX_ACCEPTED_COMMAND_IDS: usize = 4096;
+const JOURNAL_MAGIC: &[u8; 4] = b"CSWH";
+const JOURNAL_VERSION: u32 = 1;
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -240,6 +243,35 @@ fn checksum_hash(canonical: &[u8; 32]) -> [u8; 32] {
     *blake3::hash(&material).as_bytes()
 }
 
+fn encode_command_history(ids: &BTreeSet<[u8; ID_LEN]>) -> Vec<u8> {
+    let mut bytes = Vec::with_capacity(12 + ids.len() * ID_LEN);
+    bytes.extend_from_slice(JOURNAL_MAGIC);
+    bytes.extend_from_slice(&JOURNAL_VERSION.to_le_bytes());
+    bytes.extend_from_slice(&(ids.len() as u32).to_le_bytes());
+    for id in ids { bytes.extend_from_slice(id); }
+    bytes
+}
+
+fn decode_command_history(bytes: &[u8]) -> Result<BTreeSet<[u8; ID_LEN]>, CswResult> {
+    if bytes.len() < 12 || &bytes[..4] != JOURNAL_MAGIC { return Err(CswResult::CorruptData); }
+    let version = u32::from_le_bytes(bytes[4..8].try_into().map_err(|_| CswResult::CorruptData)?);
+    if version != JOURNAL_VERSION { return Err(CswResult::UnsupportedVersion); }
+    let count = u32::from_le_bytes(bytes[8..12].try_into().map_err(|_| CswResult::CorruptData)?) as usize;
+    if count > MAX_ACCEPTED_COMMAND_IDS || bytes.len() != 12 + count * ID_LEN { return Err(CswResult::CorruptData); }
+    let mut ids = BTreeSet::new();
+    for chunk in bytes[12..].chunks_exact(ID_LEN) {
+        let id: [u8; ID_LEN] = chunk.try_into().map_err(|_| CswResult::CorruptData)?;
+        if !ids.insert(id) { return Err(CswResult::CorruptData); }
+    }
+    Ok(ids)
+}
+
+fn refresh_save_integrity(runtime: &mut Runtime) {
+    runtime.journal_checkpoint = encode_command_history(&runtime.accepted_command_ids);
+    runtime.canonical_hash = canonical_hash(&runtime.campaign_id, &runtime.rules_manifest_hash, runtime.tick, runtime.revision, &runtime.snapshot, &runtime.journal_checkpoint);
+    runtime.checksum = checksum_hash(&runtime.canonical_hash);
+}
+
 fn runtime_from_save(bytes: *const u8, len: usize) -> Result<Runtime, CswResult> {
     let slice = unsafe { std::slice::from_raw_parts(bytes, len) };
     let envelope = root_as_envelope(slice).map_err(|_| CswResult::CorruptData)?;
@@ -248,6 +280,8 @@ fn runtime_from_save(bytes: *const u8, len: usize) -> Result<Runtime, CswResult>
     let rules_hash = save.rules_manifest_hash().ok_or(CswResult::CorruptData)?.bytes().to_vec();
     let canonical = save.canonical_hash().ok_or(CswResult::CorruptData)?.bytes().to_vec();
     let checksum = save.checksum().ok_or(CswResult::CorruptData)?.bytes().to_vec();
+    let journal_checkpoint = save.journal_checkpoint().ok_or(CswResult::CorruptData)?.bytes().to_vec();
+    let accepted_command_ids = decode_command_history(&journal_checkpoint)?;
     Ok(Runtime {
         initialized: true,
         tick: save.tick(),
@@ -257,10 +291,10 @@ fn runtime_from_save(bytes: *const u8, len: usize) -> Result<Runtime, CswResult>
         campaign_id: campaign_id.try_into().map_err(|_| CswResult::CorruptData)?,
         rules_manifest_hash: rules_hash.try_into().map_err(|_| CswResult::CorruptData)?,
         snapshot: save.snapshot().ok_or(CswResult::CorruptData)?.bytes().to_vec(),
-        journal_checkpoint: save.journal_checkpoint().ok_or(CswResult::CorruptData)?.bytes().to_vec(),
+        journal_checkpoint,
         canonical_hash: canonical.try_into().map_err(|_| CswResult::CorruptData)?,
         checksum: checksum.try_into().map_err(|_| CswResult::CorruptData)?,
-        accepted_command_ids: BTreeSet::new(),
+        accepted_command_ids,
     })
 }
 
@@ -379,6 +413,7 @@ pub extern "C" fn csw_submit_commands(
         let runtime = &mut *(runtime.cast::<Runtime>());
         runtime.accepted_command_ids.extend(candidate);
         runtime.revision = runtime.revision.saturating_add(1);
+        refresh_save_integrity(runtime);
         CswResult::Ok
     })
 }
@@ -512,8 +547,9 @@ mod tests {
         let campaign_id = builder.create_vector(&[0x11u8; 16]);
         let rules_hash = builder.create_vector(&[0x22u8; 32]);
         let snapshot = builder.create_vector(&[0x33u8, 0x44]);
-        let checkpoint = builder.create_vector(&[0x55u8]);
-        let canonical = canonical_hash(&[0x11u8; 16], &[0x22u8; 32], 7, 9, &[0x33, 0x44], &[0x55]);
+        let checkpoint_bytes = encode_command_history(&BTreeSet::new());
+        let checkpoint = builder.create_vector(&checkpoint_bytes);
+        let canonical = canonical_hash(&[0x11u8; 16], &[0x22u8; 32], 7, 9, &[0x33, 0x44], &checkpoint_bytes);
         let checksum_value = checksum_hash(&canonical);
         let canonical_hash = builder.create_vector(&canonical);
         let checksum = builder.create_vector(&checksum_value);
@@ -666,6 +702,25 @@ mod tests {
         let mut after_duplicate = [0; STATUS_LEN];
         assert_eq!(csw_status_into(handle, after_duplicate.as_mut_ptr(), after_duplicate.len(), &mut required), CswResult::Ok);
         assert_eq!(after_duplicate, after_accept);
+        csw_destroy(handle);
+    }
+
+    #[test]
+    fn command_history_survives_save_and_load() {
+        let save = valid_save_envelope();
+        let mut handle = ptr::null_mut();
+        assert_eq!(csw_load(save.as_ptr(), save.len(), &mut handle), CswResult::Ok);
+        let accepted = command_batch(&[0xCD; 16], 9);
+        assert_eq!(csw_submit_commands(handle, accepted.as_ptr(), accepted.len()), CswResult::Ok);
+        let mut required = 0;
+        assert_eq!(csw_save_into(handle, ptr::null_mut(), 0, &mut required), CswResult::BufferTooSmall);
+        let mut persisted = vec![0; required];
+        assert_eq!(csw_save_into(handle, persisted.as_mut_ptr(), persisted.len(), &mut required), CswResult::Ok);
+        let mut restored = ptr::null_mut();
+        assert_eq!(csw_load(persisted.as_ptr(), persisted.len(), &mut restored), CswResult::Ok);
+        let replay = command_batch(&[0xCD; 16], 10);
+        assert_eq!(csw_submit_commands(restored, replay.as_ptr(), replay.len()), CswResult::InvalidArgument);
+        csw_destroy(restored);
         csw_destroy(handle);
     }
 }
