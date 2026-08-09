@@ -1,5 +1,6 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 
+use std::collections::BTreeSet;
 use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::ptr;
 
@@ -9,7 +10,7 @@ mod warfare_generated {
 }
 
 use warfare_generated::civic_survival::warfare::contracts::{
-    envelope_buffer_has_identifier, root_as_envelope, Envelope, EnvelopeArgs, RootPayload,
+    envelope_buffer_has_identifier, root_as_envelope, CommandKind, Envelope, EnvelopeArgs, RootPayload,
     SaveEnvelope, SaveEnvelopeArgs,
 };
 
@@ -18,6 +19,8 @@ const SCHEMA_VERSION: u32 = 1;
 const SAVE_VERSION: u32 = 1;
 const RNG_VERSION: u32 = 1;
 const STATUS_LEN: usize = 40;
+const ID_LEN: usize = 16;
+const MAX_COMMANDS_PER_BATCH: usize = 256;
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -50,6 +53,7 @@ struct Runtime {
     journal_checkpoint: Vec<u8>,
     canonical_hash: [u8; 32],
     checksum: [u8; 32],
+    accepted_command_ids: BTreeSet<[u8; ID_LEN]>,
 }
 
 #[repr(C)]
@@ -113,19 +117,37 @@ fn verify_envelope(
     }
 }
 
-fn validate_command_batch(bytes: *const u8, len: usize) -> CswResult {
-    let bytes = unsafe { std::slice::from_raw_parts(bytes, len) };
+fn decode_command_batch(bytes: &[u8], runtime: &Runtime) -> Result<Vec<[u8; ID_LEN]>, CswResult> {
+    if !runtime.initialized { return Err(CswResult::InvalidState); }
     let envelope = match root_as_envelope(bytes) {
         Ok(value) => value,
-        Err(_) => return CswResult::CorruptData,
+        Err(_) => return Err(CswResult::CorruptData),
     };
     let Some(batch) = envelope.payload_as_command_batch() else {
-        return CswResult::SchemaMismatch;
+        return Err(CswResult::SchemaMismatch);
     };
     if batch.schema_version() != SCHEMA_VERSION {
-        return CswResult::UnsupportedVersion;
+        return Err(CswResult::UnsupportedVersion);
     }
-    CswResult::Ok
+    let Some(commands) = batch.commands() else { return Err(CswResult::InvalidArgument) };
+    if commands.is_empty() || commands.len() > MAX_COMMANDS_PER_BATCH { return Err(CswResult::BudgetExceeded); }
+    let mut candidate_ids = BTreeSet::new();
+    for command in commands {
+        let Some(command_id) = command.command_id() else { return Err(CswResult::InvalidArgument) };
+        let Some(campaign_id) = command.campaign_id() else { return Err(CswResult::InvalidArgument) };
+        let Some(issuer_id) = command.issuer_id() else { return Err(CswResult::InvalidArgument) };
+        let Some(payload) = command.payload() else { return Err(CswResult::InvalidArgument) };
+        if command_id.len() != ID_LEN || campaign_id.len() != ID_LEN || issuer_id.len() != ID_LEN
+            || campaign_id.bytes() != runtime.campaign_id || payload.is_empty()
+            || command.kind() == CommandKind::None || command.submitted_tick() > command.scheduled_tick()
+            || command.expected_revision() != runtime.revision
+        { return Err(CswResult::InvalidArgument); }
+        let id: [u8; ID_LEN] = command_id.bytes().try_into().map_err(|_| CswResult::InvalidArgument)?;
+        if runtime.accepted_command_ids.contains(&id) || !candidate_ids.insert(id) {
+            return Err(CswResult::InvalidArgument);
+        }
+    }
+    Ok(candidate_ids.into_iter().collect())
 }
 
 fn validate_save_envelope(bytes: *const u8, len: usize) -> CswResult {
@@ -238,6 +260,7 @@ fn runtime_from_save(bytes: *const u8, len: usize) -> Result<Runtime, CswResult>
         journal_checkpoint: save.journal_checkpoint().ok_or(CswResult::CorruptData)?.bytes().to_vec(),
         canonical_hash: canonical.try_into().map_err(|_| CswResult::CorruptData)?,
         checksum: checksum.try_into().map_err(|_| CswResult::CorruptData)?,
+        accepted_command_ids: BTreeSet::new(),
     })
 }
 
@@ -300,7 +323,7 @@ pub extern "C" fn csw_create(
         if verification != CswResult::Ok {
             return verification;
         }
-        let runtime = Box::new(Runtime { initialized: false, tick: 0, revision: 0, last_sequence: 0, last_error: Vec::new(), campaign_id: [0; 16], rules_manifest_hash: [0; 32], snapshot: Vec::new(), journal_checkpoint: Vec::new(), canonical_hash: [0; 32], checksum: [0; 32] });
+        let runtime = Box::new(Runtime { initialized: false, tick: 0, revision: 0, last_sequence: 0, last_error: Vec::new(), campaign_id: [0; 16], rules_manifest_hash: [0; 32], snapshot: Vec::new(), journal_checkpoint: Vec::new(), canonical_hash: [0; 32], checksum: [0; 32], accepted_command_ids: BTreeSet::new() });
         unsafe { *out_runtime = Box::into_raw(runtime).cast::<CswRuntime>() };
         CswResult::Ok
     })
@@ -350,14 +373,13 @@ pub extern "C" fn csw_submit_commands(
         if verification != CswResult::Ok {
             return verification;
         }
-        let semantic = validate_command_batch(batch, batch_len);
-        if semantic != CswResult::Ok {
-            return semantic;
-        }
-        runtime_ref(runtime.cast_const()).map_or_else(|error| error, |value| {
-            let _ = value;
-            CswResult::Ok
-        })
+        let value = match runtime_ref(runtime.cast_const()) { Ok(value) => value, Err(error) => return error };
+        let bytes = std::slice::from_raw_parts(batch, batch_len);
+        let candidate = match decode_command_batch(bytes, value) { Ok(value) => value, Err(error) => return error };
+        let runtime = &mut *(runtime.cast::<Runtime>());
+        runtime.accepted_command_ids.extend(candidate);
+        runtime.revision = runtime.revision.saturating_add(1);
+        CswResult::Ok
     })
 }
 
@@ -435,7 +457,8 @@ mod tests {
     use super::*;
     use flatbuffers::FlatBufferBuilder;
     use warfare_generated::civic_survival::warfare::contracts::{
-        CommandBatch, CommandBatchArgs, Envelope, EnvelopeArgs, SaveEnvelope, SaveEnvelopeArgs,
+        CommandBatch, CommandBatchArgs, CommandEnvelope, CommandEnvelopeArgs, CommandKind,
+        Envelope, EnvelopeArgs, SaveEnvelope, SaveEnvelopeArgs,
     };
 
     fn valid_envelope() -> Vec<u8> {
@@ -457,6 +480,28 @@ mod tests {
         let envelope = Envelope::create(&mut builder, &EnvelopeArgs {
             payload_type: RootPayload::CommandBatch,
             payload: Some(batch.as_union_value()),
+        });
+        builder.finish(envelope, Some("CSWP"));
+        builder.finished_data().to_vec()
+    }
+
+    fn command_batch(command_id: &[u8], expected_revision: u64) -> Vec<u8> {
+        let mut builder = FlatBufferBuilder::new();
+        let command_id = builder.create_vector(command_id);
+        let campaign_id = builder.create_vector(&[0x11u8; 16]);
+        let issuer_id = builder.create_vector(&[0x12u8; 16]);
+        let payload = builder.create_vector(&[0x01u8]);
+        let command = CommandEnvelope::create(&mut builder, &CommandEnvelopeArgs {
+            command_id: Some(command_id), campaign_id: Some(campaign_id), issuer_id: Some(issuer_id),
+            submitted_tick: 1, scheduled_tick: 1, priority: 0, expected_revision,
+            kind: CommandKind::Mobilize, payload: Some(payload),
+        });
+        let commands = builder.create_vector(&[command]);
+        let batch = CommandBatch::create(&mut builder, &CommandBatchArgs {
+            schema_version: SCHEMA_VERSION, commands: Some(commands),
+        });
+        let envelope = Envelope::create(&mut builder, &EnvelopeArgs {
+            payload_type: RootPayload::CommandBatch, payload: Some(batch.as_union_value()),
         });
         builder.finish(envelope, Some("CSWP"));
         builder.finished_data().to_vec()
@@ -558,7 +603,7 @@ mod tests {
         let command_batch = valid_command_batch();
         let mut handle = ptr::null_mut();
         assert_eq!(csw_create(ptr::null(), 0, &mut handle), CswResult::Ok);
-        assert_eq!(csw_submit_commands(handle, command_batch.as_ptr(), command_batch.len()), CswResult::Ok);
+        assert_eq!(csw_submit_commands(handle, command_batch.as_ptr(), command_batch.len()), CswResult::InvalidState);
 
         let save = valid_save_envelope();
         let mut loaded = ptr::null_mut();
@@ -586,6 +631,41 @@ mod tests {
         assert!(rejected.is_null());
         csw_destroy(round_tripped);
         csw_destroy(loaded);
+        csw_destroy(handle);
+    }
+
+    #[test]
+    fn command_batches_reject_invalid_ids_without_mutating_loaded_runtime() {
+        let save = valid_save_envelope();
+        let mut handle = ptr::null_mut();
+        assert_eq!(csw_load(save.as_ptr(), save.len(), &mut handle), CswResult::Ok);
+        let mut before = [0; STATUS_LEN];
+        let mut required = 0;
+        assert_eq!(csw_status_into(handle, before.as_mut_ptr(), before.len(), &mut required), CswResult::Ok);
+        let invalid = command_batch(&[0xAB], 9);
+        assert_eq!(csw_submit_commands(handle, invalid.as_ptr(), invalid.len()), CswResult::InvalidArgument);
+        let mut after = [0; STATUS_LEN];
+        assert_eq!(csw_status_into(handle, after.as_mut_ptr(), after.len(), &mut required), CswResult::Ok);
+        assert_eq!(after, before);
+        csw_destroy(handle);
+    }
+
+    #[test]
+    fn command_batch_commits_once_and_rejects_a_previously_accepted_id() {
+        let save = valid_save_envelope();
+        let mut handle = ptr::null_mut();
+        assert_eq!(csw_load(save.as_ptr(), save.len(), &mut handle), CswResult::Ok);
+        let accepted = command_batch(&[0xAB; 16], 9);
+        assert_eq!(csw_submit_commands(handle, accepted.as_ptr(), accepted.len()), CswResult::Ok);
+        let mut after_accept = [0; STATUS_LEN];
+        let mut required = 0;
+        assert_eq!(csw_status_into(handle, after_accept.as_mut_ptr(), after_accept.len(), &mut required), CswResult::Ok);
+        assert_eq!(u64::from_le_bytes(after_accept[24..32].try_into().unwrap()), 10);
+        let duplicate = command_batch(&[0xAB; 16], 10);
+        assert_eq!(csw_submit_commands(handle, duplicate.as_ptr(), duplicate.len()), CswResult::InvalidArgument);
+        let mut after_duplicate = [0; STATUS_LEN];
+        assert_eq!(csw_status_into(handle, after_duplicate.as_mut_ptr(), after_duplicate.len(), &mut required), CswResult::Ok);
+        assert_eq!(after_duplicate, after_accept);
         csw_destroy(handle);
     }
 }

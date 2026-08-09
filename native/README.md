@@ -38,5 +38,12 @@ validated with domain-separated, length-framed BLAKE3 canonical/checksum
 digests before publication; `csw_save_into` deterministically rebuilds the
 verified envelope, with native round-trip and tamper tests.
 
+Command submission is deterministic boundary bookkeeping: a loaded runtime
+accepts only a bounded, fully valid batch with matching revision and campaign.
+It rejects malformed or duplicate command IDs before mutation; an accepted
+batch records its IDs and advances the revision exactly once. This is not
+command execution or warfare simulation, and accepted-ID history is not yet
+persisted independently of the authoritative snapshot/journal.
+
 The exact Rust toolchain is pinned in `rust-toolchain.toml`; `Cargo.lock` is
 committed, including the pinned BLAKE3 integrity dependency.
