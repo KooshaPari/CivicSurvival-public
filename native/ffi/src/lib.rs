@@ -1,5 +1,8 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 
+mod command;
+mod projection;
+
 use std::collections::BTreeSet;
 use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::ptr;
@@ -10,9 +13,10 @@ mod warfare_generated {
 }
 
 use warfare_generated::civic_survival::warfare::contracts::{
-    envelope_buffer_has_identifier, root_as_envelope, CommandDecision, CommandDecisionArgs, CommandKind, DecisionCode, Envelope, EnvelopeArgs, ProjectionDelta, ProjectionDeltaArgs, RootPayload,
+    envelope_buffer_has_identifier, root_as_envelope, CommandKind, DecisionCode, Envelope, EnvelopeArgs, RootPayload,
     SaveEnvelope, SaveEnvelopeArgs,
 };
+use projection::{DecisionRecord, projection_bytes};
 
 pub const ABI_VERSION: u32 = 1;
 const SCHEMA_VERSION: u32 = 1;
@@ -57,6 +61,8 @@ struct Runtime {
     canonical_hash: [u8; 32],
     checksum: [u8; 32],
     accepted_command_ids: BTreeSet<[u8; ID_LEN]>,
+    last_decisions: Vec<DecisionRecord>,
+    projection_base_revision: u64,
 }
 
 #[repr(C)]
@@ -118,39 +124,6 @@ fn verify_envelope(
         }
         Err(_) => CswResult::CorruptData,
     }
-}
-
-fn decode_command_batch(bytes: &[u8], runtime: &Runtime) -> Result<Vec<[u8; ID_LEN]>, CswResult> {
-    if !runtime.initialized { return Err(CswResult::InvalidState); }
-    let envelope = match root_as_envelope(bytes) {
-        Ok(value) => value,
-        Err(_) => return Err(CswResult::CorruptData),
-    };
-    let Some(batch) = envelope.payload_as_command_batch() else {
-        return Err(CswResult::SchemaMismatch);
-    };
-    if batch.schema_version() != SCHEMA_VERSION {
-        return Err(CswResult::UnsupportedVersion);
-    }
-    let Some(commands) = batch.commands() else { return Err(CswResult::InvalidArgument) };
-    if commands.is_empty() || commands.len() > MAX_COMMANDS_PER_BATCH { return Err(CswResult::BudgetExceeded); }
-    let mut candidate_ids = BTreeSet::new();
-    for command in commands {
-        let Some(command_id) = command.command_id() else { return Err(CswResult::InvalidArgument) };
-        let Some(campaign_id) = command.campaign_id() else { return Err(CswResult::InvalidArgument) };
-        let Some(issuer_id) = command.issuer_id() else { return Err(CswResult::InvalidArgument) };
-        let Some(payload) = command.payload() else { return Err(CswResult::InvalidArgument) };
-        if command_id.len() != ID_LEN || campaign_id.len() != ID_LEN || issuer_id.len() != ID_LEN
-            || campaign_id.bytes() != runtime.campaign_id || payload.is_empty()
-            || command.kind() == CommandKind::None || command.submitted_tick() > command.scheduled_tick()
-            || command.expected_revision() != runtime.revision
-        { return Err(CswResult::InvalidArgument); }
-        let id: [u8; ID_LEN] = command_id.bytes().try_into().map_err(|_| CswResult::InvalidArgument)?;
-        if runtime.accepted_command_ids.contains(&id) || !candidate_ids.insert(id) {
-            return Err(CswResult::InvalidArgument);
-        }
-    }
-    Ok(candidate_ids.into_iter().collect())
 }
 
 fn validate_save_envelope(bytes: *const u8, len: usize) -> CswResult {
@@ -295,6 +268,8 @@ fn runtime_from_save(bytes: *const u8, len: usize) -> Result<Runtime, CswResult>
         canonical_hash: canonical.try_into().map_err(|_| CswResult::CorruptData)?,
         checksum: checksum.try_into().map_err(|_| CswResult::CorruptData)?,
         accepted_command_ids,
+        last_decisions: Vec::new(),
+        projection_base_revision: save.revision(),
     })
 }
 
@@ -334,34 +309,6 @@ fn save_bytes(runtime: &Runtime) -> Result<Vec<u8>, CswResult> {
     Ok(builder.finished_data().to_vec())
 }
 
-fn projection_bytes(runtime: &Runtime) -> Result<Vec<u8>, CswResult> {
-    if !runtime.initialized { return Err(CswResult::InvalidState); }
-    let mut builder = flatbuffers::FlatBufferBuilder::new();
-    let mut decisions = Vec::with_capacity(runtime.accepted_command_ids.len());
-    for id in &runtime.accepted_command_ids {
-        let command_id = builder.create_vector(id);
-        let reason = builder.create_string("accepted");
-        decisions.push(CommandDecision::create(&mut builder, &CommandDecisionArgs {
-            command_id: Some(command_id), code: DecisionCode::Accepted,
-            reason_key: Some(reason), validated_revision: runtime.revision, details: None,
-        }));
-    }
-    let decisions = builder.create_vector(&decisions);
-    let campaign_id = builder.create_vector(&runtime.campaign_id);
-    let observer_id = builder.create_vector(&[0u8; ID_LEN]);
-    let state_hash = builder.create_vector(&runtime.canonical_hash);
-    let delta = ProjectionDelta::create(&mut builder, &ProjectionDeltaArgs {
-        campaign_id: Some(campaign_id), observer_id: Some(observer_id),
-        base_revision: runtime.revision.saturating_sub(1), new_revision: runtime.revision,
-        tick: runtime.tick, state_hash: Some(state_hash), decisions: Some(decisions),
-        outcomes: None, views: None, removals: None, alerts: None, explanations: None,
-    });
-    let payload = delta.as_union_value();
-    let envelope = Envelope::create(&mut builder, &EnvelopeArgs { payload_type: RootPayload::ProjectionDelta, payload: Some(payload) });
-    builder.finish(envelope, Some("CSWP"));
-    Ok(builder.finished_data().to_vec())
-}
-
 #[unsafe(no_mangle)]
 pub extern "C" fn csw_abi_version() -> u32 {
     ABI_VERSION
@@ -385,7 +332,7 @@ pub extern "C" fn csw_create(
         if verification != CswResult::Ok {
             return verification;
         }
-        let runtime = Box::new(Runtime { initialized: false, tick: 0, revision: 0, last_sequence: 0, last_error: Vec::new(), campaign_id: [0; 16], rules_manifest_hash: [0; 32], snapshot: Vec::new(), journal_checkpoint: Vec::new(), canonical_hash: [0; 32], checksum: [0; 32], accepted_command_ids: BTreeSet::new() });
+        let runtime = Box::new(Runtime { initialized: false, tick: 0, revision: 0, last_sequence: 0, last_error: Vec::new(), campaign_id: [0; 16], rules_manifest_hash: [0; 32], snapshot: Vec::new(), journal_checkpoint: Vec::new(), canonical_hash: [0; 32], checksum: [0; 32], accepted_command_ids: BTreeSet::new(), last_decisions: Vec::new(), projection_base_revision: 0 });
         unsafe { *out_runtime = Box::into_raw(runtime).cast::<CswRuntime>() };
         CswResult::Ok
     })
@@ -437,12 +384,30 @@ pub extern "C" fn csw_submit_commands(
         }
         let value = match runtime_ref(runtime.cast_const()) { Ok(value) => value, Err(error) => return error };
         let bytes = std::slice::from_raw_parts(batch, batch_len);
-        let candidate = match decode_command_batch(bytes, value) { Ok(value) => value, Err(error) => return error };
+        let base_revision = value.revision;
+        let decoded = command::decode_command_batch(bytes, value);
+        let rejected_code = decoded.as_ref().err().map(|_| command::rejection_code(bytes, value));
         let runtime = &mut *(runtime.cast::<Runtime>());
-        runtime.accepted_command_ids.extend(candidate);
-        runtime.revision = runtime.revision.saturating_add(1);
-        refresh_save_integrity(runtime);
-        CswResult::Ok
+        match decoded {
+            Ok(candidate) => {
+                runtime.accepted_command_ids.extend(&candidate);
+                runtime.revision = runtime.revision.saturating_add(1);
+                runtime.last_decisions = candidate.into_iter().map(|command_id| DecisionRecord {
+                    command_id, code: DecisionCode::Accepted, validated_revision: runtime.revision,
+                }).collect();
+                runtime.projection_base_revision = base_revision;
+                refresh_save_integrity(runtime);
+                CswResult::Ok
+            }
+            Err(error) => {
+                let code = rejected_code.unwrap_or(DecisionCode::RejectedByPolicy);
+                runtime.last_decisions = command::decision_ids(bytes).into_iter().map(|command_id| DecisionRecord {
+                    command_id, code, validated_revision: runtime.revision,
+                }).collect();
+                runtime.projection_base_revision = runtime.revision;
+                error
+            }
+        }
     })
 }
 
@@ -459,8 +424,12 @@ pub extern "C" fn csw_step(
         }
         runtime_ref(runtime.cast_const()).map_or_else(|error| error, |_| {
             let runtime = &mut *(runtime.cast::<Runtime>());
+            let base_revision = runtime.revision;
             runtime.tick = runtime.tick.saturating_add(u64::from(max_ticks));
             runtime.revision = runtime.revision.saturating_add(1);
+            runtime.last_decisions.clear();
+            runtime.projection_base_revision = base_revision;
+            if runtime.initialized { refresh_save_integrity(runtime); }
             CswResult::Ok
         })
     })

@@ -1,8 +1,12 @@
-    use flatbuffers::FlatBufferBuilder;
-    use crate::warfare_generated::civic_survival::warfare::contracts::{
-        CommandBatch, CommandBatchArgs, CommandEnvelope, CommandEnvelopeArgs, CommandKind,
+use crate::*;
+use std::collections::BTreeSet;
+use std::ptr;
+
+use flatbuffers::FlatBufferBuilder;
+use crate::warfare_generated::civic_survival::warfare::contracts::{
+        CommandBatch, CommandBatchArgs, CommandEnvelope, CommandEnvelopeArgs, CommandKind, DecisionCode,
         Envelope, EnvelopeArgs, SaveEnvelope, SaveEnvelopeArgs,
-    };
+};
 
     fn valid_envelope() -> Vec<u8> {
         let mut builder = FlatBufferBuilder::new();
@@ -230,6 +234,56 @@
         csw_destroy(restored);
         csw_destroy(handle);
     }
-use crate::*;
-use std::collections::BTreeSet;
-use std::ptr;
+
+#[test]
+fn poll_emits_a_framed_projection_with_accepted_decision() {
+    let save = valid_save_envelope();
+    let mut handle = ptr::null_mut();
+    assert_eq!(csw_load(save.as_ptr(), save.len(), &mut handle), CswResult::Ok);
+    let accepted = command_batch(&[0xEF; 16], 9);
+    assert_eq!(csw_submit_commands(handle, accepted.as_ptr(), accepted.len()), CswResult::Ok);
+    let mut required = 0;
+    assert_eq!(csw_poll_into(handle, ptr::null_mut(), 0, &mut required), CswResult::BufferTooSmall);
+    let mut bytes = vec![0; required];
+    assert_eq!(csw_poll_into(handle, bytes.as_mut_ptr(), bytes.len(), &mut required), CswResult::Ok);
+    let envelope = crate::warfare_generated::civic_survival::warfare::contracts::root_as_envelope(&bytes).unwrap();
+    assert_eq!(envelope.payload_type(), RootPayload::ProjectionDelta);
+    let decisions = envelope.payload_as_projection_delta().unwrap().decisions().unwrap();
+    assert_eq!(decisions.len(), 1);
+    assert_eq!(decisions.get(0).code(), DecisionCode::Accepted);
+    assert_eq!(decisions.get(0).command_id().unwrap().bytes(), &[0xEF; 16]);
+    assert_eq!(decisions.get(0).validated_revision(), 10);
+    csw_destroy(handle);
+}
+
+#[test]
+fn poll_records_duplicate_command_as_rejected_decision() {
+    let save = valid_save_envelope();
+    let mut handle = ptr::null_mut();
+    assert_eq!(csw_load(save.as_ptr(), save.len(), &mut handle), CswResult::Ok);
+    let command = command_batch(&[0xA7; 16], 9);
+    assert_eq!(csw_submit_commands(handle, command.as_ptr(), command.len()), CswResult::Ok);
+    let duplicate = command_batch(&[0xA7; 16], 10);
+    assert_eq!(csw_submit_commands(handle, duplicate.as_ptr(), duplicate.len()), CswResult::InvalidArgument);
+    let mut required = 0;
+    assert_eq!(csw_poll_into(handle, ptr::null_mut(), 0, &mut required), CswResult::BufferTooSmall);
+    let mut bytes = vec![0; required];
+    assert_eq!(csw_poll_into(handle, bytes.as_mut_ptr(), bytes.len(), &mut required), CswResult::Ok);
+    let envelope = crate::warfare_generated::civic_survival::warfare::contracts::root_as_envelope(&bytes).unwrap();
+    let decisions = envelope.payload_as_projection_delta().unwrap().decisions().unwrap();
+    assert_eq!(decisions.len(), 1);
+    assert_eq!(decisions.get(0).code(), DecisionCode::Duplicate);
+    assert_eq!(decisions.get(0).command_id().unwrap().bytes(), &[0xA7; 16]);
+    csw_destroy(handle);
+}
+
+#[test]
+fn stepped_runtime_remains_saveable() {
+    let save = valid_save_envelope();
+    let mut handle = ptr::null_mut();
+    assert_eq!(csw_load(save.as_ptr(), save.len(), &mut handle), CswResult::Ok);
+    assert_eq!(csw_step(handle, ptr::null(), 0, 1), CswResult::Ok);
+    let mut required = 0;
+    assert_eq!(csw_save_into(handle, ptr::null_mut(), 0, &mut required), CswResult::BufferTooSmall);
+    csw_destroy(handle);
+}

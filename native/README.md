@@ -47,5 +47,12 @@ persisted independently of the authoritative snapshot/journal. The current
 versioned `CSWH` journal checkpoint persists a bounded, sorted set of accepted
 16-byte command IDs, so replay protection survives a save/load cycle.
 
+`csw_poll_into` returns a framed `CSWP` `ProjectionDelta`, not an opaque byte
+blob. It contains the latest command-attempt decisions, campaign ID, revision,
+tick, and canonical state hash. Accepted and duplicate/revision/policy failures
+are explicit decision codes. This transient decision ledger is an observer
+output boundary; it does not claim that commands have been executed by warfare
+rules or that projections are network-delivered.
+
 The exact Rust toolchain is pinned in `rust-toolchain.toml`; `Cargo.lock` is
 committed, including the pinned BLAKE3 integrity dependency.
