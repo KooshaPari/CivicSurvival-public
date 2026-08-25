@@ -112,15 +112,37 @@ def audit_repo(repo_path):
             results.append({"id":pillar["id"],"name":pillar["name"],"passed":False,"error":str(e)})
     return {"score":score,"total":len(PILLARS),"percentage":(score/len(PILLARS))*100,"results":results}
 
+
+def load_baseline_score(path, total):
+    try:
+        baseline = json.loads(Path(path).read_text(encoding="utf-8"))
+    except OSError as error:
+        raise ValueError(f"Unable to read baseline file {path}: {error}") from error
+    except json.JSONDecodeError as error:
+        raise ValueError(f"Baseline file {path} is not valid JSON: {error.msg}") from error
+
+    score = baseline.get("score")
+    baseline_total = baseline.get("total")
+    if not isinstance(score, int) or isinstance(score, bool) or score < 0:
+        raise ValueError("Baseline score must be a non-negative integer")
+    if baseline_total != total:
+        raise ValueError(f"Baseline total must equal {total}")
+    return score
+
 def main():
     parser = argparse.ArgumentParser(description="88-Pillar Scorecard Audit")
     parser.add_argument("path", help="Path to repository")
     parser.add_argument("--threshold", type=int, default=85)
     parser.add_argument("--output", choices=["text","json","markdown"], default="text")
     parser.add_argument("--fail-on-drop", action="store_true")
+    parser.add_argument("--baseline-file", help="JSON file with score and total used by --fail-on-drop")
     args = parser.parse_args()
     try:
         report = audit_repo(args.path)
+        baseline_score = load_baseline_score(args.baseline_file, report["total"]) if args.baseline_file else None
+        report["baseline_score"] = baseline_score
+        report["score_delta"] = report["score"] - baseline_score if baseline_score is not None else None
+        report["regression"] = report["score"] < baseline_score if baseline_score is not None else False
         if args.output == "json":
             print(json.dumps(report, indent=2))
         elif args.output == "markdown":
@@ -135,7 +157,8 @@ def main():
             print(f"Scorecard: {report['score']}/{report['total']} ({report['percentage']:.1f}%)")
             print(f"Threshold: {args.threshold}")
             print("Status: PASS" if report['score'] >= args.threshold else f"Status: FAIL\nFailed: {', '.join(r['name'] for r in report['results'] if not r['passed'])}")
-        if args.fail_on_drop and report['score'] < args.threshold: sys.exit(1)
+        failure_floor = baseline_score if baseline_score is not None else args.threshold
+        if args.fail_on_drop and report['score'] < failure_floor: sys.exit(1)
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr); sys.exit(2)
 

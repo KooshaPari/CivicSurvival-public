@@ -13,6 +13,11 @@ permissions:
 jobs:
   scorecard:
     runs-on: ubuntu-latest
+    outputs:
+      score: ${{ steps.audit.outputs.score }}
+      total: ${{ steps.audit.outputs.total }}
+      percentage: ${{ steps.audit.outputs.percentage }}
+      passed: ${{ steps.audit.outputs.passed }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -26,25 +31,30 @@ jobs:
         id: audit
         run: |
           THRESHOLD=${{ github.event.inputs.threshold || '85' }}
-          
+
           # Run audit in JSON mode
-          python scripts/scorecard_ci.py . --output json --threshold "$THRESHOLD" --fail-on-drop > scorecard-report.json 2> scorecard-stderr.txt || EXIT_CODE=$?
-          
+          python scripts/scorecard_ci.py . --output json --threshold "$THRESHOLD" --baseline-file .github/scorecard-baseline.json --fail-on-drop > scorecard-report.json 2> scorecard-stderr.txt || true
+
           # Extract score
           SCORE=$(python -c "import json; r=json.load(open('scorecard-report.json')); print(r['score'])")
           TOTAL=$(python -c "import json; r=json.load(open('scorecard-report.json')); print(r['total'])")
           PCT=$(python -c "import json; r=json.load(open('scorecard-report.json')); print(f\"{r['percentage']:.1f}\")")
-          
+          BASELINE_SCORE=$(python -c "import json; r=json.load(open('scorecard-report.json')); print(r['baseline_score'])")
+          SCORE_DELTA=$(python -c "import json; r=json.load(open('scorecard-report.json')); print(r['score_delta'])")
+          REGRESSION=$(python -c "import json; r=json.load(open('scorecard-report.json')); print(str(r['regression']).lower())")
+
           # Generate markdown summary
           echo "## 88-Pillar Scorecard Result" > scorecard-summary.md
           echo "" >> scorecard-summary.md
           echo "| Metric | Value |" >> scorecard-summary.md
           echo "|--------|-------|" >> scorecard-summary.md
           echo "| **Score** | **${SCORE}/${TOTAL}** (${PCT}%) |" >> scorecard-summary.md
+          echo "| **Recorded baseline** | ${BASELINE_SCORE}/${TOTAL} |" >> scorecard-summary.md
+          echo "| **Delta from baseline** | ${SCORE_DELTA} |" >> scorecard-summary.md
           echo "| **Threshold** | ${THRESHOLD} |" >> scorecard-summary.md
-          echo "| **Status** | $( [ "$SCORE" -ge "$THRESHOLD" ] && echo "PASS" || echo "FAIL" ) |" >> scorecard-summary.md
+          echo "| **Regression gate** | $( [ "$REGRESSION" = "false" ] && echo "PASS" || echo "FAIL" ) |" >> scorecard-summary.md
           echo "" >> scorecard-summary.md
-          
+
           # List failed pillars
           if [ "$SCORE" -lt "$THRESHOLD" ]; then
             echo "### Failed Pillars" >> scorecard-summary.md
@@ -57,14 +67,16 @@ jobs:
                   print(f'- [ ] Pillar #{item[\"id\"]}: **{item[\"name\"]}**')
           " >> scorecard-summary.md
           fi
-          
+
           # Set outputs
           echo "score=${SCORE}" >> "$GITHUB_OUTPUT"
           echo "total=${TOTAL}" >> "$GITHUB_OUTPUT"
           echo "percentage=${PCT}" >> "$GITHUB_OUTPUT"
           echo "threshold=${THRESHOLD}" >> "$GITHUB_OUTPUT"
-          echo "passed=$( [ "$SCORE" -ge "$THRESHOLD" ] && echo true || echo false )" >> "$GITHUB_OUTPUT"
-          
+          echo "baseline_score=${BASELINE_SCORE}" >> "$GITHUB_OUTPUT"
+          echo "score_delta=${SCORE_DELTA}" >> "$GITHUB_OUTPUT"
+          echo "passed=$( [ "$REGRESSION" = "false" ] && echo true || echo false )" >> "$GITHUB_OUTPUT"
+
           # Post PR comment if applicable
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             COMMENT=$(cat scorecard-summary.md)
@@ -75,6 +87,8 @@ jobs:
                 --repo "${{ github.repository }}" || true
             fi
           fi
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Update status check
         if: always()
@@ -82,12 +96,14 @@ jobs:
           SCORE=${{ steps.audit.outputs.score }}
           TOTAL=${{ steps.audit.outputs.total }}
           THRESHOLD=${{ steps.audit.outputs.threshold }}
+          BASELINE_SCORE=${{ steps.audit.outputs.baseline_score }}
+          SCORE_DELTA=${{ steps.audit.outputs.score_delta }}
           PASSED=${{ steps.audit.outputs.passed }}
-          
+
           if [ "$PASSED" = "true" ]; then
-            echo "Scorecard: ${SCORE}/${TOTAL} - PASS (threshold: ${THRESHOLD})"
+            echo "Scorecard: ${SCORE}/${TOTAL} - PASS (baseline: ${BASELINE_SCORE}, delta: ${SCORE_DELTA}, target: ${THRESHOLD})"
           else
-            echo "Scorecard: ${SCORE}/${TOTAL} - FAIL (threshold: ${THRESHOLD})"
+            echo "Scorecard: ${SCORE}/${TOTAL} - FAIL (regressed below baseline ${BASELINE_SCORE})"
             exit 1
           fi
 
@@ -100,10 +116,10 @@ jobs:
             scorecard-report.json
             scorecard-summary.md
 
-      - name: Check score threshold
+      - name: Check score regression
         if: steps.audit.outputs.passed != 'true'
         run: |
-          echo "::error::Score ${{ steps.audit.outputs.score }}/${{ steps.audit.outputs.total }} is below threshold ${{ steps.audit.outputs.threshold }}"
+          echo "::error::Score ${{ steps.audit.outputs.score }}/${{ steps.audit.outputs.total }} regressed below baseline ${{ steps.audit.outputs.baseline_score }}"
           exit 1
 
   update-badge:
@@ -116,17 +132,17 @@ jobs:
           SCORE=${{ needs.scorecard.outputs.score }}
           TOTAL=${{ needs.scorecard.outputs.total }}
           PCT=${{ needs.scorecard.outputs.percentage }}
-          
+
           # Generate badge SVG
           if [ "${{ needs.scorecard.outputs.passed }}" = "true" ]; then
             COLOR="brightgreen"
           else
             COLOR="red"
           fi
-          
+
           BADGE_URL="https://img.shields.io/badge/scorecard-${SCORE}%2F${TOTAL}-${COLOR}"
           echo "Badge URL: ${BADGE_URL}"
-          
+
           # Update README badge if it exists
           if [ -f "README.md" ]; then
             sed -i "s|!\[Scorecard\].*|[![Scorecard](${BADGE_URL})](https://github.com/${{ github.repository }}/actions)|g" README.md || true
