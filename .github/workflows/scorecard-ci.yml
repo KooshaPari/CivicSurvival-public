@@ -17,6 +17,8 @@ jobs:
       score: ${{ steps.audit.outputs.score }}
       total: ${{ steps.audit.outputs.total }}
       percentage: ${{ steps.audit.outputs.percentage }}
+      target_met: ${{ steps.audit.outputs.target_met }}
+      regression: ${{ steps.audit.outputs.regression }}
       passed: ${{ steps.audit.outputs.passed }}
     steps:
       - name: Checkout repository
@@ -33,7 +35,14 @@ jobs:
           THRESHOLD=${{ github.event.inputs.threshold || '85' }}
 
           # Run audit in JSON mode
-          python scripts/scorecard_ci.py . --output json --threshold "$THRESHOLD" --baseline-file .github/scorecard-baseline.json --fail-on-drop > scorecard-report.json 2> scorecard-stderr.txt || true
+          set +e
+          python scripts/scorecard_ci.py . --output json --threshold "$THRESHOLD" --baseline-file .github/scorecard-baseline.json --fail-on-drop > scorecard-report.json 2> scorecard-stderr.txt
+          AUDIT_EXIT=$?
+          set -e
+          if [ ! -s scorecard-report.json ]; then
+            cat scorecard-stderr.txt >&2
+            exit "$AUDIT_EXIT"
+          fi
 
           # Extract score
           SCORE=$(python -c "import json; r=json.load(open('scorecard-report.json')); print(r['score'])")
@@ -41,7 +50,9 @@ jobs:
           PCT=$(python -c "import json; r=json.load(open('scorecard-report.json')); print(f\"{r['percentage']:.1f}\")")
           BASELINE_SCORE=$(python -c "import json; r=json.load(open('scorecard-report.json')); print(r['baseline_score'])")
           SCORE_DELTA=$(python -c "import json; r=json.load(open('scorecard-report.json')); print(r['score_delta'])")
+          TARGET_MET=$(python -c "import json; r=json.load(open('scorecard-report.json')); print(str(r['target_met']).lower())")
           REGRESSION=$(python -c "import json; r=json.load(open('scorecard-report.json')); print(str(r['regression']).lower())")
+          MISSING_BASELINE_PILLARS=$(python -c "import json; r=json.load(open('scorecard-report.json')); print(', '.join(map(str, r['missing_baseline_pillar_ids'])) or 'none')")
 
           # Generate markdown summary
           echo "## 88-Pillar Scorecard Result" > scorecard-summary.md
@@ -52,7 +63,9 @@ jobs:
           echo "| **Recorded baseline** | ${BASELINE_SCORE}/${TOTAL} |" >> scorecard-summary.md
           echo "| **Delta from baseline** | ${SCORE_DELTA} |" >> scorecard-summary.md
           echo "| **Threshold** | ${THRESHOLD} |" >> scorecard-summary.md
+          echo "| **Target gate** | $( [ "$TARGET_MET" = "true" ] && echo "PASS" || echo "FAIL" ) |" >> scorecard-summary.md
           echo "| **Regression gate** | $( [ "$REGRESSION" = "false" ] && echo "PASS" || echo "FAIL" ) |" >> scorecard-summary.md
+          echo "| **Lost baseline pillars** | ${MISSING_BASELINE_PILLARS} |" >> scorecard-summary.md
           echo "" >> scorecard-summary.md
 
           # List failed pillars
@@ -75,7 +88,9 @@ jobs:
           echo "threshold=${THRESHOLD}" >> "$GITHUB_OUTPUT"
           echo "baseline_score=${BASELINE_SCORE}" >> "$GITHUB_OUTPUT"
           echo "score_delta=${SCORE_DELTA}" >> "$GITHUB_OUTPUT"
-          echo "passed=$( [ "$REGRESSION" = "false" ] && echo true || echo false )" >> "$GITHUB_OUTPUT"
+          echo "target_met=${TARGET_MET}" >> "$GITHUB_OUTPUT"
+          echo "regression=${REGRESSION}" >> "$GITHUB_OUTPUT"
+          echo "passed=$( [ "$TARGET_MET" = "true" ] && [ "$REGRESSION" = "false" ] && echo true || echo false )" >> "$GITHUB_OUTPUT"
 
           # Post PR comment if applicable
           if [ "${{ github.event_name }}" = "pull_request" ]; then
@@ -98,12 +113,14 @@ jobs:
           THRESHOLD=${{ steps.audit.outputs.threshold }}
           BASELINE_SCORE=${{ steps.audit.outputs.baseline_score }}
           SCORE_DELTA=${{ steps.audit.outputs.score_delta }}
+          TARGET_MET=${{ steps.audit.outputs.target_met }}
+          REGRESSION=${{ steps.audit.outputs.regression }}
           PASSED=${{ steps.audit.outputs.passed }}
 
           if [ "$PASSED" = "true" ]; then
             echo "Scorecard: ${SCORE}/${TOTAL} - PASS (baseline: ${BASELINE_SCORE}, delta: ${SCORE_DELTA}, target: ${THRESHOLD})"
           else
-            echo "Scorecard: ${SCORE}/${TOTAL} - FAIL (regressed below baseline ${BASELINE_SCORE})"
+            echo "Scorecard: ${SCORE}/${TOTAL} - FAIL (target_met: ${TARGET_MET}, regression: ${REGRESSION}, baseline: ${BASELINE_SCORE}, delta: ${SCORE_DELTA}, target: ${THRESHOLD})"
             exit 1
           fi
 
@@ -119,7 +136,7 @@ jobs:
       - name: Check score regression
         if: steps.audit.outputs.passed != 'true'
         run: |
-          echo "::error::Score ${{ steps.audit.outputs.score }}/${{ steps.audit.outputs.total }} regressed below baseline ${{ steps.audit.outputs.baseline_score }}"
+          echo "::error::Scorecard requires the ${{ steps.audit.outputs.threshold }} target and no lost baseline pillars (target_met=${{ steps.audit.outputs.target_met }}, regression=${{ steps.audit.outputs.regression }})"
           exit 1
 
   update-badge:

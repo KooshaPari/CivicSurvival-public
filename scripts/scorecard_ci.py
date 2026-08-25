@@ -113,7 +113,7 @@ def audit_repo(repo_path):
     return {"score":score,"total":len(PILLARS),"percentage":(score/len(PILLARS))*100,"results":results}
 
 
-def load_baseline_score(path, total):
+def load_baseline(path, total):
     try:
         baseline = json.loads(Path(path).read_text(encoding="utf-8"))
     except OSError as error:
@@ -121,13 +121,26 @@ def load_baseline_score(path, total):
     except json.JSONDecodeError as error:
         raise ValueError(f"Baseline file {path} is not valid JSON: {error.msg}") from error
 
+    if baseline.get("schema_version") != 1:
+        raise ValueError("Baseline schema_version must equal 1")
+    if not isinstance(baseline.get("source_revision"), str) or not baseline["source_revision"]:
+        raise ValueError("Baseline source_revision must be a non-empty string")
     score = baseline.get("score")
     baseline_total = baseline.get("total")
+    passed_pillar_ids = baseline.get("passed_pillar_ids")
     if not isinstance(score, int) or isinstance(score, bool) or score < 0:
         raise ValueError("Baseline score must be a non-negative integer")
     if baseline_total != total:
         raise ValueError(f"Baseline total must equal {total}")
-    return score
+    if not isinstance(passed_pillar_ids, list):
+        raise ValueError("Baseline passed_pillar_ids must be a list")
+    if any(not isinstance(pillar_id, int) or isinstance(pillar_id, bool) or not 1 <= pillar_id <= total for pillar_id in passed_pillar_ids):
+        raise ValueError(f"Baseline passed_pillar_ids must contain unique pillar IDs from 1 through {total}")
+    if len(set(passed_pillar_ids)) != len(passed_pillar_ids):
+        raise ValueError("Baseline passed_pillar_ids must contain unique pillar IDs")
+    if score != len(passed_pillar_ids):
+        raise ValueError("Baseline score must equal the number of passed_pillar_ids")
+    return {"score": score, "passed_pillar_ids": passed_pillar_ids}
 
 def main():
     parser = argparse.ArgumentParser(description="88-Pillar Scorecard Audit")
@@ -135,14 +148,19 @@ def main():
     parser.add_argument("--threshold", type=int, default=85)
     parser.add_argument("--output", choices=["text","json","markdown"], default="text")
     parser.add_argument("--fail-on-drop", action="store_true")
-    parser.add_argument("--baseline-file", help="JSON file with score and total used by --fail-on-drop")
+    parser.add_argument("--baseline-file", help="JSON baseline evidence used by --fail-on-drop")
     args = parser.parse_args()
     try:
         report = audit_repo(args.path)
-        baseline_score = load_baseline_score(args.baseline_file, report["total"]) if args.baseline_file else None
+        baseline = load_baseline(args.baseline_file, report["total"]) if args.baseline_file else None
+        current_pillar_ids = {result["id"] for result in report["results"] if result["passed"]}
+        baseline_score = baseline["score"] if baseline else None
+        missing_baseline_pillar_ids = sorted(set(baseline["passed_pillar_ids"]) - current_pillar_ids) if baseline else []
         report["baseline_score"] = baseline_score
         report["score_delta"] = report["score"] - baseline_score if baseline_score is not None else None
-        report["regression"] = report["score"] < baseline_score if baseline_score is not None else False
+        report["target_met"] = report["score"] >= args.threshold
+        report["missing_baseline_pillar_ids"] = missing_baseline_pillar_ids
+        report["regression"] = bool(missing_baseline_pillar_ids)
         if args.output == "json":
             print(json.dumps(report, indent=2))
         elif args.output == "markdown":
@@ -157,8 +175,7 @@ def main():
             print(f"Scorecard: {report['score']}/{report['total']} ({report['percentage']:.1f}%)")
             print(f"Threshold: {args.threshold}")
             print("Status: PASS" if report['score'] >= args.threshold else f"Status: FAIL\nFailed: {', '.join(r['name'] for r in report['results'] if not r['passed'])}")
-        failure_floor = baseline_score if baseline_score is not None else args.threshold
-        if args.fail_on_drop and report['score'] < failure_floor: sys.exit(1)
+        if args.fail_on_drop and (not report["target_met"] or report["regression"]): sys.exit(1)
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr); sys.exit(2)
 
