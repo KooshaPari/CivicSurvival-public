@@ -11,19 +11,19 @@
 
 The source-auditable public lane is green:
 
-| Gate | Result | Fresh evidence |
-|---|---|---|
-| Policy runner | pass | `node scripts/ci/check-public-audit.mjs .` |
-| Contracts build | pass | `bash tests/public-audit/test_contracts_build.sh` |
-| Public runner | pass | `bash tests/public-audit/test_runner.sh` |
-| Localization | pass | 3,531 scalar keys; exact `en-US`/`uk-UA`/`zh-CN` parity |
-| UI unit tests | pass | 9 files, 23 tests |
-| UI lint rules | pass | 20 tests |
-| Type declarations | pass | `npm run typecheck:declarations` from `CivicSurvival/UI` |
-| Strict lint | pass | `npm run lint:strict` from `CivicSurvival/UI` |
-| npm security | pass | full audit reports 0 vulnerabilities after lockfile refresh |
-| C/C++ ABI syntax | pass | `clang -fsyntax-only` checks on the draft header |
-| File-size policy | pass | 129 files over 500 and 226 over 350 are grandfathered; regressions fail |
+| Gate              | Result | Fresh evidence                                                          |
+| ----------------- | ------ | ----------------------------------------------------------------------- |
+| Policy runner     | pass   | `node scripts/ci/check-public-audit.mjs .`                              |
+| Contracts build   | pass   | `bash tests/public-audit/test_contracts_build.sh`                       |
+| Public runner     | pass   | `bash tests/public-audit/test_runner.sh`                                |
+| Localization      | pass   | 3,531 scalar keys; exact `en-US`/`uk-UA`/`zh-CN` parity                 |
+| UI unit tests     | pass   | 9 files, 23 tests                                                       |
+| UI lint rules     | pass   | 20 tests                                                                |
+| Type declarations | pass   | `npm run typecheck:declarations` from `CivicSurvival/UI`                |
+| Strict lint       | pass   | `npm run lint:strict` from `CivicSurvival/UI`                           |
+| npm security      | pass   | full audit reports 0 vulnerabilities after lockfile refresh             |
+| C/C++ ABI syntax  | pass   | `clang -fsyntax-only` checks on the draft header                        |
+| File-size policy  | pass   | 129 files over 500 and 226 over 350 are grandfathered; regressions fail |
 
 ## Blocking conditions
 

@@ -15,13 +15,13 @@ Quality gates     [######....]  60%  public audit green; licensed adapter/eviden
 
 ## Live WP State
 
-| State | Count |
-|---|---:|
-| planned | 20 |
-| doing | 0 |
-| review | 0 |
-| done | 0 |
-| blocked | 0 |
+| State   | Count |
+| ------- | ----: |
+| planned |    20 |
+| doing   |     0 |
+| review  |     0 |
+| done    |     0 |
+| blocked |     0 |
 
 ## Current DAG
 

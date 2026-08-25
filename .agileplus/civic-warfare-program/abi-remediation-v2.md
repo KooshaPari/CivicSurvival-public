@@ -12,11 +12,11 @@
 
 ## PR partition
 
-| PR | Base | Allowed paths | Completion proof |
-|---|---|---|---|
-| `docs(civic): preserve warfare program specification` | `origin/main` | `.agileplus/civic-warfare-program/**`, `docs/sessions/20260722-civic-warfare-program/**` | no generated output; clean diff; reviewable 47-file documentation change |
-| `fix(audit): harden public audit execution` | `origin/main` | public-audit workflow, runner, CI script, public-audit tests, required contracts config | .NET 8 target pack, bounded child wait, controlled malformed-JSON failure |
-| `feat(native): establish safe ABI v2 handles` | latest merged audit/spec base | `native/**`, `tests/wp02/**`, required ABI contracts | Rust and C lifecycle, error, persistence, and projection tests |
+| PR                                                    | Base                          | Allowed paths                                                                            | Completion proof                                                          |
+| ----------------------------------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `docs(civic): preserve warfare program specification` | `origin/main`                 | `.agileplus/civic-warfare-program/**`, `docs/sessions/20260722-civic-warfare-program/**` | no generated output; clean diff; reviewable 47-file documentation change  |
+| `fix(audit): harden public audit execution`           | `origin/main`                 | public-audit workflow, runner, CI script, public-audit tests, required contracts config  | .NET 8 target pack, bounded child wait, controlled malformed-JSON failure |
+| `feat(native): establish safe ABI v2 handles`         | latest merged audit/spec base | `native/**`, `tests/wp02/**`, required ABI contracts                                     | Rust and C lifecycle, error, persistence, and projection tests            |
 
 `native/target/**`, UI/localization, manifest/privacy, package-lock, and unrelated historical files are prohibited from these PRs.
 
@@ -49,7 +49,6 @@
 **Files:** Modify `native/ffi/src/lib.rs`, `native/ffi/src/tests.rs`, `.agileplus/civic-warfare-program/contracts/civic_warfare.h`, `tests/wp02/ffi_smoke.c`, and `tests/wp02/test_ffi_abi.sh`.
 
 - [ ] RED: add and run four isolated tests:
-
   - `destroy_clears_the_callers_handle_and_a_repeat_destroy_is_a_noop`;
   - `copied_handle_is_invalid_after_destroy`;
   - `unknown_handle_returns_invalid_handle_without_unsafe_dereference`;

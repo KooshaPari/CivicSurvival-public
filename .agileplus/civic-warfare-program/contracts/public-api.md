@@ -2,18 +2,18 @@
 
 ## ABI Lifecycle
 
-| Function | Behavior |
-|---|---|
-| `csw_abi_version` | returns packed major/minor ABI version without initialization |
-| `csw_create` | validates config/rules buffer and returns opaque runtime handle |
-| `csw_load` | validates a complete save and returns a new handle; the caller swaps it only after success |
-| `csw_submit_commands` | validates one FlatBuffers batch and queues idempotent commands |
-| `csw_step` | advances a bounded number of fixed ticks from one observation batch |
-| `csw_poll_into` | writes one projection/outcome batch into caller buffer or reports required size |
-| `csw_save_into` | writes canonical snapshot/journal checkpoint into caller buffer |
-| `csw_status_into` | serializes versioned health/version/tick/revision counters into a caller-owned buffer |
-| `csw_last_error_into` | copies bounded diagnostic text for the calling thread/handle |
-| `csw_destroy` | invalidates and releases handle; null is a no-op |
+| Function              | Behavior                                                                                   |
+| --------------------- | ------------------------------------------------------------------------------------------ |
+| `csw_abi_version`     | returns packed major/minor ABI version without initialization                              |
+| `csw_create`          | validates config/rules buffer and returns opaque runtime handle                            |
+| `csw_load`            | validates a complete save and returns a new handle; the caller swaps it only after success |
+| `csw_submit_commands` | validates one FlatBuffers batch and queues idempotent commands                             |
+| `csw_step`            | advances a bounded number of fixed ticks from one observation batch                        |
+| `csw_poll_into`       | writes one projection/outcome batch into caller buffer or reports required size            |
+| `csw_save_into`       | writes canonical snapshot/journal checkpoint into caller buffer                            |
+| `csw_status_into`     | serializes versioned health/version/tick/revision counters into a caller-owned buffer      |
+| `csw_last_error_into` | copies bounded diagnostic text for the calling thread/handle                               |
+| `csw_destroy`         | invalidates and releases handle; null is a no-op                                           |
 
 All calls return `CswResult`. Buffers are `(pointer,length)` byte spans. No Rust/C# strings, collections, structs with language-dependent layout, callbacks, exceptions, or ownership ambiguity cross the ABI. Output functions never partially encode a record. Every call is panic-contained.
 

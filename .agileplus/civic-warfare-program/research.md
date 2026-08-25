@@ -8,19 +8,19 @@ Source-level findings are auditable through `research/source-register.csv` and `
 
 The project has unusually strong domain vocabulary, single-writer ECS ownership, registry composition, durable intents/outcomes, privacy defaults, localization discipline, and a compelling existing air-defense/economic-survival loop. It is not ready for a warfare expansion branch: the public snapshot cannot reproduce a C# build, has no public C# tests or CI, deliberately omits tools/analyzers/generators, has severe module-size hotspots, and retains version/privacy/dependency inconsistencies.
 
-| Area | Score / 10 | Evidence |
-|---|---:|---|
-| Architecture | 7.0 | 28 domains, core/domain isolation, FeatureRegistry and ServiceRegistry, single-writer systems |
-| Boundaries | 7.0 | Core has no direct domain imports; interfaces exist, but runtime remains one C# project |
-| Modularity | 4.0 | 198 handwritten C# files >350 lines, 116 >500, 23 >1000 |
-| Build reproducibility | 3.0 | public `dotnet build` fails on missing `/Mod.props`; private tools omitted by design |
-| Test maturity | 2.0 | no public C# test project/CI; UI has only 9 Vitest files and 20 lint-rule tests |
-| Code quality | 5.0 | 886 warning suppressions, 788 null-forgiving uses, warnings not errors |
-| Performance posture | 6.0 | ECS/jobs and ownership discipline are strong; huge systems and unmeasured paths remain |
-| Security/privacy | 6.0 | production npm audit clean and diagnostics default off; dev advisories and privacy wording conflict |
-| Documentation | 7.0 | extensive public docs, but deliberate non-reproducibility and version drift reduce trust |
-| Release maturity | 4.0 | v0.3.24 is a squashed snapshot with inconsistent package versions and no GitHub release history |
-| **Overall** | **5.1** | promising architecture, insufficient public proof |
+| Area                  | Score / 10 | Evidence                                                                                            |
+| --------------------- | ---------: | --------------------------------------------------------------------------------------------------- |
+| Architecture          |        7.0 | 28 domains, core/domain isolation, FeatureRegistry and ServiceRegistry, single-writer systems       |
+| Boundaries            |        7.0 | Core has no direct domain imports; interfaces exist, but runtime remains one C# project             |
+| Modularity            |        4.0 | 198 handwritten C# files >350 lines, 116 >500, 23 >1000                                             |
+| Build reproducibility |        3.0 | public `dotnet build` fails on missing `/Mod.props`; private tools omitted by design                |
+| Test maturity         |        2.0 | no public C# test project/CI; UI has only 9 Vitest files and 20 lint-rule tests                     |
+| Code quality          |        5.0 | 886 warning suppressions, 788 null-forgiving uses, warnings not errors                              |
+| Performance posture   |        6.0 | ECS/jobs and ownership discipline are strong; huge systems and unmeasured paths remain              |
+| Security/privacy      |        6.0 | production npm audit clean and diagnostics default off; dev advisories and privacy wording conflict |
+| Documentation         |        7.0 | extensive public docs, but deliberate non-reproducibility and version drift reduce trust            |
+| Release maturity      |        4.0 | v0.3.24 is a squashed snapshot with inconsistent package versions and no GitHub release history     |
+| **Overall**           |    **5.1** | promising architecture, insufficient public proof                                                   |
 
 ## Current Repository Evidence
 
@@ -64,41 +64,41 @@ Context order is acyclic: identity/geography -> factions/intelligence/economy ->
 
 ## Build, Borrow, Wrap, or Reject
 
-| Decision | Library/repository | Role and guardrail |
-|---|---|---|
-| Adopt | Interoptopus | Generate narrow C ABI/C# bindings; opaque handles and owned buffers only |
-| Adopt pinned | FlatBuffers | Single-source Rust/C#/TS/Python envelopes; compiler/runtime versions move together |
-| Adopt | Serde | Rust internal DTO/config serialization; never expose Rust memory layout |
-| Adopt | `fixed` | Authoritative fixed-point quantities wrapped in checked domain newtypes |
-| Adopt wrapped | petgraph | Theater/logistics/access graphs; stable domain IDs and sorted traversal |
-| Adopt wrapped | rstar | Rebuildable derived spatial index; never persist tree topology |
-| Adopt wrapped | bonsai BT | Mission execution only behind a deterministic behavior port |
-| Adopt | rand_chacha | Versioned named random streams; no global RNG |
-| Adopt | BLAKE3 | Canonical state/replay hashes over sorted serialized state |
-| Adopt | zstd under BSD | Snapshot/replay compression after canonical serialization |
-| Adopt narrowly | Rayon | Read-only scoring/tiles, stable collection, serial authoritative commit |
-| Test tooling | proptest, cargo-fuzz, Criterion | Invariants, decoder/ABI fuzzing, replay differential tests, budgets |
-| Offline only | JuMP + HiGHS | Balance, force mix, supply calibration, scenario optimization |
-| Advisory only | OR-Tools | Expensive scenario/route experiments whose results enter as validated commands |
-| Reference first | OpenRA, Warzone 2100, Freeciv, OpenTTD | Study deterministic replay, bases, diplomacy, logistics; no copying before license ADR |
-| Reject runtime | Bevy/Legion ECS | Duplicates Unity ECS and adds scheduling/order/version risk at this scale |
-| Reject runtime | current Rust HTN crates | Insufficient maturity; implement a small domain decomposition kernel |
-| Reject runtime | neural agent models and live LP/MIP solvers | Opaque, nondeterministic, expensive, and distribution-heavy |
+| Decision        | Library/repository                          | Role and guardrail                                                                     |
+| --------------- | ------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Adopt           | Interoptopus                                | Generate narrow C ABI/C# bindings; opaque handles and owned buffers only               |
+| Adopt pinned    | FlatBuffers                                 | Single-source Rust/C#/TS/Python envelopes; compiler/runtime versions move together     |
+| Adopt           | Serde                                       | Rust internal DTO/config serialization; never expose Rust memory layout                |
+| Adopt           | `fixed`                                     | Authoritative fixed-point quantities wrapped in checked domain newtypes                |
+| Adopt wrapped   | petgraph                                    | Theater/logistics/access graphs; stable domain IDs and sorted traversal                |
+| Adopt wrapped   | rstar                                       | Rebuildable derived spatial index; never persist tree topology                         |
+| Adopt wrapped   | bonsai BT                                   | Mission execution only behind a deterministic behavior port                            |
+| Adopt           | rand_chacha                                 | Versioned named random streams; no global RNG                                          |
+| Adopt           | BLAKE3                                      | Canonical state/replay hashes over sorted serialized state                             |
+| Adopt           | zstd under BSD                              | Snapshot/replay compression after canonical serialization                              |
+| Adopt narrowly  | Rayon                                       | Read-only scoring/tiles, stable collection, serial authoritative commit                |
+| Test tooling    | proptest, cargo-fuzz, Criterion             | Invariants, decoder/ABI fuzzing, replay differential tests, budgets                    |
+| Offline only    | JuMP + HiGHS                                | Balance, force mix, supply calibration, scenario optimization                          |
+| Advisory only   | OR-Tools                                    | Expensive scenario/route experiments whose results enter as validated commands         |
+| Reference first | OpenRA, Warzone 2100, Freeciv, OpenTTD      | Study deterministic replay, bases, diplomacy, logistics; no copying before license ADR |
+| Reject runtime  | Bevy/Legion ECS                             | Duplicates Unity ECS and adds scheduling/order/version risk at this scale              |
+| Reject runtime  | current Rust HTN crates                     | Insufficient maturity; implement a small domain decomposition kernel                   |
+| Reject runtime  | neural agent models and live LP/MIP solvers | Opaque, nondeterministic, expensive, and distribution-heavy                            |
 
 Copyleft is sponsor-acceptable and whole-project relicensing is authorized if warranted. No audited reference currently provides enough direct leverage to justify that cost. GPL code therefore remains reference-only unless a dedicated ADR proves material benefit, ownership, asset compatibility, notice obligations, and the exact relicense plan.
 
 ## Polyglot Ownership
 
-| Language | Owned artifact | Production status |
-|---|---|---|
-| C# | Unity/ECS host, adapters, save lifecycle, presentation, packaging | Shipped |
-| Rust | deterministic authoritative simulation, replay, FFI, headless tests | Shipped |
-| TypeScript/React | War Room and city UI projections/commands | Shipped |
-| Python | scenario authoring, telemetry analysis, data preparation, orchestration | Offline |
-| Julia | mathematical optimization, calibration, sensitivity analysis | Offline |
-| Zig | reproducible native cross-link and ABI conformance if benchmarked superior | Build-only candidate |
-| Mojo | SIMD/GPU research kernels after toolchain experiments | Experimental |
-| Nim/Pony/Vale | no unique current ownership; benchmark/provenance research only | Rejected for production |
+| Language         | Owned artifact                                                             | Production status       |
+| ---------------- | -------------------------------------------------------------------------- | ----------------------- |
+| C#               | Unity/ECS host, adapters, save lifecycle, presentation, packaging          | Shipped                 |
+| Rust             | deterministic authoritative simulation, replay, FFI, headless tests        | Shipped                 |
+| TypeScript/React | War Room and city UI projections/commands                                  | Shipped                 |
+| Python           | scenario authoring, telemetry analysis, data preparation, orchestration    | Offline                 |
+| Julia            | mathematical optimization, calibration, sensitivity analysis               | Offline                 |
+| Zig              | reproducible native cross-link and ABI conformance if benchmarked superior | Build-only candidate    |
+| Mojo             | SIMD/GPU research kernels after toolchain experiments                      | Experimental            |
+| Nim/Pony/Vale    | no unique current ownership; benchmark/provenance research only            | Rejected for production |
 
 Every additional language requires an ADR, isolated artifact boundary, pinned toolchain, license/security/distribution proof, and a measured benefit unavailable in the existing stack.
 

@@ -41,20 +41,20 @@ Strategic AI reads faction-scoped knowledge projections and emits the same comma
 
 ## Context Ownership
 
-| Context | Sole writer | Reads | Emits |
-|---|---|---|---|
-| Identity/Time | tick reducer | campaign clock/config | tick/revision |
-| Geography | geography reducer | rules, observations | topology/control/weather changes |
-| Factions/Statecraft | statecraft reducer | knowledge, economy, civil state | treaties, access, sovereignty outcomes |
-| Intelligence | intelligence reducer | sources, operations, events | knowledge estimates and attribution |
-| War Economy | economy reducer | city observations, contracts, policy | production, price, budget, construction outcomes |
-| Logistics | logistics reducer | graphs, stockpiles, priorities | deliveries, shortages, losses, causal traces |
-| Force Generation | force reducer | population, equipment, training | readiness, formations, casualty/demobilization outcomes |
-| Operations | operations reducer | knowledge, forces, logistics, authorization | scheduled mission intents and phases |
-| Combat | domain resolvers | operations, terrain, forces, supply | losses, control, damage, displacement |
-| Civil Resilience | civil reducer | services, casualties, prices, information | legitimacy, unrest, actor events, policy consequences |
-| Strategic AI | command producer only | faction knowledge projections | ordinary commands and explanations |
-| Projection/Replay | projection reducer | accepted outcomes and canonical state | immutable snapshots/deltas/hashes |
+| Context             | Sole writer           | Reads                                       | Emits                                                   |
+| ------------------- | --------------------- | ------------------------------------------- | ------------------------------------------------------- |
+| Identity/Time       | tick reducer          | campaign clock/config                       | tick/revision                                           |
+| Geography           | geography reducer     | rules, observations                         | topology/control/weather changes                        |
+| Factions/Statecraft | statecraft reducer    | knowledge, economy, civil state             | treaties, access, sovereignty outcomes                  |
+| Intelligence        | intelligence reducer  | sources, operations, events                 | knowledge estimates and attribution                     |
+| War Economy         | economy reducer       | city observations, contracts, policy        | production, price, budget, construction outcomes        |
+| Logistics           | logistics reducer     | graphs, stockpiles, priorities              | deliveries, shortages, losses, causal traces            |
+| Force Generation    | force reducer         | population, equipment, training             | readiness, formations, casualty/demobilization outcomes |
+| Operations          | operations reducer    | knowledge, forces, logistics, authorization | scheduled mission intents and phases                    |
+| Combat              | domain resolvers      | operations, terrain, forces, supply         | losses, control, damage, displacement                   |
+| Civil Resilience    | civil reducer         | services, casualties, prices, information   | legitimacy, unrest, actor events, policy consequences   |
+| Strategic AI        | command producer only | faction knowledge projections               | ordinary commands and explanations                      |
+| Projection/Replay   | projection reducer    | accepted outcomes and canonical state       | immutable snapshots/deltas/hashes                       |
 
 Cross-context changes are next-stage outcomes or next-tick commands; direct writes across owners are forbidden.
 
@@ -96,16 +96,16 @@ Production imports: Interoptopus, pinned FlatBuffers, Serde, `fixed`, petgraph, 
 
 ## Failure Handling
 
-| Failure | Required behavior |
-|---|---|
-| native library missing/wrong ABI | disable warfare, retain city play/save, show remediation |
-| malformed command | reject only command with stable code and reason |
-| projection buffer too small | return required length; no partial record |
-| corrupt snapshot/journal | reject load before mutation; preserve original data |
-| deterministic mismatch | stop authoritative advance, write bounded desync bundle |
-| AI planning timeout/budget | retain prior safe plan or issue explicit hold command |
-| missing content/dependency | reject campaign start/load with exact IDs and manifest mismatch |
-| offline tool unavailable | use checked-in validated coefficients/content; runtime unaffected |
+| Failure                          | Required behavior                                                 |
+| -------------------------------- | ----------------------------------------------------------------- |
+| native library missing/wrong ABI | disable warfare, retain city play/save, show remediation          |
+| malformed command                | reject only command with stable code and reason                   |
+| projection buffer too small      | return required length; no partial record                         |
+| corrupt snapshot/journal         | reject load before mutation; preserve original data               |
+| deterministic mismatch           | stop authoritative advance, write bounded desync bundle           |
+| AI planning timeout/budget       | retain prior safe plan or issue explicit hold command             |
+| missing content/dependency       | reject campaign start/load with exact IDs and manifest mismatch   |
+| offline tool unavailable         | use checked-in validated coefficients/content; runtime unaffected |
 
 ## Settings Semantics
 

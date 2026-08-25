@@ -9,23 +9,23 @@
 
 ## Fresh Evidence
 
-| Check | Result | Evidence |
-|---|---|---|
-| Functional requirements | pass | 120 IDs, `FR-001` through `FR-120`, all unique |
-| Quality requirements | pass | 20 IDs, `QR-001` through `QR-020`, all unique |
-| Work packages | pass | 20 spec headings, 20 SQLite records, 20 task prompts |
-| Traceability | pass | 120 task FR references, all unique, no missing or extra IDs |
-| Research sources | pass | 29 data rows; every row has 6 columns |
-| Evidence decisions | pass | 15 data rows; every row has 5 columns |
-| Governance JSON | pass | parsed successfully with `python3 -m json.tool` |
-| Public C header | pass | `/usr/bin/clang -fsyntax-only -x c civic_warfare.h` exited 0 |
-| FlatBuffers schema | deferred | `flatc` is unavailable; WP02 must install pinned compiler and run generation/conformance |
-| Canonical DAG | pass | all 20 nodes reachable; reviewed dependency graph is acyclic |
-| Module sizes | pass | largest planning artifact is 287 lines, below 350-line target |
-| Diff hygiene | pass | `git diff --check` exited 0 |
-| AgilePlus state | pass | dashboard reports 20 planned and 0 doing/review/done/blocked |
-| WP01 public policy runner | pass | version/privacy/license/localization/source-root/file-size checks; 0 npm audit findings |
-| UI quality suite | pass | 9 Vitest files / 23 tests, 20 lint-rule tests, declarations, strict ESLint |
+| Check                     | Result   | Evidence                                                                                 |
+| ------------------------- | -------- | ---------------------------------------------------------------------------------------- |
+| Functional requirements   | pass     | 120 IDs, `FR-001` through `FR-120`, all unique                                           |
+| Quality requirements      | pass     | 20 IDs, `QR-001` through `QR-020`, all unique                                            |
+| Work packages             | pass     | 20 spec headings, 20 SQLite records, 20 task prompts                                     |
+| Traceability              | pass     | 120 task FR references, all unique, no missing or extra IDs                              |
+| Research sources          | pass     | 29 data rows; every row has 6 columns                                                    |
+| Evidence decisions        | pass     | 15 data rows; every row has 5 columns                                                    |
+| Governance JSON           | pass     | parsed successfully with `python3 -m json.tool`                                          |
+| Public C header           | pass     | `/usr/bin/clang -fsyntax-only -x c civic_warfare.h` exited 0                             |
+| FlatBuffers schema        | deferred | `flatc` is unavailable; WP02 must install pinned compiler and run generation/conformance |
+| Canonical DAG             | pass     | all 20 nodes reachable; reviewed dependency graph is acyclic                             |
+| Module sizes              | pass     | largest planning artifact is 287 lines, below 350-line target                            |
+| Diff hygiene              | pass     | `git diff --check` exited 0                                                              |
+| AgilePlus state           | pass     | dashboard reports 20 planned and 0 doing/review/done/blocked                             |
+| WP01 public policy runner | pass     | version/privacy/license/localization/source-root/file-size checks; 0 npm audit findings  |
+| UI quality suite          | pass     | 9 Vitest files / 23 tests, 20 lint-rule tests, declarations, strict ESLint               |
 
 ## AgilePlus Runtime Validation
 
