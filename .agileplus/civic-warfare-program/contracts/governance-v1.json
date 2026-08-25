@@ -1,0 +1,288 @@
+{
+  "id": 0,
+  "feature_id": 1,
+  "version": 1,
+  "rules": [
+    {
+      "transition": "WP01: Doing -> Review",
+      "required_evidence": [
+        "FR-CI:ci_output"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP01: Review -> Done",
+      "required_evidence": [
+        "FR-REVIEW:review_approval"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP02: Doing -> Review",
+      "required_evidence": [
+        "FR-CI:ci_output"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP02: Review -> Done",
+      "required_evidence": [
+        "FR-REVIEW:review_approval"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP03: Doing -> Review",
+      "required_evidence": [
+        "FR-CI:ci_output"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP03: Review -> Done",
+      "required_evidence": [
+        "FR-REVIEW:review_approval"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP04: Doing -> Review",
+      "required_evidence": [
+        "FR-CI:ci_output"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP04: Review -> Done",
+      "required_evidence": [
+        "FR-REVIEW:review_approval"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP05: Doing -> Review",
+      "required_evidence": [
+        "FR-CI:ci_output"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP05: Review -> Done",
+      "required_evidence": [
+        "FR-REVIEW:review_approval"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP06: Doing -> Review",
+      "required_evidence": [
+        "FR-CI:ci_output"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP06: Review -> Done",
+      "required_evidence": [
+        "FR-REVIEW:review_approval"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP07: Doing -> Review",
+      "required_evidence": [
+        "FR-CI:ci_output"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP07: Review -> Done",
+      "required_evidence": [
+        "FR-REVIEW:review_approval"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP08: Doing -> Review",
+      "required_evidence": [
+        "FR-CI:ci_output"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP08: Review -> Done",
+      "required_evidence": [
+        "FR-REVIEW:review_approval"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP09: Doing -> Review",
+      "required_evidence": [
+        "FR-CI:ci_output"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP09: Review -> Done",
+      "required_evidence": [
+        "FR-REVIEW:review_approval"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP10: Doing -> Review",
+      "required_evidence": [
+        "FR-CI:ci_output"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP10: Review -> Done",
+      "required_evidence": [
+        "FR-REVIEW:review_approval"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP11: Doing -> Review",
+      "required_evidence": [
+        "FR-CI:ci_output"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP11: Review -> Done",
+      "required_evidence": [
+        "FR-REVIEW:review_approval"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP12: Doing -> Review",
+      "required_evidence": [
+        "FR-CI:ci_output"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP12: Review -> Done",
+      "required_evidence": [
+        "FR-REVIEW:review_approval"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP13: Doing -> Review",
+      "required_evidence": [
+        "FR-CI:ci_output"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP13: Review -> Done",
+      "required_evidence": [
+        "FR-REVIEW:review_approval"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP14: Doing -> Review",
+      "required_evidence": [
+        "FR-CI:ci_output"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP14: Review -> Done",
+      "required_evidence": [
+        "FR-REVIEW:review_approval"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP15: Doing -> Review",
+      "required_evidence": [
+        "FR-CI:ci_output"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP15: Review -> Done",
+      "required_evidence": [
+        "FR-REVIEW:review_approval"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP16: Doing -> Review",
+      "required_evidence": [
+        "FR-CI:ci_output"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP16: Review -> Done",
+      "required_evidence": [
+        "FR-REVIEW:review_approval"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP17: Doing -> Review",
+      "required_evidence": [
+        "FR-CI:ci_output"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP17: Review -> Done",
+      "required_evidence": [
+        "FR-REVIEW:review_approval"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP18: Doing -> Review",
+      "required_evidence": [
+        "FR-CI:ci_output"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP18: Review -> Done",
+      "required_evidence": [
+        "FR-REVIEW:review_approval"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP19: Doing -> Review",
+      "required_evidence": [
+        "FR-CI:ci_output"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP19: Review -> Done",
+      "required_evidence": [
+        "FR-REVIEW:review_approval"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP20: Doing -> Review",
+      "required_evidence": [
+        "FR-CI:ci_output"
+      ],
+      "policy_refs": []
+    },
+    {
+      "transition": "WP20: Review -> Done",
+      "required_evidence": [
+        "FR-REVIEW:review_approval"
+      ],
+      "policy_refs": []
+    }
+  ],
+  "bound_at": "2026-07-22T13:18:06.959453Z"
+}
