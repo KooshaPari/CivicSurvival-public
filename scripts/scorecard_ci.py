@@ -6,6 +6,8 @@ Audits a repository against 88 quality and security pillars.
 import os, sys, json, argparse
 from pathlib import Path
 
+MINIMUM_THRESHOLD = 85
+
 PILLARS = [
     {"id":1,"name":"README","check":lambda p:(p/"README.md").exists() or (p/"readme.md").exists()},
     {"id":2,"name":"LICENSE","check":lambda p:any(p.glob("LICENSE*"))},
@@ -113,7 +115,7 @@ def audit_repo(repo_path):
     return {"score":score,"total":len(PILLARS),"percentage":(score/len(PILLARS))*100,"results":results}
 
 
-def load_baseline(path, total):
+def load_baseline(path, total, expected_source_revision=None):
     try:
         baseline = json.loads(Path(path).read_text(encoding="utf-8"))
     except OSError as error:
@@ -125,6 +127,8 @@ def load_baseline(path, total):
         raise ValueError("Baseline schema_version must equal 1")
     if not isinstance(baseline.get("source_revision"), str) or not baseline["source_revision"]:
         raise ValueError("Baseline source_revision must be a non-empty string")
+    if expected_source_revision and baseline["source_revision"] != expected_source_revision:
+        raise ValueError("Baseline source_revision does not match the expected source revision")
     score = baseline.get("score")
     baseline_total = baseline.get("total")
     passed_pillar_ids = baseline.get("passed_pillar_ids")
@@ -149,10 +153,13 @@ def main():
     parser.add_argument("--output", choices=["text","json","markdown"], default="text")
     parser.add_argument("--fail-on-drop", action="store_true")
     parser.add_argument("--baseline-file", help="JSON baseline evidence used by --fail-on-drop")
+    parser.add_argument("--expected-source-revision", help="Require baseline evidence from this source revision")
     args = parser.parse_args()
     try:
+        if args.threshold < MINIMUM_THRESHOLD:
+            raise ValueError(f"Threshold must be at least {MINIMUM_THRESHOLD}")
         report = audit_repo(args.path)
-        baseline = load_baseline(args.baseline_file, report["total"]) if args.baseline_file else None
+        baseline = load_baseline(args.baseline_file, report["total"], args.expected_source_revision) if args.baseline_file else None
         current_pillar_ids = {result["id"] for result in report["results"] if result["passed"]}
         baseline_score = baseline["score"] if baseline else None
         missing_baseline_pillar_ids = sorted(set(baseline["passed_pillar_ids"]) - current_pillar_ids) if baseline else []

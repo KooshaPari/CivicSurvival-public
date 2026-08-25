@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -33,10 +35,26 @@ jobs:
         id: audit
         run: |
           THRESHOLD=${{ github.event.inputs.threshold || '85' }}
+          if [ "$THRESHOLD" -lt 85 ]; then
+            echo "::error::Scorecard threshold must be at least 85; received ${THRESHOLD}"
+            exit 2
+          fi
+
+          BASELINE_SOURCE_REVISION="8cb6f4cfdf32639ab3a0cf03ff3e63ddebe8872f"
+          INITIAL_BASELINE_REF="b3f00fd35a5e00aafaadb38d53cce6c9c9aad1a0"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASELINE_REF="${{ github.event.pull_request.base.sha }}"
+            if ! git cat-file -e "${BASELINE_REF}:.github/scorecard-baseline.json"; then
+              BASELINE_REF="$INITIAL_BASELINE_REF"
+            fi
+          else
+            BASELINE_REF="HEAD"
+          fi
+          git show "${BASELINE_REF}:.github/scorecard-baseline.json" > scorecard-baseline.json
 
           # Run audit in JSON mode
           set +e
-          python scripts/scorecard_ci.py . --output json --threshold "$THRESHOLD" --baseline-file .github/scorecard-baseline.json --fail-on-drop > scorecard-report.json 2> scorecard-stderr.txt
+          python scripts/scorecard_ci.py . --output json --threshold "$THRESHOLD" --baseline-file scorecard-baseline.json --expected-source-revision "$BASELINE_SOURCE_REVISION" --fail-on-drop > scorecard-report.json 2> scorecard-stderr.txt
           AUDIT_EXIT=$?
           set -e
           if [ ! -s scorecard-report.json ]; then

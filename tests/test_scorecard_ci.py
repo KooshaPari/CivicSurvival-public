@@ -22,10 +22,10 @@ def make_minimal_repo(root: Path) -> None:
 
 
 class ScorecardBaselineTests(unittest.TestCase):
-    def run_scorecard(self, fixture: Path, baseline: Path, threshold: int = 85) -> subprocess.CompletedProcess[str]:
+    def run_scorecard(self, fixture: Path, baseline: Path, threshold: int = 85, *extra_args: str) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
             [sys.executable, str(SCORECARD), str(fixture), "--output", "json", "--threshold", str(threshold),
-             "--baseline-file", str(baseline), "--fail-on-drop"],
+             "--baseline-file", str(baseline), "--fail-on-drop", *extra_args],
             text=True, capture_output=True, check=False,
         )
 
@@ -45,7 +45,7 @@ class ScorecardBaselineTests(unittest.TestCase):
             self.assertFalse(report["regression"])
             self.assertFalse(report["target_met"])
 
-    def test_fail_on_drop_allows_target_and_baseline_preservation(self) -> None:
+    def test_rejects_threshold_below_hard_minimum(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             fixture = Path(directory)
             make_minimal_repo(fixture)
@@ -54,11 +54,8 @@ class ScorecardBaselineTests(unittest.TestCase):
 
             result = self.run_scorecard(fixture, baseline, threshold=6)
 
-            self.assertEqual(result.returncode, 0, result.stderr)
-            report = json.loads(result.stdout)
-            self.assertTrue(report["target_met"])
-            self.assertFalse(report["regression"])
-            self.assertEqual(report["missing_baseline_pillar_ids"], [])
+            self.assertEqual(result.returncode, 2)
+            self.assertIn("at least 85", result.stderr)
 
     def test_fail_on_drop_rejects_score_neutral_lost_baseline_pillar(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -69,7 +66,7 @@ class ScorecardBaselineTests(unittest.TestCase):
             baseline = fixture / "baseline.json"
             baseline.write_text(json.dumps({"schema_version": 1, "source_revision": "fixture", "score": 6, "total": 88, "passed_pillar_ids": [1, 2, 3, 8, 9, 19]}), encoding="utf-8")
 
-            result = self.run_scorecard(fixture, baseline, threshold=6)
+            result = self.run_scorecard(fixture, baseline)
 
             self.assertEqual(result.returncode, 1, result.stderr)
             report = json.loads(result.stdout)
@@ -84,10 +81,22 @@ class ScorecardBaselineTests(unittest.TestCase):
             baseline = fixture / "baseline.json"
             baseline.write_text(json.dumps({"schema_version": 1, "source_revision": "fixture", "score": 6, "total": 88}), encoding="utf-8")
 
-            result = self.run_scorecard(fixture, baseline, threshold=6)
+            result = self.run_scorecard(fixture, baseline)
 
             self.assertEqual(result.returncode, 2)
             self.assertIn("passed_pillar_ids", result.stderr)
+
+    def test_rejects_baseline_with_unexpected_source_revision(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = Path(directory)
+            make_minimal_repo(fixture)
+            baseline = fixture / "baseline.json"
+            baseline.write_text(json.dumps({"schema_version": 1, "source_revision": "fixture", "score": 6, "total": 88, "passed_pillar_ids": [1, 2, 3, 8, 9, 19]}), encoding="utf-8")
+
+            result = self.run_scorecard(fixture, baseline, 85, "--expected-source-revision", "different-fixture")
+
+            self.assertEqual(result.returncode, 2)
+            self.assertIn("does not match", result.stderr)
 
 
 if __name__ == "__main__":
