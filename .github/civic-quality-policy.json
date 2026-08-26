@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "required_rule_ids": [
+    "CIVIC-CONTRACT-001",
+    "CIVIC-CI-001",
+    "CIVIC-DOC-001",
+    "CIVIC-DOC-002",
+    "CIVIC-PROGRAM-001",
+    "CIVIC-PROGRAM-002",
+    "CIVIC-SEC-001",
+    "CIVIC-SEC-002",
+    "CIVIC-UI-001",
+    "CIVIC-UI-002",
+    "CIVIC-UI-003",
+    "CIVIC-UI-004"
+  ],
+  "rules": [
+    {
+      "id": "CIVIC-DOC-001",
+      "kind": "all_paths_exist",
+      "paths": ["README.md", "BUILDING.md", "USER_GUIDE.md", "PRIVACY.md", "NOTICE.md", "CONTRIBUTING.md", "LICENSE"]
+    },
+    {
+      "id": "CIVIC-DOC-002",
+      "kind": "text_contains",
+      "path": "README.md",
+      "contains": ["This is not a buildable distribution", "public snapshot", "BUILDING.md"]
+    },
+    {
+      "id": "CIVIC-CONTRACT-001",
+      "kind": "all_paths_exist",
+      "paths": ["CivicSurvival.sln", "CivicSurvival.Contracts/CivicSurvival.Contracts.csproj"]
+    },
+    {
+      "id": "CIVIC-UI-001",
+      "kind": "workflow_steps",
+      "path": ".github/workflows/ci.yml",
+      "contains": ["npm run check:contracts"]
+    },
+    {
+      "id": "CIVIC-UI-002",
+      "kind": "workflow_steps",
+      "path": ".github/workflows/ci.yml",
+      "contains": ["npm run typecheck:declarations", "npm run test:lint-rules", "npm run lint:strict"]
+    },
+    {
+      "id": "CIVIC-UI-003",
+      "kind": "workflow_steps",
+      "path": ".github/workflows/ci.yml",
+      "contains": ["npm run test:ui"]
+    },
+    {
+      "id": "CIVIC-UI-004",
+      "kind": "workflow_steps",
+      "path": ".github/workflows/ci.yml",
+      "contains": ["npm run bundle:check", "bundle-baseline.json"]
+    },
+    {
+      "id": "CIVIC-SEC-001",
+      "kind": "workflow_steps",
+      "path": ".github/workflows/ci.yml",
+      "contains": ["name: Security Scan", "security:"]
+    },
+    {
+      "id": "CIVIC-SEC-002",
+      "kind": "workflow_steps",
+      "path": ".github/workflows/ci.yml",
+      "contains": ["name: Dependency Delta", "dep-review:"]
+    },
+    {
+      "id": "CIVIC-PROGRAM-001",
+      "kind": "program_traceability",
+      "paths": [".agileplus/civic-warfare-program/spec.md", ".agileplus/civic-warfare-program/plan.md", ".agileplus/civic-warfare-program/tasks.md", ".agileplus/civic-warfare-program/contracts/governance-v1.json"],
+      "requirement_paths": [".agileplus/civic-warfare-program/spec.md"],
+      "task_glob": ".agileplus/civic-warfare-program/tasks/WP*.md"
+    },
+    {
+      "id": "CIVIC-PROGRAM-002",
+      "kind": "program_dag",
+      "paths": [".agileplus/civic-warfare-program/plan.md", ".agileplus/civic-warfare-program/contracts/governance-v1.json", ".agileplus/civic-warfare-program/wp01-go-no-go.md"],
+      "plan_path": ".agileplus/civic-warfare-program/plan.md",
+      "governance_path": ".agileplus/civic-warfare-program/contracts/governance-v1.json",
+      "go_no_go_path": ".agileplus/civic-warfare-program/wp01-go-no-go.md"
+    },
+    {
+      "id": "CIVIC-CI-001",
+      "kind": "workflow_steps",
+      "path": ".github/workflows/ci.yml",
+      "contains": ["Civic Evidence Gate", "civic_quality_gate.py", "--strict"]
+    }
+  ]
+}
