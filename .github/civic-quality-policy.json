@@ -18,18 +18,33 @@
     {
       "id": "CIVIC-DOC-001",
       "kind": "all_paths_exist",
-      "paths": ["README.md", "BUILDING.md", "USER_GUIDE.md", "PRIVACY.md", "NOTICE.md", "CONTRIBUTING.md", "LICENSE"]
+      "paths": [
+        "README.md",
+        "BUILDING.md",
+        "USER_GUIDE.md",
+        "PRIVACY.md",
+        "NOTICE.md",
+        "CONTRIBUTING.md",
+        "LICENSE"
+      ]
     },
     {
       "id": "CIVIC-DOC-002",
       "kind": "text_contains",
       "path": "README.md",
-      "contains": ["This is not a buildable distribution", "public snapshot", "BUILDING.md"]
+      "contains": [
+        "This is not a buildable distribution",
+        "public snapshot",
+        "BUILDING.md"
+      ]
     },
     {
       "id": "CIVIC-CONTRACT-001",
       "kind": "all_paths_exist",
-      "paths": ["CivicSurvival.sln", "CivicSurvival.Contracts/CivicSurvival.Contracts.csproj"]
+      "paths": [
+        "CivicSurvival.sln",
+        "CivicSurvival.Contracts/CivicSurvival.Contracts.csproj"
+      ]
     },
     {
       "id": "CIVIC-UI-001",
@@ -41,7 +56,11 @@
       "id": "CIVIC-UI-002",
       "kind": "workflow_steps",
       "path": ".github/workflows/ci.yml",
-      "contains": ["npm run typecheck:declarations", "npm run test:lint-rules", "npm run lint:strict"]
+      "contains": [
+        "npm run typecheck:declarations",
+        "npm run test:lint-rules",
+        "npm run lint:strict"
+      ]
     },
     {
       "id": "CIVIC-UI-003",
@@ -70,14 +89,23 @@
     {
       "id": "CIVIC-PROGRAM-001",
       "kind": "program_traceability",
-      "paths": [".agileplus/civic-warfare-program/spec.md", ".agileplus/civic-warfare-program/plan.md", ".agileplus/civic-warfare-program/tasks.md", ".agileplus/civic-warfare-program/contracts/governance-v1.json"],
+      "paths": [
+        ".agileplus/civic-warfare-program/spec.md",
+        ".agileplus/civic-warfare-program/plan.md",
+        ".agileplus/civic-warfare-program/tasks.md",
+        ".agileplus/civic-warfare-program/contracts/governance-v1.json"
+      ],
       "requirement_paths": [".agileplus/civic-warfare-program/spec.md"],
       "task_glob": ".agileplus/civic-warfare-program/tasks/WP*.md"
     },
     {
       "id": "CIVIC-PROGRAM-002",
       "kind": "program_dag",
-      "paths": [".agileplus/civic-warfare-program/plan.md", ".agileplus/civic-warfare-program/contracts/governance-v1.json", ".agileplus/civic-warfare-program/wp01-go-no-go.md"],
+      "paths": [
+        ".agileplus/civic-warfare-program/plan.md",
+        ".agileplus/civic-warfare-program/contracts/governance-v1.json",
+        ".agileplus/civic-warfare-program/wp01-go-no-go.md"
+      ],
       "plan_path": ".agileplus/civic-warfare-program/plan.md",
       "governance_path": ".agileplus/civic-warfare-program/contracts/governance-v1.json",
       "go_no_go_path": ".agileplus/civic-warfare-program/wp01-go-no-go.md"

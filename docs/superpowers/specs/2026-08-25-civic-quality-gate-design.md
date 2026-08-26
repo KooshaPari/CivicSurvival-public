@@ -26,20 +26,20 @@ private source generators, or infer that a document proves runtime correctness.
 The policy version is `1`. Passing requires every rule below. Each rule carries a
 stable identifier, a rationale, and an explicit probe so reports are actionable.
 
-| ID | Evidence | Probe |
-|---|---|---|
-| `CIVIC-DOC-001` | Public-audit entrypoints | Root `README.md`, `BUILDING.md`, `USER_GUIDE.md`, `PRIVACY.md`, `NOTICE.md`, `CONTRIBUTING.md`, and `LICENSE` exist. |
-| `CIVIC-DOC-002` | Honest build boundary | `README.md` contains the public-snapshot limitation and links to `BUILDING.md`; `BUILDING.md` exists. |
-| `CIVIC-CONTRACT-001` | Public contract surface | `CivicSurvival.sln` and `CivicSurvival.Contracts/CivicSurvival.Contracts.csproj` exist. The installed-game build is reported as `host-required`, not passed, unless a licensed host supplies its evidence. |
-| `CIVIC-UI-001` | UI contract integrity | `npm run check:contracts` runs from `CivicSurvival/UI`. |
-| `CIVIC-UI-002` | UI static integrity | `npm run typecheck:declarations`, `npm run test:lint-rules`, and `npm run lint:strict` run from `CivicSurvival/UI`. |
-| `CIVIC-UI-003` | UI behavioral integrity | `npm run test:ui` runs from `CivicSurvival/UI`. |
-| `CIVIC-UI-004` | UI bundle budget | `bundle-baseline.json` exists and `npm run bundle:check` runs from `CivicSurvival/UI`. |
-| `CIVIC-SEC-001` | Secret scan | The existing `ci / Security Scan` job completes successfully. This is consumed through the required-check aggregation, not duplicated by the evaluator. |
-| `CIVIC-SEC-002` | Dependency-change scrutiny | The existing `ci / Dependency Delta` job completes successfully. This prevents silent dependency-manifest changes until a real ecosystem scanner is introduced. |
-| `CIVIC-PROGRAM-001` | Warfare program traceability | `.agileplus/civic-warfare-program/spec.md`, `plan.md`, `tasks.md`, and `contracts/governance-v1.json` exist; the evaluator requires 120 unique `FR-001` through `FR-120`, 20 unique `QR-001` through `QR-020`, and 20 WP task files. |
-| `CIVIC-PROGRAM-002` | Reviewed DAG and licensed-host boundary | The evaluator validates governance JSON, checks the declared WP graph is acyclic, and reports WP01 as `external_gate: pending` until a licensed host produces build, launch-smoke, artifact-hash, and provenance evidence. It never turns that pending state into a public-CI pass. |
-| `CIVIC-CI-001` | Gate integrity | The Civic workflow invokes the evaluator with `--strict`; its job fails on a missing required rule. |
+| ID                   | Evidence                                | Probe                                                                                                                                                                                                                                                                               |
+| -------------------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CIVIC-DOC-001`      | Public-audit entrypoints                | Root `README.md`, `BUILDING.md`, `USER_GUIDE.md`, `PRIVACY.md`, `NOTICE.md`, `CONTRIBUTING.md`, and `LICENSE` exist.                                                                                                                                                                |
+| `CIVIC-DOC-002`      | Honest build boundary                   | `README.md` contains the public-snapshot limitation and links to `BUILDING.md`; `BUILDING.md` exists.                                                                                                                                                                               |
+| `CIVIC-CONTRACT-001` | Public contract surface                 | `CivicSurvival.sln` and `CivicSurvival.Contracts/CivicSurvival.Contracts.csproj` exist. The installed-game build is reported as `host-required`, not passed, unless a licensed host supplies its evidence.                                                                          |
+| `CIVIC-UI-001`       | UI contract integrity                   | `npm run check:contracts` runs from `CivicSurvival/UI`.                                                                                                                                                                                                                             |
+| `CIVIC-UI-002`       | UI static integrity                     | `npm run typecheck:declarations`, `npm run test:lint-rules`, and `npm run lint:strict` run from `CivicSurvival/UI`.                                                                                                                                                                 |
+| `CIVIC-UI-003`       | UI behavioral integrity                 | `npm run test:ui` runs from `CivicSurvival/UI`.                                                                                                                                                                                                                                     |
+| `CIVIC-UI-004`       | UI bundle budget                        | `bundle-baseline.json` exists and `npm run bundle:check` runs from `CivicSurvival/UI`.                                                                                                                                                                                              |
+| `CIVIC-SEC-001`      | Secret scan                             | The existing `ci / Security Scan` job completes successfully. This is consumed through the required-check aggregation, not duplicated by the evaluator.                                                                                                                             |
+| `CIVIC-SEC-002`      | Dependency-change scrutiny              | The existing `ci / Dependency Delta` job completes successfully. This prevents silent dependency-manifest changes until a real ecosystem scanner is introduced.                                                                                                                     |
+| `CIVIC-PROGRAM-001`  | Warfare program traceability            | `.agileplus/civic-warfare-program/spec.md`, `plan.md`, `tasks.md`, and `contracts/governance-v1.json` exist; the evaluator requires 120 unique `FR-001` through `FR-120`, 20 unique `QR-001` through `QR-020`, and 20 WP task files.                                                |
+| `CIVIC-PROGRAM-002`  | Reviewed DAG and licensed-host boundary | The evaluator validates governance JSON, checks the declared WP graph is acyclic, and reports WP01 as `external_gate: pending` until a licensed host produces build, launch-smoke, artifact-hash, and provenance evidence. It never turns that pending state into a public-CI pass. |
+| `CIVIC-CI-001`       | Gate integrity                          | The Civic workflow invokes the evaluator with `--strict`; its job fails on a missing required rule.                                                                                                                                                                                 |
 
 `CIVIC-UI-001` through `CIVIC-UI-004` are command checks and run only after a locked
 `npm ci` in the UI directory. `CIVIC-SEC-001` and `CIVIC-SEC-002` are workflow-job
@@ -65,7 +65,7 @@ that are not declared, and policies with no required rules.
   "required_passed": true,
   "passed_rule_ids": ["CIVIC-DOC-001"],
   "failed_rules": [],
-  "external_gates": [{"id": "WP01", "state": "pending"}]
+  "external_gates": [{ "id": "WP01", "state": "pending" }]
 }
 ```
 
