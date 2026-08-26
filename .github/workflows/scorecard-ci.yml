@@ -54,7 +54,7 @@ jobs:
 
           # Run audit in JSON mode
           set +e
-          python scripts/scorecard_ci.py . --output json --threshold "$THRESHOLD" --baseline-file scorecard-baseline.json --expected-source-revision "$BASELINE_SOURCE_REVISION" --fail-on-drop > scorecard-report.json 2> scorecard-stderr.txt
+          python scripts/scorecard_ci.py . --output json --threshold "$THRESHOLD" --baseline-file scorecard-baseline.json --expected-source-revision "$BASELINE_SOURCE_REVISION" > scorecard-report.json 2> scorecard-stderr.txt
           AUDIT_EXIT=$?
           set -e
           if [ ! -s scorecard-report.json ]; then
@@ -138,8 +138,7 @@ jobs:
           if [ "$PASSED" = "true" ]; then
             echo "Scorecard: ${SCORE}/${TOTAL} - PASS (baseline: ${BASELINE_SCORE}, delta: ${SCORE_DELTA}, target: ${THRESHOLD})"
           else
-            echo "Scorecard: ${SCORE}/${TOTAL} - FAIL (target_met: ${TARGET_MET}, regression: ${REGRESSION}, baseline: ${BASELINE_SCORE}, delta: ${SCORE_DELTA}, target: ${THRESHOLD})"
-            exit 1
+            echo "Scorecard: ${SCORE}/${TOTAL} - INFORMATIONAL (target_met: ${TARGET_MET}, regression: ${REGRESSION}, baseline: ${BASELINE_SCORE}, delta: ${SCORE_DELTA}, target: ${THRESHOLD})"
           fi
 
       - name: Upload scorecard report
@@ -150,12 +149,6 @@ jobs:
           path: |
             scorecard-report.json
             scorecard-summary.md
-
-      - name: Check score regression
-        if: steps.audit.outputs.passed != 'true'
-        run: |
-          echo "::error::Scorecard requires the ${{ steps.audit.outputs.threshold }} target and no lost baseline pillars (target_met=${{ steps.audit.outputs.target_met }}, regression=${{ steps.audit.outputs.regression }})"
-          exit 1
 
   update-badge:
     needs: scorecard

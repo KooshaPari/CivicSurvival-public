@@ -176,7 +176,6 @@ jobs:
     needs: detect
     if: needs.detect.outputs.has_security == 'true'
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
         with:
@@ -210,6 +209,83 @@ jobs:
             exit 1
           fi
           echo "No dependency manifest changes; dependency delta gate passed."
+
+  civic-quality:
+    name: Civic Evidence Gate
+    if: always()
+    needs: [security, dep-review]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail closed on prerequisite jobs
+        shell: bash
+        run: |
+          set -euo pipefail
+          security_result="${{ needs.security.result }}"
+          dependency_result="${{ needs.dep-review.result }}"
+          if [ "$security_result" != "success" ]; then
+            echo "::error::Security Scan prerequisite is $security_result"
+            exit 1
+          fi
+          if [ "${{ github.event_name }}" = "pull_request" ] && [ "$dependency_result" != "success" ]; then
+            echo "::error::Dependency Delta prerequisite is $dependency_result"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: CivicSurvival/UI/package-lock.json
+
+      - name: Install locked UI dependencies
+        working-directory: CivicSurvival/UI
+        run: npm ci --ignore-scripts
+
+      - name: UI contract checks
+        working-directory: CivicSurvival/UI
+        run: npm run check:contracts
+
+      - name: UI declaration and rule checks
+        working-directory: CivicSurvival/UI
+        run: |
+          npm run typecheck:declarations
+          npm run test:lint-rules
+
+      - name: UI behavioral checks
+        working-directory: CivicSurvival/UI
+        run: npm run test:ui
+
+      - name: UI strict lint
+        working-directory: CivicSurvival/UI
+        run: npm run lint:strict
+
+      - name: UI bundle budget
+        working-directory: CivicSurvival/UI
+        run: |
+          test -f bundle-baseline.json
+          npm run bundle:check
+
+      - name: Evaluate Civic repository evidence
+        run: python scripts/civic_quality_gate.py . --policy .github/civic-quality-policy.json --output json --strict > civic-quality-report.json
+
+      - name: Render Civic evidence summary
+        if: always()
+        run: python scripts/civic_quality_gate.py . --policy .github/civic-quality-policy.json --output markdown --strict > civic-quality-summary.md
+
+      - name: Upload Civic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: civic-quality-evidence-${{ github.run_id }}
+          path: |
+            civic-quality-report.json
+            civic-quality-summary.md
 
   lint:
     name: ci / lint
