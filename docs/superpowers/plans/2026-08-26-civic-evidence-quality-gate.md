@@ -205,10 +205,10 @@ Closure for this slice is reached only when the PR is reviewed, hosted checks ar
 
 Mark each checkbox in this file only after the corresponding commit and verification command succeed:
 
-- [ ] Task 1 — failing evaluator tests
-- [ ] Task 2 — evaluator implementation
-- [ ] Task 3 — policy manifest
-- [ ] Task 4 — strict CI job
-- [ ] Task 5 — report-only scorecard
+- [x] Task 1 — failing evaluator tests
+- [x] Task 2 — evaluator implementation
+- [x] Task 3 — policy manifest
+- [x] Task 4 — strict CI job (local evaluator/UI wiring verified; missing public helper tools remain a gate blocker)
+- [x] Task 5 — report-only scorecard
 - [ ] Task 6 — local verification
 - [ ] Task 7 — hosted review and branch-protection handoff
