@@ -178,6 +178,8 @@ def evaluate(repo: Path, policy: dict[str, Any]) -> dict[str, Any]:
             reason = _program_traceability(repo, rule)
         elif kind == "program_dag":
             reason = _program_dag(repo, rule)
+            if reason is None:
+                external.append({"external": True, "id": "WP01", "state": "pending"})
         if reason:
             failures.append({"id": rule_id, "kind": kind, "reason": reason})
         else:
