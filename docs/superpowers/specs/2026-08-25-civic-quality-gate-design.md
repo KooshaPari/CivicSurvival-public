@@ -42,10 +42,13 @@ stable identifier, a rationale, and an explicit probe so reports are actionable.
 | `CIVIC-CI-001` | Gate integrity | The Civic workflow invokes the evaluator with `--strict`; its job fails on a missing required rule. |
 
 `CIVIC-UI-001` through `CIVIC-UI-004` are command checks and run only after a locked
-`npm ci` in the UI directory. `CIVIC-SEC-001` and `CIVIC-SEC-002` are workflow dependencies rather than file checks,
-so the Civic gate is configured with `needs: [security, dep-review]` and fails closed
-if either required job does not succeed. This retains the actual checks already
-validated on PR #3 without pretending the evaluator can reproduce them.
+`npm ci` in the UI directory. `CIVIC-SEC-001` and `CIVIC-SEC-002` are workflow-job
+dependencies rather than file checks. The Civic gate is therefore a job in the
+existing `.github/workflows/ci.yml`, configured with `needs: [security, dep-review]`
+and an explicit fail-closed dependency-result check. This retains the actual checks
+already validated on PR #3 without duplicating scanners or pretending the evaluator
+can reproduce them. A separate workflow would not be valid because GitHub Actions
+does not allow `needs` across workflow files.
 
 ## Data contract
 
@@ -72,9 +75,10 @@ are informational and cannot change that exit code.
 
 ## CI behavior
 
-`.github/workflows/civic-quality-ci.yml` runs on pull requests and protected-branch
-pushes. It runs the evaluator after checkout, publishes the JSON and Markdown report
-as an artifact, and exposes one required check named `Civic Evidence Gate`.
+`.github/workflows/ci.yml` gains a `Civic Evidence Gate` job on pull requests and
+protected-branch pushes. It runs after `security` and `dep-review`, performs the
+locked UI command checks, invokes the evaluator, publishes the JSON and Markdown
+report as an artifact, and exposes one required check named `Civic Evidence Gate`.
 
 The legacy 88-pillar workflow changes to report-only: it still uploads its inventory
 and comments its score, but the target failure is an annotation rather than a failed
