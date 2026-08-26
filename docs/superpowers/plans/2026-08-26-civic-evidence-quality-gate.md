@@ -211,4 +211,4 @@ Mark each checkbox in this file only after the corresponding commit and verifica
 - [x] Task 4 — strict CI job (local evaluator/UI wiring verified; missing public helper tools remain a gate blocker)
 - [x] Task 5 — report-only scorecard
 - [x] Task 6 — local verification and exact-head hosted evidence gate (Civic gate, security, dependency, lint/test, scorecard, Semgrep, and Socket green at `f6b8848`; licensed WP01 remains pending)
-- [ ] Task 7 — hosted review and branch-protection handoff (blocked on stale bot review state, pending Kilo/Infisical checks, and Mergify summary)
+- [ ] Task 7 — hosted review and branch-protection handoff (branch protection now requires Civic Gate, security, dependency, lint, and test; repository-controlled checks and latest Kilo pass; one human approval remains required before merge)
