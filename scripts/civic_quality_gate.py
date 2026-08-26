@@ -48,10 +48,33 @@ def load_policy(path: Path) -> dict[str, Any]:
             raise PolicyError(f"duplicate rule id: {rule['id']}")
         if rule.get("kind") not in KNOWN_KINDS:
             raise PolicyError(f"unknown rule kind: {rule.get('kind')}")
+        kind = rule["kind"]
+        if kind == "all_paths_exist" and not _string_list(rule.get("paths")):
+            raise PolicyError(f"{rule['id']} paths must be a non-empty string list")
+        if kind in {"text_contains", "workflow_steps"}:
+            if not isinstance(rule.get("path"), str) or not _string_list(rule.get("contains")):
+                raise PolicyError(f"{rule['id']} requires a string path and contains list")
+        if kind == "program_traceability":
+            for field in ("paths", "requirement_paths"):
+                if not _string_list(rule.get(field)):
+                    raise PolicyError(f"{rule['id']} {field} must be a non-empty string list")
+            if not isinstance(rule.get("task_glob"), str):
+                raise PolicyError(f"{rule['id']} task_glob must be a string")
+        if kind == "program_dag":
+            for field in ("paths",):
+                if not _string_list(rule.get(field)):
+                    raise PolicyError(f"{rule['id']} {field} must be a non-empty string list")
+            for field in ("plan_path", "governance_path", "go_no_go_path"):
+                if not isinstance(rule.get(field), str):
+                    raise PolicyError(f"{rule['id']} {field} must be a string")
         ids.append(rule["id"])
     if set(ids) != set(required):
         raise PolicyError("required_rule_ids must exactly match declared rules")
     return policy
+
+
+def _string_list(value: Any) -> bool:
+    return isinstance(value, list) and bool(value) and all(isinstance(item, str) for item in value)
 
 
 def safe_path(repo: Path, value: str) -> Path:
@@ -128,13 +151,17 @@ def _program_dag(repo: Path, rule: dict[str, Any]) -> str | None:
     nodes = {f"WP{i:02d}" for i in range(1, 21)}
     edges: dict[str, set[str]] = {node: set() for node in nodes}
     in_degree = {node: 0 for node in nodes}
+    declared_targets: set[str] = set()
     for line in plan.splitlines():
         if not line.lstrip().startswith("| WP"):
             continue
         fields = [field.strip() for field in line.split("|")]
-        if len(fields) < 5 or fields[1] not in nodes:
+        if len(fields) >= 2 and fields[1] == "WP":
             continue
+        if len(fields) < 5 or fields[1] not in nodes:
+            return "work-package registry contains an invalid target row"
         target = fields[1]
+        declared_targets.add(target)
         dependency_field = fields[4]
         for match in re.finditer(r"WP(\d{2})(?:-WP(\d{2}))?", dependency_field):
             start = int(match.group(1))
@@ -146,6 +173,9 @@ def _program_dag(repo: Path, rule: dict[str, Any]) -> str | None:
                 if target not in edges[source]:
                     edges[source].add(target)
                     in_degree[target] += 1
+    if declared_targets != nodes:
+        missing = ", ".join(sorted(nodes - declared_targets))
+        return f"work-package registry is missing targets: {missing}"
     queue = sorted(node for node, degree in in_degree.items() if degree == 0)
     visited = 0
     while queue:

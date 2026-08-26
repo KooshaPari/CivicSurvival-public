@@ -71,6 +71,7 @@ def test_missing_required_evidence_is_actionable(tmp_path):
         {"version": 1, "required_rule_ids": ["A", "A"], "rules": [{"id": "A", "kind": "all_paths_exist", "paths": []}]},
         {"version": 1, "required_rule_ids": ["A"], "rules": [{"id": "A", "kind": "unknown", "paths": []}]},
         {"version": 1, "required_rule_ids": [], "rules": []},
+        {"version": 1, "required_rule_ids": ["A"], "rules": [{"id": "A", "kind": "all_paths_exist", "paths": [7]}]},
     ],
 )
 def test_malformed_policy_exits_two(tmp_path, policy_data):
