@@ -276,6 +276,7 @@ namespace CivicSurvival.Domains.Narrative.Systems
                 var key when key == NarrativeTrigger.MilestoneVictory.ToKey() => ReactionTriggers.OnVictory,
                 _ => null
             };
+#pragma warning restore CIVIC135
 
             if (reactionTrigger == null) return;
 

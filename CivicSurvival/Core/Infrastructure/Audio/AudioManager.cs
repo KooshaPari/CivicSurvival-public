@@ -367,6 +367,7 @@ namespace CivicSurvival.Core.Infrastructure.Audio
                 ".WAV" => AudioType.WAV,
                 _ => AudioType.UNKNOWN
             };
+#pragma warning restore CIVIC135
         }
 
         /// <summary>
