@@ -1,0 +1,59 @@
+name: Public audit
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  public-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: npm
+          cache-dependency-path: CivicSurvival/UI/package-lock.json
+      - name: Public policy checks
+        run: node scripts/ci/check-public-audit.mjs .
+      - name: Contracts build and audit runner
+        run: |
+          bash tests/public-audit/test_contracts_build.sh
+          bash tests/public-audit/test_runner.sh
+      - name: UI dependency install
+        working-directory: CivicSurvival/UI
+        run: npm ci --ignore-scripts
+      - name: UI unit and lint-rule tests
+        working-directory: CivicSurvival/UI
+        run: |
+          npm run test:ui
+          npm run test:lint-rules
+          npm run typecheck:declarations
+          npm run lint:strict
+      - name: Production dependency audit
+        working-directory: CivicSurvival/UI
+        run: npm audit --omit=dev --audit-level=high
+      - name: Install pinned FlatBuffers compiler
+        run: |
+          git clone --depth 1 --branch v25.12.19 https://github.com/google/flatbuffers.git "$RUNNER_TEMP/flatbuffers"
+          cmake -S "$RUNNER_TEMP/flatbuffers" -B "$RUNNER_TEMP/flatbuffers-build" \
+            -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_BUILD_GRPCTEST=OFF \
+            -DFLATBUFFERS_BUILD_CPP17=ON
+          cmake --build "$RUNNER_TEMP/flatbuffers-build" --target flatc --parallel
+          echo "$RUNNER_TEMP/flatbuffers-build" >> "$GITHUB_PATH"
+      - name: Native workspace boundary tests
+        run: |
+          bash tests/wp02/test_native_workspace.sh
+          bash tests/wp02/test_contract_boundaries.sh
+          bash tests/wp02/test_flatc_conformance.sh
+          bash tests/wp02/test_flatbuffer_verifier.sh
+          bash tests/wp02/test_ffi_abi.sh

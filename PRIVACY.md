@@ -44,7 +44,7 @@ subset; turning Online off stops it.
 
 ## Developer diagnostics (analytics for the developer)
 
-Developer diagnostics are **optional and opt-out**. They are a sub-option under
+Developer diagnostics are **optional and opt-in, disabled by default**. They are a sub-option under
 Online: they are sent **only while Online is on**, and you can turn them off at any
 time while keeping Online on. Turning Online off also stops diagnostics.
 
@@ -55,6 +55,7 @@ of the functional event stream above, which Online sends regardless):
 - A random install/player ID generated locally by the mod. This random ID is created on first launch and stored only on your machine; it is sent to the server only after you enable Online. It links your sessions to each other but is not tied to your real-world identity.
 - A random session ID
 - Crash reports and CivicSurvival error stack traces
+- Crash metadata includes a coarse `ExceptionCode` and lifecycle `Phase`; these are categorical diagnostics, not raw memory or personal identifiers.
 - For native crashes, the faulting module name and instruction offset only — read locally from
   the crash dump on next launch to tell whether the mod or the base game crashed. The crash dump
   file itself, its memory contents, and any embedded screenshot are **not** sent; file-system
@@ -65,7 +66,7 @@ of the functional event stream above, which Online sends regardless):
 
 The city/gameplay metrics that drive the AI news and stats (wave number, power
 production/demand, game day, population, city budget, and the like) are part of the
-**functional** Online event stream described above, not the diagnostics opt-out — so
+**functional** Online event stream described above, not the diagnostics choice — so
 they are sent whenever Online is on, and turning diagnostics off does not stop them.
 
 ## What Is Not Sent
@@ -132,7 +133,7 @@ be retried if the network is unavailable. This includes the pending event stream
 context, and the credentials file that holds your random player ID. A few notes on how
 this behaves:
 
-- **Turning diagnostics or Online off erases the pending local queue.** When you opt out,
+- **Turning diagnostics or Online off erases the pending local queue.** When you disable it,
   the not-yet-sent queue is cleared rather than kept for later — it is not re-sent if you
   turn things back on.
 - **Restarting the game keeps the queue** so a report that was interrupted can still be
@@ -171,4 +172,3 @@ For players in the European Union, this processing falls under the GDPR:
 Civic Survival is not directed at children. If you are below the minimum age for digital
 consent in your country (16 in much of the EU, lower in some member states), you should
 only enable Online or diagnostics with the consent of a parent or guardian.
-
