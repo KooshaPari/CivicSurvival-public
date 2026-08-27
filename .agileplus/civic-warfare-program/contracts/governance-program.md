@@ -4,7 +4,7 @@
 
 `planned -> doing -> review -> done`; `blocked` requires a named blocker, owner, evidence, and next review. Entry dependencies in `plan.md` must be done before `doing`, except only the named `WP17.projection-primitives`, `WP18.authoring-tools`, and `WP19.harness-foundation` scopes after WP02.
 
-The CLI-generated `governance-v1.json` is retained as machine-readable baseline policy. Its generic `FR-CI` and `FR-REVIEW` evidence labels are tool vocabulary, not program requirements; this contract and the real `FR-001` through `FR-120` traceability records govern acceptance.
+The CLI-generated `governance-v1.json` is retained as machine-readable baseline policy. Its generic `FR-CI` and `FR-REVIEW` evidence labels are tool vocabulary, not program requirements; this contract and the real `FR-001` through `FR-120` traceability records govern acceptance. WP18 is split into `authoring-tools` (entry after WP02) and `scenario-tooling` (entry after WP03); either scope may advance under its named gate, but neither permits full WP18 completion until both scopes and their domain-rule dependencies are accepted.
 
 ## Required Evidence for Doing -> Review
 

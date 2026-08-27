@@ -43,7 +43,7 @@ Ground   Air       Sea       Defense   Civil     Campaigns
                        WP20 Docs/license/release
 ```
 
-WP19-foundation starts after WP02 and continuously gates every lane; its final acceptance depends on WP01-WP18. Only the named WP17 projection-primitives, WP18 authoring-tools, and WP19 harness-foundation scopes may advance early; their parent work packages remain incomplete until their full dependencies pass. WP17 completes only after gameplay projections are stable. WP18 scenario tooling begins after WP02/WP03 and completes after domain rules exist.
+WP19-foundation starts after WP02 and continuously gates every lane; its final acceptance depends on WP01-WP18. Only the named WP17 projection-primitives, WP18 authoring-tools, and WP19 harness-foundation scopes may advance early; their parent work packages remain incomplete until their full dependencies pass. WP17 completes only after gameplay projections are stable. WP18 has two explicitly named scopes: `authoring-tools` may begin after WP02 for schema/command authoring, while `scenario-tooling` begins after WP03 and completes after domain rules exist; neither scope implies full WP18 completion.
 
 ## Execution Waves
 
@@ -88,22 +88,22 @@ WP19-foundation starts after WP02 and continuously gates every lane; its final a
 | WP19 | Verification/security/perf  | FR-091..095,119 | starts WP02; exits WP01-WP18 | machine-readable complete evidence graph        | 5-8 ew |
 | WP20 | Docs/license/release        | FR-096..100,120 | WP01-WP19                    | reproducible package and signed dossier         | 3-5 ew |
 
-`ew` means engineering-weeks of effort, not calendar duration. With five implementation lanes after WP08, estimated total is 78-123 engineering-weeks and 28-44 calendar weeks; rebaseline from measured WP01-WP03 throughput.
+`ew` means engineering-weeks of effort, not calendar duration. With all twenty registry estimates, estimated total is 82-133 engineering-weeks and 28-44 calendar weeks; rebaseline from measured WP01-WP03 throughput.
 
 ## Critical Path and Parallelism
 
-Critical path: `WP01 -> WP02 -> WP03 -> WP04 -> WP05 -> WP06 -> WP07 -> WP08 -> max(WP09,WP10,WP11,WP12,WP15) -> WP13 -> WP16 -> WP17 -> WP19-final -> WP20`.
+Critical path: `WP01 -> WP02 -> WP03 -> WP04 -> WP05 -> WP06 -> WP07 -> WP08 -> join(WP13 after WP09-WP12, WP15 after WP14) -> WP16 -> WP17 -> WP19-final -> WP20`.
 
 Safe parallel sets:
 
 - WP05 and WP14 after WP04.
 - WP09, WP10, WP11, WP12, and WP15 after their shared substrate passes.
-- WP17 projection primitives, WP18 authoring tools, and WP19 harness-foundation may advance early behind stable contracts; no full-WP completion or downstream implementation is implied.
+- WP17 projection primitives, WP18 `authoring-tools` (after WP02), and WP19 harness-foundation may advance early behind stable contracts; WP18 `scenario-tooling` requires WP03. No full-WP completion or downstream implementation is implied.
 - Offline Julia/Python calibration may run beside all runtime lanes but may only contribute versioned coefficients/content.
 
 ## Progress Contract
 
-SQLite WP states are `planned -> doing -> review -> done` with `blocked` as an exception. A lane may enter `doing` only when its canonical DAG dependencies are done, except the explicitly named foundation scopes (`WP17.projection-primitives`, `WP18.authoring-tools`, `WP19.harness-foundation`) after WP02. Program progress is weighted by accepted requirements, not time spent:
+SQLite WP states are `planned -> doing -> review -> done` with `blocked` as an exception. A lane may enter `doing` only when its canonical DAG dependencies are done, except WP17 `projection-primitives`, WP18 `authoring-tools` after WP02, and WP19 `harness-foundation`; WP18 `scenario-tooling` requires WP03. Program progress is weighted by accepted requirements, not time spent:
 
 ```text
 wp_progress = accepted_FRs / 6

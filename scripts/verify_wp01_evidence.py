@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -34,14 +36,34 @@ def main() -> int:
         data = json.loads(manifest_path.read_text())
     except (OSError, json.JSONDecodeError) as exc:
         return fail(f"manifest cannot be read: {exc}", 2)
+    if not isinstance(data, dict):
+        return fail("manifest top level must be an object")
     if data.get("schema") != "civic.wp01.evidence" or data.get("schema_version") != 1:
         return fail("schema_version must be 1")
-    if data.get("decision", {}).get("result") != "GO":
+    decision = data.get("decision")
+    if not isinstance(decision, dict):
+        return fail("decision must be an object")
+    if decision.get("result") != "GO":
         print("WP01 evidence pending: decision is not GO")
         return 1
     subject = data.get("subject")
-    if not isinstance(subject, dict) or not isinstance(subject.get("commit"), str) or len(subject["commit"]) != 40:
-        return fail("subject.commit must be a 40-character Git SHA")
+    subject_commit = subject.get("commit") if isinstance(subject, dict) else None
+    if not isinstance(subject_commit, str) or not re.fullmatch(r"[0-9a-f]{40}", subject_commit):
+        return fail("subject.commit must be a lowercase 40-character Git SHA")
+    try:
+        resolved_head = subprocess.run(
+            ["git", "-C", str(repo), "rev-parse", "--verify", "HEAD^{commit}"],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError as exc:
+        return fail(f"repository HEAD cannot be resolved: {exc}")
+    if resolved_head.returncode != 0:
+        return fail("repository HEAD cannot be resolved")
+    current_head = resolved_head.stdout.strip()
+    if subject_commit != current_head:
+        return fail(f"subject.commit does not match repository HEAD ({current_head})")
     environment = data.get("environment")
     if not isinstance(environment, dict) or environment.get("host_class") != "licensed-game" or not environment.get("license_basis"):
         return fail("environment must declare a licensed-game host and license_basis")
@@ -70,7 +92,7 @@ def main() -> int:
     if evidence_ids != REQUIRED_EVIDENCE:
         return fail(f"evidence IDs must be exactly {sorted(REQUIRED_EVIDENCE)}")
     for item in evidence:
-        if item.get("status") != "pass" or item.get("subject_commit") != subject["commit"]:
+        if item.get("status") != "pass" or item.get("subject_commit") != subject_commit:
             return fail(f"evidence {item.get('evidence_id')} must pass for the subject commit")
         if not item.get("command_ids") or not set(item["command_ids"]).issubset(command_ids):
             return fail(f"evidence {item.get('evidence_id')} references unknown commands")

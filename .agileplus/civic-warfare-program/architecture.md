@@ -41,20 +41,20 @@ Strategic AI reads faction-scoped knowledge projections and emits the same comma
 
 ## Context Ownership
 
-| Context             | Sole writer           | Reads                                       | Emits                                                   |
-| ------------------- | --------------------- | ------------------------------------------- | ------------------------------------------------------- |
-| Identity/Time       | tick reducer          | campaign clock/config                       | tick/revision                                           |
-| Geography           | geography reducer     | rules, observations                         | topology/control/weather changes                        |
-| Factions/Statecraft | statecraft reducer    | knowledge, economy, civil state             | treaties, access, sovereignty outcomes                  |
-| Intelligence        | intelligence reducer  | sources, operations, events                 | knowledge estimates and attribution                     |
-| War Economy         | economy reducer       | city observations, contracts, policy        | production, price, budget, construction outcomes        |
-| Logistics           | logistics reducer     | graphs, stockpiles, priorities              | deliveries, shortages, losses, causal traces            |
-| Force Generation    | force reducer         | population, equipment, training             | readiness, formations, casualty/demobilization outcomes |
-| Operations          | operations reducer    | knowledge, forces, logistics, authorization | scheduled mission intents and phases                    |
-| Combat              | domain resolvers      | operations, terrain, forces, supply         | losses, control, damage, displacement                   |
-| Civil Resilience    | civil reducer         | services, casualties, prices, information   | legitimacy, unrest, actor events, policy consequences   |
-| Strategic AI        | command producer only | faction knowledge projections               | ordinary commands and explanations                      |
-| Projection/Replay   | projection reducer    | accepted outcomes and canonical state       | immutable snapshots/deltas/hashes                       |
+| Context             | Sole writer           | Reads                                                                      | Emits                                                   |
+| ------------------- | --------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------- |
+| Identity/Time       | tick reducer          | campaign clock/config                                                      | tick/revision                                           |
+| Geography           | geography reducer     | rules, observations                                                        | topology/control/weather changes                        |
+| Factions/Statecraft | statecraft reducer    | knowledge, economy, civil state                                            | treaties, access, sovereignty outcomes                  |
+| Intelligence        | intelligence reducer  | sources, operations, events                                                | knowledge estimates and attribution                     |
+| War Economy         | economy reducer       | city observations, contracts, policy                                       | production, price, budget, construction outcomes        |
+| Logistics           | logistics reducer     | graphs, stockpiles, priorities                                             | deliveries, shortages, losses, causal traces            |
+| Force Generation    | force reducer         | population, equipment, training                                            | readiness, formations, casualty/demobilization outcomes |
+| Operations          | operations reducer    | prior-tick operations/intents, knowledge, forces, logistics, authorization | scheduled mission intents and phases                    |
+| Combat              | domain resolvers      | operations, terrain, forces, supply                                        | losses, control, damage, displacement                   |
+| Civil Resilience    | civil reducer         | services, casualties, prices, information                                  | legitimacy, unrest, actor events, policy consequences   |
+| Strategic AI        | command producer only | faction knowledge projections                                              | ordinary commands and explanations                      |
+| Projection/Replay   | projection reducer    | accepted outcomes and canonical state                                      | immutable snapshots/deltas/hashes                       |
 
 Cross-context changes are next-stage outcomes or next-tick commands; direct writes across owners are forbidden.
 
@@ -64,8 +64,8 @@ Cross-context changes are next-stage outcomes or next-tick commands; direct writ
 2. Decode and bound-check command envelopes; deduplicate by command ID.
 3. Validate issuer, expected revision, authority, resources, configuration, and prerequisites.
 4. Sort accepted commands by `(scheduled_tick, priority, issuer_id, submitted_tick, command_id)`.
-5. Update geography/weather and decay prior knowledge.
-6. Resolve intelligence from bounded sources/events into faction-scoped knowledge and attribution estimates at revision R.
+5. Update geography/weather and prepare immutable pre-intelligence inputs; do not mutate knowledge.
+6. Resolve intelligence from bounded sources/events, decay prior knowledge exactly once, and emit faction-scoped knowledge and attribution estimates at revision R.
 7. Resolve statecraft, economy, procurement, construction, and civil policy.
 8. Resolve logistics flow and readiness.
 9. Advance operations and resolve ground/air/sea/defense interactions.

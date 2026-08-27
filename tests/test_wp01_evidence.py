@@ -16,6 +16,15 @@ def run(repo: Path, manifest: Path):
     )
 
 
+def git_head(repo: Path) -> str:
+    subprocess.run(["git", "init", "--quiet", str(repo)], check=True)
+    subprocess.run(["git", "-C", str(repo), "config", "user.email", "tests@example.invalid"], check=True)
+    subprocess.run(["git", "-C", str(repo), "config", "user.name", "Civic tests"], check=True)
+    subprocess.run(["git", "-C", str(repo), "add", "evidence.txt"], check=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "--quiet", "-m", "evidence"], check=True)
+    return subprocess.check_output(["git", "-C", str(repo), "rev-parse", "HEAD"], text=True).strip()
+
+
 def test_template_is_pending(tmp_path):
     manifest = tmp_path / "evidence.json"
     manifest.write_text((ROOT / ".agileplus/civic-warfare-program/wp01-evidence.template.json").read_text())
@@ -28,16 +37,17 @@ def test_accepted_manifest_verifies_hashes_and_host(tmp_path):
     artifact = tmp_path / "evidence.txt"
     artifact.write_text("licensed smoke output\n")
     digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
+    subject_commit = git_head(tmp_path)
     manifest = tmp_path / "evidence.json"
     manifest.write_text(
         json.dumps(
             {
                 "schema": "civic.wp01.evidence", "schema_version": 1,
-                "subject": {"commit": "a" * 40},
+                "subject": {"commit": subject_commit},
                 "environment": {"host_class": "licensed-game", "license_basis": "record"},
                 "artifacts": [{"artifact_id": "out", "path": "evidence.txt", "sha256": digest}],
                 "commands": [{"command_id": "run"}],
-                "evidence": [{"evidence_id": evidence_id, "status": "pass", "subject_commit": "a" * 40, "command_ids": ["run"], "artifact_ids": ["out"]} for evidence_id in sorted({"WP01:public_audit_build", "WP01:baseline_tests", "WP01:licensed_adapter_build", "WP01:launch_smoke", "WP01:artifact_hash_provenance", "WP01:agileplus_evidence_record"})],
+                "evidence": [{"evidence_id": evidence_id, "status": "pass", "subject_commit": subject_commit, "command_ids": ["run"], "artifact_ids": ["out"]} for evidence_id in sorted({"WP01:public_audit_build", "WP01:baseline_tests", "WP01:licensed_adapter_build", "WP01:launch_smoke", "WP01:artifact_hash_provenance", "WP01:agileplus_evidence_record"})],
                 "decision": {"result": "GO"},
             }
         )
@@ -52,16 +62,17 @@ def test_tampered_artifact_is_rejected(tmp_path):
     artifact.write_text("original\n")
     digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
     artifact.write_text("tampered\n")
+    subject_commit = git_head(tmp_path)
     manifest = tmp_path / "evidence.json"
     manifest.write_text(
         json.dumps(
             {
                 "schema": "civic.wp01.evidence", "schema_version": 1,
-                "subject": {"commit": "a" * 40},
+                "subject": {"commit": subject_commit},
                 "environment": {"host_class": "licensed-game", "license_basis": "record"},
                 "artifacts": [{"artifact_id": "out", "path": "evidence.txt", "sha256": digest}],
                 "commands": [{"command_id": "run"}],
-                "evidence": [{"evidence_id": evidence_id, "status": "pass", "subject_commit": "a" * 40, "command_ids": ["run"], "artifact_ids": ["out"]} for evidence_id in sorted({"WP01:public_audit_build", "WP01:baseline_tests", "WP01:licensed_adapter_build", "WP01:launch_smoke", "WP01:artifact_hash_provenance", "WP01:agileplus_evidence_record"})],
+                "evidence": [{"evidence_id": evidence_id, "status": "pass", "subject_commit": subject_commit, "command_ids": ["run"], "artifact_ids": ["out"]} for evidence_id in sorted({"WP01:public_audit_build", "WP01:baseline_tests", "WP01:licensed_adapter_build", "WP01:launch_smoke", "WP01:artifact_hash_provenance", "WP01:agileplus_evidence_record"})],
                 "decision": {"result": "GO"},
             }
         )
@@ -69,3 +80,27 @@ def test_tampered_artifact_is_rejected(tmp_path):
     result = run(tmp_path, manifest)
     assert result.returncode == 1
     assert "sha256 mismatch" in result.stderr
+
+
+def test_non_object_manifest_fields_fail_closed(tmp_path):
+    manifest = tmp_path / "evidence.json"
+    manifest.write_text(json.dumps([]))
+    result = run(tmp_path, manifest)
+    assert result.returncode == 1
+    assert "top level must be an object" in result.stderr
+
+    manifest.write_text(json.dumps({"schema": "civic.wp01.evidence", "schema_version": 1, "decision": []}))
+    result = run(tmp_path, manifest)
+    assert result.returncode == 1
+    assert "decision must be an object" in result.stderr
+
+
+def test_subject_commit_must_match_checkout(tmp_path):
+    artifact = tmp_path / "evidence.txt"
+    artifact.write_text("licensed smoke output\n")
+    subject_commit = git_head(tmp_path)
+    manifest = tmp_path / "evidence.json"
+    manifest.write_text(json.dumps({"schema": "civic.wp01.evidence", "schema_version": 1, "subject": {"commit": "a" * 40}, "decision": {"result": "GO"}}))
+    result = run(tmp_path, manifest)
+    assert result.returncode == 1
+    assert subject_commit in result.stderr
