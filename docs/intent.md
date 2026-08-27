@@ -119,6 +119,21 @@ repository administrator to admit a validated `.mergify.yml` correction onto
 the base branch, then confirm a fresh Queue and Summary result. This document
 does not authorize that workflow change, a bypass, or a merge.
 
+### Successor PR Decomposition
+
+The following additional findings were observed on `2026-08-27` and are
+preserved to prevent a future coordinator from treating all failed checks as
+one Mergify symptom:
+
+| PR | Verified finding | Required owner decision |
+| --- | --- | --- |
+| #4 at `be3b1c15c905da5f56fe4968da687046b1491d89` | Its `.mergify.yml` requires a non-existent `Civic Evidence Gate`; Dependency Review fails because Dependency Graph is disabled; Scorecard reports `11/88 < 85`. | Chat C must correct the unsatisfiable check condition, decide whether Dependency Graph is required, and assign the base Scorecard policy/repository remediation. |
+| #5 at `b7b7161dc27c47ff05b732db81927c4594514627` | Security Scan/Gitleaks fails before scanning because the shallow checkout lacks comparison revision `857fdab3bfe0613545d11688087ad29f1673a15d`. Artifact `9633981837` is a partial scan only. A preceding base run also reports two pre-existing `generic-api-key` findings in `CivicSurvival/Localization/en-US.json` at lines 238 and 1112. | Chat C must provide full PR comparison history to Gitleaks, remediate or explicitly triage the base findings, and require a fresh non-partial scan. |
+
+PR #4's `ci / lint`, `ci / test`, and CI Security Scan pass. PR #5's
+`ci / lint` and `ci / test` pass, but its CI Security Scan does not. None of
+these observations authorizes a source/workflow modification from this chat.
+
 ## Prompt Ledger
 
 Every delegated task must be traceable to one feature/WP and one owner. The
