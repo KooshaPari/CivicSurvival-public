@@ -87,12 +87,19 @@ claim about the current checkout: `3821fac` (2026-08-27 intent-ledger
 snapshot). The preserved program branch is
 `feat/civic-warfare-program` at `3bd4431b083101669fc9244e2e09afe182c2b10b`.
 
-| PR | Scope | Current review boundary |
-| --- | --- | --- |
-| #2 | Preserved reviewed decomposition | Open; dirty/conflicting; review required |
-| #3 | Program specification/docs | Open; changes requested |
-| #4 | Security/Mergify workflow hardening | Open; review required |
-| #5 | Runnable public audit evidence lane | Open; review required |
+Live PR evidence was observed at `2026-08-27T10:14:24Z` with:
+
+```text
+gh pr list --repo KooshaPari/CivicSurvival-public --state open \
+  --json number,headRefOid,state,mergeStateStatus,reviewDecision,updatedAt,statusCheckRollup
+```
+
+| PR | Head SHA | Scope | Merge/review state | Current non-passing checks |
+| --- | --- | --- | --- | --- |
+| #2 | `3bd4431b083101669fc9244e2e09afe182c2b10b` | Preserved reviewed decomposition | Open; dirty/conflicting; review required | Mergify Merge Queue, Summary; Socket alert neutral |
+| #3 | `a360684887e2702ea3c79d628d9ca5681cc13d9c` | Program specification/docs | Open; blocked; changes requested | Mergify Merge Queue, Summary |
+| #4 | `be3b1c15c905da5f56fe4968da687046b1491d89` | Security/Mergify workflow hardening | Open; blocked; review required | scorecard, Dependency Review, Mergify Merge Queue, Summary; Infisical queued |
+| #5 | `b7b7161dc27c47ff05b732db81927c4594514627` | Runnable public audit evidence lane | Open; blocked; review required | scorecard, Dependency Review, Security Scan, Mergify Merge Queue, Summary; Infisical queued |
 
 These PRs are separate evidence lanes. No review, merge, or release acceptance
 is implied by a local branch, a passing local command, or a generated artifact.
@@ -126,10 +133,81 @@ scope expansion, or bypass of a required reviewer or licensed-host gate.
 | CIVIC-INT-004 | "For all repos in scope pause new work until all existing work in local AND remote stash, branches, dirties is PR'd -> review/optimality/polish churn -> CI green ... then back to new works." | Civic PRs remain gated; local pass results cannot substitute for hosted checks, review, or protected merge. | blocked on hosted/review gates | coordinator session; Civic PR lanes |
 | CIVIC-INT-005 | "go deeper/wider/refine the past/present/future aligned WBS/state ... backed by web/local/remote ... deep audits and researches." | Maintain dated, machine-verifiable state snapshots and distinguish current evidence from historical claims. | active; control-plane tracked | coordinator session; control-ledger lane |
 
-Records above preserve the user's substantive wording in abbreviated direct
-form and identify the corresponding synthesis, status, and delegated session.
-The complete organization-level prompt ledger remains in the control-plane WBS;
-this file records only Civic-relevant entries.
+### Verbatim Civic coordination directives
+
+The following user directives are preserved verbatim because they establish the
+active Civic ownership and pause-resilient delivery contract. Short `proc` and
+other tick-only messages are intentionally excluded.
+
+#### CIVIC-INT-006: exclusive program ownership
+
+> We should run the two Civic managers as one program with strict ownership,
+> not as two independent implementers.
+>
+> Chat C (this manager): Civic repo governance, preserved refs, PR
+> decomposition, ABI/contracts, audit tooling, CI/Mergify, documentation,
+> local verification, GitHub queue.
+>
+> Other Civic manager: Main-PC execution only: licensed Windows/CS2 build,
+> runtime smoke tests, native toolchain validation, performance/runtime
+> evidence, artifact capture.
+>
+> The second manager must not edit Civic source unless I explicitly hand off a
+> named file/path and commit range. I must not duplicate its licensed-host/runtime
+> work.
+
+Derived rule: this repository accepts only coordinator-owned source, contract,
+CI, documentation, and PR work. Main-PC evidence is read-only input until its
+manifest is verified against the supplied subject SHA.
+
+#### CIVIC-INT-007: required handoff envelope
+
+> Every handoff should contain only: owner; repository/ref; exact commit SHA;
+> allowed paths; command to run; expected artifact IDs; return channel;
+> expiry/stop condition.
+
+Derived rule: the expanded handoff table in this document is mandatory. Missing
+or unverifiable fields keep the item blocked; they never imply acceptance.
+
+#### CIVIC-INT-008: licensed-host boundary
+
+> Prefer fetching from GitHub on the main PC rather than copying a dirty
+> workspace. If network access is unavailable, use an immutable bundle ...
+> Never transfer secrets, license tokens, or uncommitted build output. Only the
+> resulting logs, hashes, and sanitized evidence bundle should come back.
+
+Derived rule: local macOS work cannot substitute for a licensed Windows/CS2
+adapter build, attach/handshake, launch smoke, runtime behavior, or performance
+evidence. Those are WP01 external evidence gates.
+
+#### CIVIC-INT-009: immutable scope and archive
+
+> Scope remains exclusive to KooshaPari/CivicSurvival-public, upstream
+> reference Theorist100/CivicSurvival-public, and archive ref
+> origin/feat/civic-warfare-program @ 3bd4431b...
+>
+> Archive ref remains immutable. Do not modify, reset, force-push, delete,
+> prune, or rewrite it.
+>
+> No OmniRoute or other Phenotype repository is in scope. Do not modify Civic
+> files without an explicit path/SHA ownership handoff from Chat C.
+
+Derived rule: this is the scope supersession record. It overrides earlier
+cross-repository coordination notes for this Civic handoff.
+
+#### CIVIC-INT-010: pause-resilient documentation request
+
+> going to pause you on this device, write docs/intent and commit to civic
+> survival, see how we've done that subfolder before, includes intent.md which
+> is MY EXPLICIT PROMPTS AND QUESTION ANSWERS IN DEPTH WHERE NOT PROC OR OTHER
+> MEANINGLESS TICK PLUS YOUR DERIVED SYNTHESIS AND EXPANSION AROUND IT, ON TOP
+> OF FULL AGILEPLUS SPECS AND ALL ADRS AND OTHER EXPECTED DOCS SPECS AND
+> GOVERNANCE PLUS TESTS AND TEST/QUALITY INFRA.
+
+Derived rule: `docs/intent.md`, `docs/intent-traceability.md`, ADR-0001, and
+the checked-in AgilePlus artifacts form the durable local handoff. This is not
+a claim that the untracked runtime database or licensed-host evidence has been
+reproduced.
 
 ## PR, Requirement, and QA Mapping
 
@@ -143,6 +221,11 @@ this file records only Civic-relevant entries.
 The QA command contract is defined by `.github/civic-quality-policy.json` and
 `.github/workflows/ci.yml`; every FR evidence record must retain its test ID,
 command/output hash, review reference, and acceptance time.
+
+The complete authoritative requirement-to-WP contract is indexed in
+`docs/intent-traceability.md`. That index deliberately points to, rather than
+duplicates or reinterprets, the checked-in AgilePlus specification and task
+contracts.
 
 ## Verification Contract
 
@@ -168,6 +251,21 @@ fails closed until every required record, subject commit, artifact hash,
 licensed-host fact, and supported AgilePlus evidence record is present.
 `flatc` and the historical native/WP02 trees are intentionally deferred to a
 future pinned-toolchain successor lane.
+
+### Current locally verified outcomes
+
+Observed on `2026-08-27` from the Civic program-docs branch:
+
+| Command | Result | Evidence boundary |
+| --- | --- | --- |
+| `git diff --check 3821fac^ 3821fac` | pass | intent document introduction |
+| `git diff --check 9b0db159^ 9b0db159` | pass | ADR and traceability update |
+| `git diff --check 05dddb7^ 05dddb7` | pass | prompt/ownership remediation |
+| `python3 -m pytest -q tests/test_civic_quality_gate.py tests/test_civic_abi_contract.py tests/test_wp01_evidence.py tests/test_binding_projections.py` | 21 passed | public policy, ABI, WP01 fail-closed, bindings |
+| `python3 scripts/contract_check.py` | pass; 1,114 C# binding values represented in generated TypeScript | public binding projection only |
+
+These results do not establish hosted CI success, reviewer approval, merge
+readiness, licensed-host execution, or WP01 acceptance.
 
 ## Canonical Paths
 
