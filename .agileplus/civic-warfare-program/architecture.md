@@ -88,7 +88,7 @@ Canonical entities always exist. Detail bubbles materialize tactical representat
 
 ## Native Boundary
 
-One create/load call, one batched command submit, one step, and one caller-owned poll per host update. No callbacks into managed code during a Rust tick. Rust owns handles; C# owns input/output buffers. Every function returns a stable error enum. Panics are contained and converted to fatal runtime status. ABI mismatch disables warfare before state mutation.
+One create/load call, one batched command submit, one step, and one caller-owned poll per host update. No callbacks into managed code during a Rust tick. Rust owns handles; C# owns input/output buffers. Every fallible function returns a stable error enum; `csw_abi_version` returns the ABI version and `csw_destroy` returns `void`. Panics are contained and converted to fatal runtime status. ABI mismatch disables warfare before state mutation.
 
 ## Build/Borrow Policy
 

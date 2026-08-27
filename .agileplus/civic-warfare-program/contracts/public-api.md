@@ -13,15 +13,17 @@
 | `csw_save_into`       | writes canonical snapshot/journal checkpoint into caller buffer                            |
 | `csw_status_into`     | serializes versioned health/version/tick/revision counters into a caller-owned buffer      |
 | `csw_last_error_into` | copies bounded diagnostic text for the calling thread/handle                               |
-| `csw_destroy`         | invalidates and releases handle; null is a no-op                                           |
+| `csw_destroy`         | invalidates and releases `*runtime`, writes `NULL` to the caller slot; null is a no-op     |
 
-All calls return `CswResult`. Buffers are `(pointer,length)` byte spans. No Rust/C# strings, collections, structs with language-dependent layout, callbacks, exceptions, or ownership ambiguity cross the ABI. Output functions never partially encode a record. Every call is panic-contained.
+Every fallible call returns `CswResult`; `csw_abi_version` returns the packed ABI version and `csw_destroy` returns `void`. Buffers are `(pointer,length)` byte spans. No Rust/C# strings, collections, structs with language-dependent layout, callbacks, exceptions, or ownership ambiguity cross the ABI. Output functions never partially encode a record. Every call is panic-contained.
+
+`csw_abi_version` packs the major version in bits 31..16 and the minor version in bits 15..0 (big-endian field order): `(major << 16) | minor`. ABI 2.7 therefore encodes as `0x0002_0007`.
 
 ## Stable Errors
 
-`Ok`, `BufferTooSmall`, `InvalidArgument`, `InvalidHandle`, `InvalidState`, `AbiMismatch`, `SchemaMismatch`, `RulesMismatch`, `RevisionConflict`, `DuplicateCommand`, `CommandRejected`, `CorruptData`, `UnsupportedVersion`, `BudgetExceeded`, `DeterminismFailure`, `InternalPanic`.
+`Ok`, `BufferTooSmall`, `InvalidArgument`, `InvalidHandle`, `InvalidState`, `AbiMismatch`, `SchemaMismatch`, `RulesMismatch`, `RevisionConflict`, `CorruptData`, `UnsupportedVersion`, `BudgetExceeded`, `DeterminismFailure`, `InternalPanic`.
 
-Recoverable command rejection belongs in `CommandDecision`; ABI errors describe transport/runtime failure.
+Recoverable duplicate and rejected commands belong in `CommandDecision`; ABI errors describe transport/runtime failure and use only the `CswResult` values declared in `civic_warfare.h`.
 
 ## Command Ordering and Idempotency
 

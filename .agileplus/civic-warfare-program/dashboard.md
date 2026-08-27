@@ -26,15 +26,15 @@ Quality gates     [######....]  60%  public audit green; licensed adapter/eviden
 ## Current DAG
 
 ```text
-WP01 [review] public audit green; formal evidence and licensed adapter pending
+WP01 [planned] public audit green; formal evidence and licensed adapter pending
   -> WP02 [planned] architecture/contracts/ABI
   -> WP03 [planned] deterministic kernel/replay
   -> WP04 [planned] geography/LOD
-  -> {WP05 statecraft, WP14 intelligence, WP19 harness}
+  -> {WP05 statecraft, WP14 intelligence (after WP05), WP19 harness}
   -> WP06 economy -> WP07 logistics -> WP08 forces
   -> {WP09 ground, WP10 air, WP11 sea, WP12 defense, WP15 civil}
   -> WP13 operations -> WP16 AI -> {WP17 UI, WP18 campaigns}
-  -> WP19 final validation -> WP20 release
+  -> WP18 campaigns -> WP19 final validation -> WP20 release
 ```
 
 ## Next Meaningful Work

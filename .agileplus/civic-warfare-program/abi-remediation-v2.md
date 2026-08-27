@@ -30,7 +30,7 @@
 
 - [ ] Stage only the two allowed documentation trees and reject generated paths:
 
-  Run: `git diff --cached --name-only | rg '^native/target/' && exit 1 || true`
+  Run: `git diff --cached --name-only | awk '($0 !~ /^(\\.agileplus\\/civic-warfare-program\\/|docs\\/sessions\\/20260722-civic-warfare-program\\/)/) { bad=1; print } END { exit bad }'`
 
 - [ ] Run `git diff --cached --check`; commit `docs(civic): preserve warfare program specification`.
 

@@ -99,7 +99,7 @@ All IDs are stable 128-bit values or versioned compact IDs allocated determinist
 | CommandDecision    | command ID, accepted/rejected, stable reason, validated revision, resource reservations                             |
 | OutcomeEnvelope    | command ID optional, tick, global sequence, context, kind, payload; immutable ordered fact                          |
 | ProjectionSnapshot | campaign, revision, tick, knowledge owner, schema version, typed views, state hash                                  |
-| ProjectionDelta    | base/new revision, ordered replacements/removals, alerts/explanations, required buffer length; framed by `Envelope` |
+| ProjectionDelta    | base/new revision, ordered replacements/removals, alerts/explanations; framed by `Envelope`. `csw_poll_into` reports required buffer length through `required_len`. |
 | SaveEnvelope       | versions, manifest hash, tick/revision, snapshot bytes, journal checkpoint, checksum/hash                           |
 | ExplanationTrace   | subject/decision, perceived inputs, alternatives/scores, constraints, decision, uncertainty, result                 |
 

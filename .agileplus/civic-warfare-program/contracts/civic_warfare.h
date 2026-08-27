@@ -43,7 +43,7 @@ CSW_API CswResult csw_save_into(CswRuntime *runtime, uint8_t *out, size_t out_le
 /* Status is serialized into a caller-owned, versioned byte buffer. */
 CSW_API CswResult csw_status_into(const CswRuntime *runtime, uint8_t *out, size_t out_len, size_t *required_len);
 CSW_API CswResult csw_last_error_into(const CswRuntime *runtime, uint8_t *out, size_t out_len, size_t *required_len);
-CSW_API void csw_destroy(CswRuntime *runtime);
+CSW_API void csw_destroy(CswRuntime **runtime);
 
 #ifdef __cplusplus
 }
