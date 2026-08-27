@@ -7,23 +7,19 @@
 **Decision owner**: program coordinator
 **Decision**: CONDITIONAL NO-GO for production warfare implementation
 
-## Public audit result
+## Public evidence result
 
-The source-auditable public lane is green:
+The checked-in public evidence lane is green for the artifacts that exist in
+this checkout:
 
-| Gate              | Result | Fresh evidence                                                          |
-| ----------------- | ------ | ----------------------------------------------------------------------- |
-| Policy runner     | pass   | `node scripts/ci/check-public-audit.mjs .`                              |
-| Contracts build   | pass   | `bash tests/public-audit/test_contracts_build.sh`                       |
-| Public runner     | pass   | `bash tests/public-audit/test_runner.sh`                                |
-| Localization      | pass   | 3,531 scalar keys; exact `en-US`/`uk-UA`/`zh-CN` parity                 |
-| UI unit tests     | pass   | 9 files, 23 tests                                                       |
-| UI lint rules     | pass   | 20 tests                                                                |
-| Type declarations | pass   | `npm run typecheck:declarations` from `CivicSurvival/UI`                |
-| Strict lint       | pass   | `npm run lint:strict` from `CivicSurvival/UI`                           |
-| npm security      | pass   | full audit reports 0 vulnerabilities after lockfile refresh             |
-| C/C++ ABI syntax  | pass   | `clang -fsyntax-only` checks on the draft header                        |
-| File-size policy  | pass   | 129 files over 500 and 226 over 350 are grandfathered; regressions fail |
+| Gate                     | Result  | Fresh evidence                                                                     |
+| ------------------------ | ------- | ---------------------------------------------------------------------------------- |
+| Policy/evidence evaluator| pass    | `python3 scripts/civic_quality_gate.py --policy .github/civic-quality-policy.json --strict .` |
+| Binding contracts        | pass    | `python3 scripts/contract_check.py`; Node manifest/codegen checks                  |
+| UI checks                | pass    | Civic Evidence Gate: declarations, lint rules, UI tests, strict lint, bundle budget |
+| Repository tests         | pass    | `python3 -m pytest -q` (18 tests)                                                  |
+| Licensed adapter         | pending | Requires legally local Windows/CS2 host                                           |
+| AgilePlus evidence       | pending | Supported evidence-recording path unavailable in v0.2.1 CLI                       |
 
 ## Blocking conditions
 
