@@ -134,6 +134,14 @@ PR #4's `ci / lint`, `ci / test`, and CI Security Scan pass. PR #5's
 `ci / lint` and `ci / test` pass, but its CI Security Scan does not. None of
 these observations authorizes a source/workflow modification from this chat.
 
+The two base findings are ordinary localization strings: `en-US.json:238`
+contains "Your offshore account just became {0}% less secret." and
+`en-US.json:1112` contains "International monitors request access." They are
+likely generic-token false positives, not credentials, but remain failed
+security evidence until a security owner records the exact Gitleaks rule,
+performs a full-history before/after scan, and justifies a narrowly scoped
+exception without masking genuine secrets.
+
 ## Prompt Ledger
 
 Every delegated task must be traceable to one feature/WP and one owner. The
