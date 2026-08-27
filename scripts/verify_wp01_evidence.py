@@ -84,12 +84,16 @@ def main() -> int:
         if hashlib.sha256(path.read_bytes()).hexdigest() != artifact["sha256"]:
             return fail(f"sha256 mismatch for {artifact['path']}")
     commands = data.get("commands")
-    command_ids = {item.get("command_id") for item in commands if isinstance(item, dict)} if isinstance(commands, list) else set()
-    if not isinstance(commands, list) or len(command_ids) != len(commands):
-        return fail("commands must be a list with unique command_id values")
+    if not isinstance(commands, list) or any(not isinstance(item, dict) for item in commands):
+        return fail("commands must be a list of objects")
+    command_ids = {item.get("command_id") for item in commands}
+    if len(command_ids) != len(commands) or any(not isinstance(command_id, str) or not command_id for command_id in command_ids):
+        return fail("commands must have unique non-empty command_id values")
     evidence = data.get("evidence")
-    evidence_ids = {item.get("evidence_id") for item in evidence if isinstance(item, dict)} if isinstance(evidence, list) else set()
-    if evidence_ids != REQUIRED_EVIDENCE:
+    if not isinstance(evidence, list) or any(not isinstance(item, dict) for item in evidence):
+        return fail("evidence must be a list of objects")
+    evidence_ids = {item.get("evidence_id") for item in evidence}
+    if len(evidence_ids) != len(evidence) or evidence_ids != REQUIRED_EVIDENCE:
         return fail(f"evidence IDs must be exactly {sorted(REQUIRED_EVIDENCE)}")
     for item in evidence:
         if item.get("status") != "pass" or item.get("subject_commit") != subject_commit:

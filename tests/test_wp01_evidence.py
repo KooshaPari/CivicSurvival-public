@@ -104,3 +104,20 @@ def test_subject_commit_must_match_checkout(tmp_path):
     result = run(tmp_path, manifest)
     assert result.returncode == 1
     assert subject_commit in result.stderr
+
+
+def test_malformed_command_and_evidence_entries_fail_closed(tmp_path):
+    artifact = tmp_path / "evidence.txt"
+    artifact.write_text("x\n")
+    subject_commit = git_head(tmp_path)
+    manifest = tmp_path / "evidence.json"
+    common = {"schema": "civic.wp01.evidence", "schema_version": 1, "subject": {"commit": subject_commit}, "environment": {"host_class": "licensed-game", "license_basis": "test"}, "artifacts": [{"artifact_id": "out", "path": "evidence.txt", "sha256": hashlib.sha256(artifact.read_bytes()).hexdigest()}], "decision": {"result": "GO"}}
+    manifest.write_text(json.dumps({**common, "commands": ["run"]}))
+    result = run(tmp_path, manifest)
+    assert result.returncode == 1
+    assert "commands must be a list of objects" in result.stderr
+
+    manifest.write_text(json.dumps({**common, "commands": [], "evidence": ["bad"]}))
+    result = run(tmp_path, manifest)
+    assert result.returncode == 1
+    assert "evidence must be a list of objects" in result.stderr
