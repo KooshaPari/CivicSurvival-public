@@ -76,7 +76,7 @@ and `tasks.md`.
 ## Pull Requests and References
 
 The current local program-docs branch is `chore/civic-program-docs` at
-`a360684887e2702ea3c79d628d9ca5681cc13d9c`. The preserved program branch is
+`3821fac` (the intent-ledger commit). The preserved program branch is
 `feat/civic-warfare-program` at `3bd4431b083101669fc9244e2e09afe182c2b10b`.
 
 | PR | Scope | Current review boundary |
@@ -88,6 +88,38 @@ The current local program-docs branch is `chore/civic-program-docs` at
 
 These PRs are separate evidence lanes. No review, merge, or release acceptance
 is implied by a local branch, a passing local command, or a generated artifact.
+
+## Prompt Ledger
+
+Every delegated task must be traceable to one feature/WP and one owner. The
+following ledger is the minimum handoff record; an empty or invented field is a
+blocked handoff, not a partial acceptance.
+
+| Field | Required value |
+| --- | --- |
+| Prompt identity | Stable task ID, date, and requesting coordinator |
+| Scope | Feature slug, WP, FR/QR IDs, allowed paths |
+| Ownership | Named worker, reviewer, and decision owner |
+| Provenance | Base ref, subject SHA, branch/worktree, preservation status |
+| Work result | Changed paths, tests, exact commands, outputs and hashes |
+| Risk | Blockers plus security, license, privacy, localization, performance impact |
+| Handoff | PR/commit, review state, next dependency/gate, timestamp |
+
+No prompt may authorize direct SQLite evidence fabrication, force-push, hidden
+scope expansion, or bypass of a required reviewer or licensed-host gate.
+
+## PR, Requirement, and QA Mapping
+
+| Delivery lane | Governing requirements | Required QA/evidence |
+| --- | --- | --- |
+| PR #3 program specification | `FR-001..FR-120`, `QR-001..QR-020`, WP01-WP20 planning | traceability, DAG acyclicity, governance JSON, docs review |
+| PR #5 public audit | `FR-001..FR-005`, `FR-101` | public C# audit/build, baseline tests, strict Civic Evidence Gate |
+| PR #4 security/CI | `FR-004..FR-005`, `QR-*` affected by CI/security | workflow lint, Security Scan, Dependency Delta, privacy/license review |
+| Future WP02 successor | `FR-006..FR-010`, `FR-102` | pinned Rust/FlatBuffers, ABI contract, C smoke, architecture tests |
+
+The QA command contract is defined by `.github/civic-quality-policy.json` and
+`.github/workflows/ci.yml`; every FR evidence record must retain its test ID,
+command/output hash, review reference, and acceptance time.
 
 ## Verification Contract
 
