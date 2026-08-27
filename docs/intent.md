@@ -104,6 +104,21 @@ gh pr list --repo KooshaPari/CivicSurvival-public --state open \
 These PRs are separate evidence lanes. No review, merge, or release acceptance
 is implied by a local branch, a passing local command, or a generated artifact.
 
+### Mergify Bootstrap Blocker
+
+At the same observation point, the PR #3 Mergify failures were traced to the
+base branch, not to an unmet documentation check. `origin/main` at
+`32518d2acf901a21a61caa16b13c93482ae4d6fc` still contains invalid Mergify
+constructs including unsupported `post_merge`, combined bot-author conditions,
+`github_accounts` under review requests, and `age>=30d`. PR #3 carries a
+corrected `.mergify.yml`, but Mergify evaluates the base configuration before
+the PR can merge. This is a bootstrap loop.
+
+Resolution requires a protected-flow decision by the Civic coordinator or
+repository administrator to admit a validated `.mergify.yml` correction onto
+the base branch, then confirm a fresh Queue and Summary result. This document
+does not authorize that workflow change, a bypass, or a merge.
+
 ## Prompt Ledger
 
 Every delegated task must be traceable to one feature/WP and one owner. The
