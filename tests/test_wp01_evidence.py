@@ -45,7 +45,7 @@ def test_accepted_manifest_verifies_hashes_and_host(tmp_path):
                 "schema": "civic.wp01.evidence", "schema_version": 1,
                 "subject": {"commit": subject_commit},
                 "environment": {"host_class": "licensed-game", "license_basis": "record"},
-                "artifacts": [{"artifact_id": "out", "path": "evidence.txt", "sha256": digest}],
+                "artifacts": [{"artifact_id": "out", "path": "evidence.txt", "size_bytes": artifact.stat().st_size, "sha256": digest}],
                 "commands": [{"command_id": "run"}],
                 "evidence": [{"evidence_id": evidence_id, "status": "pass", "subject_commit": subject_commit, "command_ids": ["run"], "artifact_ids": ["out"]} for evidence_id in sorted({"WP01:public_audit_build", "WP01:baseline_tests", "WP01:licensed_adapter_build", "WP01:launch_smoke", "WP01:artifact_hash_provenance", "WP01:agileplus_evidence_record"})],
                 "decision": {"result": "GO"},
@@ -70,7 +70,7 @@ def test_tampered_artifact_is_rejected(tmp_path):
                 "schema": "civic.wp01.evidence", "schema_version": 1,
                 "subject": {"commit": subject_commit},
                 "environment": {"host_class": "licensed-game", "license_basis": "record"},
-                "artifacts": [{"artifact_id": "out", "path": "evidence.txt", "sha256": digest}],
+                "artifacts": [{"artifact_id": "out", "path": "evidence.txt", "size_bytes": artifact.stat().st_size, "sha256": digest}],
                 "commands": [{"command_id": "run"}],
                 "evidence": [{"evidence_id": evidence_id, "status": "pass", "subject_commit": subject_commit, "command_ids": ["run"], "artifact_ids": ["out"]} for evidence_id in sorted({"WP01:public_audit_build", "WP01:baseline_tests", "WP01:licensed_adapter_build", "WP01:launch_smoke", "WP01:artifact_hash_provenance", "WP01:agileplus_evidence_record"})],
                 "decision": {"result": "GO"},
@@ -111,7 +111,7 @@ def test_malformed_command_and_evidence_entries_fail_closed(tmp_path):
     artifact.write_text("x\n")
     subject_commit = git_head(tmp_path)
     manifest = tmp_path / "evidence.json"
-    common = {"schema": "civic.wp01.evidence", "schema_version": 1, "subject": {"commit": subject_commit}, "environment": {"host_class": "licensed-game", "license_basis": "test"}, "artifacts": [{"artifact_id": "out", "path": "evidence.txt", "sha256": hashlib.sha256(artifact.read_bytes()).hexdigest()}], "decision": {"result": "GO"}}
+    common = {"schema": "civic.wp01.evidence", "schema_version": 1, "subject": {"commit": subject_commit}, "environment": {"host_class": "licensed-game", "license_basis": "test"}, "artifacts": [{"artifact_id": "out", "path": "evidence.txt", "size_bytes": artifact.stat().st_size, "sha256": hashlib.sha256(artifact.read_bytes()).hexdigest()}], "decision": {"result": "GO"}}
     manifest.write_text(json.dumps({**common, "commands": ["run"]}))
     result = run(tmp_path, manifest)
     assert result.returncode == 1
@@ -129,3 +129,15 @@ def test_duplicate_json_keys_are_rejected(tmp_path):
     result = run(tmp_path, manifest)
     assert result.returncode == 2
     assert "duplicate JSON key" in result.stderr
+
+
+def test_non_string_ids_fail_closed(tmp_path):
+    artifact = tmp_path / "evidence.txt"
+    artifact.write_text("x\n")
+    subject_commit = git_head(tmp_path)
+    manifest = tmp_path / "evidence.json"
+    base = {"schema": "civic.wp01.evidence", "schema_version": 1, "subject": {"commit": subject_commit}, "environment": {"host_class": "licensed-game", "license_basis": "test"}, "artifacts": [{"artifact_id": "out", "path": "evidence.txt", "size_bytes": artifact.stat().st_size, "sha256": hashlib.sha256(artifact.read_bytes()).hexdigest()}], "decision": {"result": "GO"}}
+    manifest.write_text(json.dumps({**base, "commands": [{"command_id": []}]}))
+    result = run(tmp_path, manifest)
+    assert result.returncode == 1
+    assert "non-empty string command_id" in result.stderr

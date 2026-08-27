@@ -86,23 +86,33 @@ def main() -> int:
     for artifact in artifacts:
         if not all(isinstance(artifact.get(key), str) and artifact[key] for key in ("artifact_id", "path", "sha256")):
             return fail("each artifact needs artifact_id, path, and sha256")
+        if not isinstance(artifact.get("size_bytes"), int) or isinstance(artifact["size_bytes"], bool) or artifact["size_bytes"] < 0:
+            return fail(f"artifact {artifact.get('artifact_id')} needs a non-negative size_bytes")
         if len(artifact["sha256"]) != 64 or artifact["sha256"] != artifact["sha256"].lower() or any(char not in "0123456789abcdef" for char in artifact["sha256"]):
             return fail(f"invalid sha256 for {artifact['artifact_id']}")
         path = (repo / artifact["path"]).resolve()
         if repo not in path.parents or not path.is_file():
             return fail(f"artifact path is missing or outside repo: {artifact['path']}")
+        if path.stat().st_size != artifact["size_bytes"]:
+            return fail(f"size_bytes mismatch for {artifact['path']}")
         if hashlib.sha256(path.read_bytes()).hexdigest() != artifact["sha256"]:
             return fail(f"sha256 mismatch for {artifact['path']}")
     commands = data.get("commands")
     if not isinstance(commands, list) or any(not isinstance(item, dict) for item in commands):
         return fail("commands must be a list of objects")
-    command_ids = {item.get("command_id") for item in commands}
-    if len(command_ids) != len(commands) or any(not isinstance(command_id, str) or not command_id for command_id in command_ids):
+    command_values = [item.get("command_id") for item in commands]
+    if any(not isinstance(command_id, str) or not command_id for command_id in command_values):
+        return fail("commands must have non-empty string command_id values")
+    command_ids = set(command_values)
+    if len(command_ids) != len(commands):
         return fail("commands must have unique non-empty command_id values")
     evidence = data.get("evidence")
     if not isinstance(evidence, list) or any(not isinstance(item, dict) for item in evidence):
         return fail("evidence must be a list of objects")
-    evidence_ids = {item.get("evidence_id") for item in evidence}
+    evidence_values = [item.get("evidence_id") for item in evidence]
+    if any(not isinstance(evidence_id, str) or not evidence_id for evidence_id in evidence_values):
+        return fail("evidence must have non-empty string evidence_id values")
+    evidence_ids = set(evidence_values)
     if len(evidence_ids) != len(evidence) or evidence_ids != REQUIRED_EVIDENCE:
         return fail(f"evidence IDs must be exactly {sorted(REQUIRED_EVIDENCE)}")
     for item in evidence:
