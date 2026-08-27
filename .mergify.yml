@@ -7,10 +7,9 @@ pull_request_rules:
     conditions:
       - "#review-requested=0"
       - "#approved-reviews-by>=1"
-      - check-success=ci
-      - check-success=lint
-      - check-success=typecheck
-      - check-success=test
+      - check-success = "Civic Evidence Gate"
+      - check-success = "ci / lint"
+      - check-success = "ci / test"
       - -conflict
       - -closed
     actions:
@@ -27,7 +26,9 @@ pull_request_rules:
       - or:
           - author = dependabot[bot]
           - author = renovate[bot]
-      - check-success=ci
+      - check-success = "ci / lint"
+      - check-success = "ci / test"
+      - check-success = "Civic Evidence Gate"
       - -conflict
       - -closed
     actions:
@@ -45,8 +46,9 @@ pull_request_rules:
           - author = trunk-io[bot]
           - author = mergify[bot]
           - author = github-actions[bot]
-      - check-success=ci
-      - check-success=lint
+      - check-success = "ci / lint"
+      - check-success = "ci / test"
+      - check-success = "Civic Evidence Gate"
       - -conflict
       - -closed
     actions:
