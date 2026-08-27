@@ -121,3 +121,11 @@ def test_malformed_command_and_evidence_entries_fail_closed(tmp_path):
     result = run(tmp_path, manifest)
     assert result.returncode == 1
     assert "evidence must be a list of objects" in result.stderr
+
+
+def test_duplicate_json_keys_are_rejected(tmp_path):
+    manifest = tmp_path / "evidence.json"
+    manifest.write_text('{"schema":"civic.wp01.evidence","schema":"civic.wp01.evidence","schema_version":1}')
+    result = run(tmp_path, manifest)
+    assert result.returncode == 2
+    assert "duplicate JSON key" in result.stderr

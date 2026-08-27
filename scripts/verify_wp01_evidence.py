@@ -21,6 +21,16 @@ REQUIRED_EVIDENCE = {
 }
 
 
+def reject_duplicate_keys(pairs):
+    """Reject ambiguous JSON objects instead of silently accepting the last key."""
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON key: {key}")
+        result[key] = value
+    return result
+
+
 def fail(message: str, code: int = 1) -> int:
     print(f"WP01 evidence invalid: {message}", file=sys.stderr)
     return code
@@ -33,8 +43,8 @@ def main() -> int:
     repo = Path(sys.argv[1]).resolve()
     manifest_path = Path(sys.argv[2]).resolve()
     try:
-        data = json.loads(manifest_path.read_text())
-    except (OSError, json.JSONDecodeError) as exc:
+        data = json.loads(manifest_path.read_text(), object_pairs_hook=reject_duplicate_keys)
+    except (OSError, json.JSONDecodeError, ValueError) as exc:
         return fail(f"manifest cannot be read: {exc}", 2)
     if not isinstance(data, dict):
         return fail("manifest top level must be an object")
