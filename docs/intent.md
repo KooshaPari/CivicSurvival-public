@@ -30,6 +30,12 @@ requirements (`QR-001` through `QR-020`), and 20 ordered work packages.
   proves license, ownership, asset, notice, and relicense consequences.
 - Preserve the public snapshot and all historical refs. Do not fabricate
   licensed-host, launch, artifact, provenance, or AgilePlus evidence.
+- Do not push, merge, or enable auto-merge without a protected-flow decision,
+  required checks, and recorded reviewer state.
+- The organization-wide review-bot reconciliation loop (review findings ->
+  isolated fix -> CI/review rerun) is a control-plane concern. Civic provides
+  evidence and gate contracts to that loop; it does not silently implement or
+  authorize the loop here.
 
 ## Ownership and Handoff
 
@@ -75,13 +81,15 @@ and `tasks.md`.
 
 ## Pull Requests and References
 
-The current local program-docs branch is `chore/civic-program-docs` at
-`3821fac` (the intent-ledger commit). The preserved program branch is
+The current local program-docs branch is `chore/civic-program-docs`. The
+following subject SHA is a dated evidence snapshot, not a self-maintaining
+claim about the current checkout: `3821fac` (2026-08-27 intent-ledger
+snapshot). The preserved program branch is
 `feat/civic-warfare-program` at `3bd4431b083101669fc9244e2e09afe182c2b10b`.
 
 | PR | Scope | Current review boundary |
 | --- | --- | --- |
-| #2 | Preserved reviewed decomposition | Open; review required |
+| #2 | Preserved reviewed decomposition | Open; dirty/conflicting; review required |
 | #3 | Program specification/docs | Open; changes requested |
 | #4 | Security/Mergify workflow hardening | Open; review required |
 | #5 | Runnable public audit evidence lane | Open; review required |
@@ -107,6 +115,21 @@ blocked handoff, not a partial acceptance.
 
 No prompt may authorize direct SQLite evidence fabrication, force-push, hidden
 scope expansion, or bypass of a required reviewer or licensed-host gate.
+
+### Populated Civic intent records
+
+| Prompt ID | Direct substantive user prompt (CP+Paste) | Derived synthesis / answer | Status | Agent session |
+|---|---|---|---|---|
+| CIVIC-INT-001 | "For your repos in scope temporarily pause new work. we have many branches, checkouts, stashes, wtrees and potential novel work hidden in commit histories that you should review and recover/merge into main, get down to 1 branch without arbitrary delete or drops true semantic merge/review/approve churn." | Preserve-first reconciliation is required; Civic work stays in provenance/review gates until each candidate has evidence and protected integration. | active; not complete | coordinator session; delegated Civic audit lane |
+| CIVIC-INT-002 | "Mac is out of space; all new work must be subtractive oriented on this entire FS ... avoid work that requires new checkouts ... backed up correctly ... audit for proper long term grade cleanup." | Treat local checkout, database, refs, and artifacts as protected until provenance and backup evidence exist; no opportunistic cleanup. | active; preservation gate | coordinator session; estate audit lane |
+| CIVIC-INT-003 | "Regardless of a drop ... review cockpit in whole and update it ... work items seem weakly represented ... prompts must be explicit CP+Paste from my words, intent is this + your response/synthesis." | Civic evidence work must expose human-readable outcomes, exact prompt provenance, agent ownership, tests, hashes, blockers, and human approval boundaries. | active; ledger schema populated here | coordinator session; Civic docs lane |
+| CIVIC-INT-004 | "For all repos in scope pause new work until all existing work in local AND remote stash, branches, dirties is PR'd -> review/optimality/polish churn -> CI green ... then back to new works." | Civic PRs remain gated; local pass results cannot substitute for hosted checks, review, or protected merge. | blocked on hosted/review gates | coordinator session; Civic PR lanes |
+| CIVIC-INT-005 | "go deeper/wider/refine the past/present/future aligned WBS/state ... backed by web/local/remote ... deep audits and researches." | Maintain dated, machine-verifiable state snapshots and distinguish current evidence from historical claims. | active; control-plane tracked | coordinator session; control-ledger lane |
+
+Records above preserve the user's substantive wording in abbreviated direct
+form and identify the corresponding synthesis, status, and delegated session.
+The complete organization-level prompt ledger remains in the control-plane WBS;
+this file records only Civic-relevant entries.
 
 ## PR, Requirement, and QA Mapping
 
