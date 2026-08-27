@@ -1,6 +1,6 @@
 ---
 work_package_id: WP01
-title: Provide a fresh-clone public audit solution that c (WP01)
+title: Provide a fresh-clone public audit solution that covers the public client (WP01)
 feature: Civic Warfare and Resilient City Program
 feature_slug: civic-warfare-program
 sequence: 1
@@ -8,7 +8,7 @@ state: planned
 created_at: 2026-07-22T00:00:00Z
 ---
 
-# Work Package: Provide a fresh-clone public audit solution that c (WP01)
+# Work Package: Provide a fresh-clone public audit solution that covers the public client (WP01)
 
 ## Feature
 

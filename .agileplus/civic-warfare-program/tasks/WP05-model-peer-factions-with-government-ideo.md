@@ -1,6 +1,6 @@
 ---
 work_package_id: WP05
-title: Model peer factions with government, ideology, lea (WP05)
+title: Model peer factions with government, ideology, leadership, and constituencies (WP05)
 feature: Civic Warfare and Resilient City Program
 feature_slug: civic-warfare-program
 sequence: 5
@@ -8,7 +8,7 @@ state: planned
 created_at: 2026-07-22T00:00:00Z
 ---
 
-# Work Package: Model peer factions with government, ideology, lea (WP05)
+# Work Package: Model peer factions with government, ideology, leadership, and constituencies (WP05)
 
 ## Feature
 

@@ -1,6 +1,6 @@
 ---
 work_package_id: WP02
-title: Create a Rust workspace whose inward dependency di (WP02)
+title: Create a Rust workspace whose inward dependency direction separates domains (WP02)
 feature: Civic Warfare and Resilient City Program
 feature_slug: civic-warfare-program
 sequence: 2
@@ -8,7 +8,7 @@ state: planned
 created_at: 2026-07-22T00:00:00Z
 ---
 
-# Work Package: Create a Rust workspace whose inward dependency di (WP02)
+# Work Package: Create a Rust workspace whose inward dependency direction separates domains (WP02)
 
 ## Feature
 

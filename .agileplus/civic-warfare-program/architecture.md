@@ -64,12 +64,15 @@ Cross-context changes are next-stage outcomes or next-tick commands; direct writ
 2. Decode and bound-check command envelopes; deduplicate by command ID.
 3. Validate issuer, expected revision, authority, resources, configuration, and prerequisites.
 4. Sort accepted commands by `(scheduled_tick, priority, issuer_id, submitted_tick, command_id)`.
-5. Update geography/weather and decay faction knowledge.
-6. Resolve statecraft, economy, procurement, construction, and civil policy.
-7. Resolve logistics flow and readiness.
-8. Advance operations and resolve ground/air/sea/defense interactions.
-9. Apply casualties, damage, displacement, legitimacy, unrest, diplomatic, and recovery consequences.
-10. Produce coarse durable outcomes, immutable projections, state hash, and diagnostic counters.
+5. Update geography/weather and decay prior knowledge.
+6. Resolve intelligence from bounded sources/events into faction-scoped knowledge and attribution estimates at revision R.
+7. Resolve statecraft, economy, procurement, construction, and civil policy.
+8. Resolve logistics flow and readiness.
+9. Advance operations and resolve ground/air/sea/defense interactions.
+10. Apply casualties, damage, displacement, legitimacy, unrest, diplomatic, and recovery consequences.
+11. Produce coarse durable outcomes, immutable projections, state hash, and diagnostic counters.
+
+The intelligence reducer is a distinct deterministic stage: it reads only the immutable observation batch, prior-revision knowledge, and outcomes available before stage 6; it writes the next knowledge revision consumed by operations in stage 9. It cannot read post-combat outcomes from the same tick.
 
 No authoritative rule reads wall-clock time, platform math, hash-map order, asynchronous completion order, Unity state during resolution, or an unversioned global RNG.
 

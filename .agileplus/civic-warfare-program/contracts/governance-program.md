@@ -2,7 +2,7 @@
 
 ## State Transitions
 
-`planned -> doing -> review -> done`; `blocked` requires a named blocker, owner, evidence, and next review. Entry dependencies in `plan.md` must be done before `doing`, except explicitly early cross-cutting work in WP17-WP19.
+`planned -> doing -> review -> done`; `blocked` requires a named blocker, owner, evidence, and next review. Entry dependencies in `plan.md` must be done before `doing`, except only the named `WP17.projection-primitives`, `WP18.authoring-tools`, and `WP19.harness-foundation` scopes after WP02.
 
 The CLI-generated `governance-v1.json` is retained as machine-readable baseline policy. Its generic `FR-CI` and `FR-REVIEW` evidence labels are tool vocabulary, not program requirements; this contract and the real `FR-001` through `FR-120` traceability records govern acceptance.
 
@@ -26,7 +26,7 @@ The CLI-generated `governance-v1.json` is retained as machine-readable baseline 
 
 ## Special Gates
 
-- WP01 completion is required before any production warfare implementation merge.
+- WP01 completion is required before any production warfare implementation merge. Completion requires public audit/build/tests, licensed adapter build and launch smoke, artifact hashes/provenance, and supported AgilePlus evidence recording; see `wp01-go-no-go.md`.
 - ABI/schema/save/RNG/rules changes require version and conformance evidence.
 - Copyleft import or relicensing requires a separate accepted ADR and provenance dossier.
 - WP19 must ingest every FR evidence record before WP20 can enter review.

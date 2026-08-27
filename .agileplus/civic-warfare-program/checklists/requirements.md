@@ -12,7 +12,7 @@
 - [x] Exactly 120 FRs map six-at-a-time to exactly 20 AgilePlus work packages.
 - [x] Canonical DAG is acyclic and identifies critical path, parallel waves, entry gates, and completion evidence.
 - [x] Progress formula derives from accepted requirements and quality evidence.
-- [x] WP01 blocks production warfare implementation until public build/tests/CI pass.
+- [x] WP01 blocks production warfare implementation until public build/tests/CI, licensed adapter build/launch/hash/provenance, and supported AgilePlus evidence recording pass.
 - [x] Artifact validation report passes without specification defects.
 - [x] Independent review approves the artifact set.
 - [x] Feature branch is committed and pushed; Airlock evidence is captured after this status update.

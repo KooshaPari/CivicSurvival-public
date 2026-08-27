@@ -47,26 +47,13 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
 
 - Audit/research: complete for v0.3.24 snapshot `0b218074`.
 - Specification: complete and registered; 120 FRs.
-- AgilePlus: 20 WPs registered in ignored operational DB `.agileplus/civic-warfare-program-v4.db`.
-- Canonical DAG/WBS: complete; CLI's false fully serial overlap graph is superseded by `plan.md`.
+- AgilePlus: the supported CLI currently reports 20 planned WPs only after generating a local operational DB; its generated dependency graph is fully serial and does not reconcile with the reviewed `plan.md`. The DB is provisional and must not be treated as canonical until an import/reconciliation path exists.
+- Canonical DAG/WBS: complete in `plan.md`; the CLI-generated serial graph is explicitly superseded.
 - Architecture/data model/public contracts: complete for planning baseline.
 - Governance/dashboard/checklist/validation: complete; branch publication complete.
 - WP01: public audit green; conditional NO-GO remains for production warfare until licensed adapter and AgilePlus evidence paths exist.
 - WP02-A reconnaissance: native workspace absent; ABI/schema risks recorded in `wp01-go-no-go.md`.
-- WP02-A boundary slice: pinned Rust workspace now exists under `native/` with five inward-directed crates and locked smoke tests; FlatBuffers/FFI implementation remains pending.
-- WP02-A contract hardening: status now uses caller-owned serialized bytes (`csw_status_into`), FlatBuffers are framed by `Envelope`/`RootPayload`, and projection deltas expose removals, alerts, and explanations; static boundary checks pass while pinned `flatc` conformance remains pending.
-- WP02-A FFI slice: `civic-ffi` now exports a panic-contained no-op lifecycle as `cdylib`/`rlib`, with bounded buffer and handle tests; it deliberately does not claim FlatBuffers decoding or gameplay.
-- WP02-A ABI smoke: `tests/wp02/test_ffi_abi.sh` links `ffi_smoke.c` against the produced cdylib and passes; load/submit/poll/save remain explicit stubs pending generated verifier integration.
-- WP02-A generated verification: pinned `flatc` plus exact Rust `flatbuffers` runtime now validates a real `CSWP` Envelope and rejects truncation and bad identifiers; local Homebrew `flatc 25.12.19` reproduced the gate.
-- WP02-A FFI verifier integration: `native/ffi/build.rs` generates bindings at build time and `civic-ffi` now rejects malformed nonempty config/save/command envelopes as `CSW_SCHEMA_MISMATCH` or `CSW_CORRUPT_DATA`; empty bootstrap buffers remain allowed.
-- WP02-A payload typing: `csw_load` now requires `RootPayload::SaveEnvelope` and `csw_submit_commands` requires `RootPayload::CommandBatch`; generic Envelope validation remains separate from authoritative decode/serialization.
-- WP02-A semantic gates: SaveEnvelope versions are checked against ABI/schema/save/RNG version 1 and required save vectors must be present; command batches require schema version 1. Failed create paths clear the caller output handle before returning.
-- WP02-A transactional load: minimal valid SaveEnvelope and CommandBatch vectors now pass; load constructs a temporary runtime with saved tick/revision and publishes the handle only after version, required-vector, and fixed-width hash/ID checks.
-- WP02-A save integrity/round-trip: SaveEnvelope state now uses domain-separated, length-framed BLAKE3 canonical and checksum digests; `csw_save_into` deterministically rebuilds a verified SaveEnvelope, and load/save round-trip plus tamper rejection are covered by native tests.
-- WP02-A command boundary: `csw_submit_commands` now validates a bounded, semantically complete CommandBatch before mutation; accepted IDs are deterministic, duplicate/revision/malformed requests reject atomically, and a valid batch advances runtime revision once. This is bookkeeping only, not gameplay command execution.
-- WP02-A replay persistence: accepted command IDs are encoded as bounded sorted entries in a versioned `CSWH` journal checkpoint. Save/load preserves replay rejection and refreshes canonical/checksum integrity after each accepted batch.
-- WP02-A decision projection: `csw_poll_into` emits a verified `CSWP` ProjectionDelta with the latest deterministic command decisions, campaign/revision/tick, and canonical state hash. Accepted, duplicate, revision-conflict, and policy rejection outcomes are explicit observer records; this remains boundary bookkeeping, not warfare execution.
-- WP02-A state integrity: a bounded step clears transient decisions, advances the projection revision window, and recomputes save integrity before output, so a stepped loaded runtime remains saveable.
+- WP02-A implementation evidence: no `native/` or `tests/wp02/` paths exist in the current `chore/civic-program-docs` checkout. Earlier notes describing a native boundary slice are historical claims from another workspace and are not current evidence; they must be reimplemented and independently verified in a successor PR.
 - Gameplay implementation: intentionally not started.
 
 ## Anti-Drift Rules
@@ -82,5 +69,5 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
 
 1. Close the AgilePlus evidence-recording gap without direct database fabrication.
 2. Obtain licensed game-adapter build and launch-smoke evidence.
-3. Begin WP02-A native ABI, schema, FFI, and golden-vector boundary work.
+3. Reconcile the AgilePlus evidence-recording capability and prepare a fresh WP02-A successor PR from `origin/main`, with test-first ABI/schema/golden-vector evidence.
 4. Keep production warfare implementation closed until WP01 is formally accepted.

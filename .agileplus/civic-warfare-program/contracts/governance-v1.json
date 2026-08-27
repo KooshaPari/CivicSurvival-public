@@ -5,12 +5,23 @@
   "rules": [
     {
       "transition": "WP01: Doing -> Review",
-      "required_evidence": ["FR-CI:ci_output"],
+      "required_evidence": [
+        "FR-CI:ci_output",
+        "WP01:public_audit_build",
+        "WP01:baseline_tests",
+        "WP01:licensed_adapter_build",
+        "WP01:launch_smoke",
+        "WP01:artifact_hash_provenance",
+        "WP01:agileplus_evidence_record"
+      ],
       "policy_refs": []
     },
     {
       "transition": "WP01: Review -> Done",
-      "required_evidence": ["FR-REVIEW:review_approval"],
+      "required_evidence": [
+        "FR-REVIEW:review_approval",
+        "WP01:conditional_go_no_go_pass"
+      ],
       "policy_refs": []
     },
     {
