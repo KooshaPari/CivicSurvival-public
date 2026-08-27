@@ -6,7 +6,7 @@ diagnostics is a sub-option under Online and is never bundled in without an
 off switch.
 
 The data Civic Survival sends is tied to a random ID generated on your machine
-(see *Online* below), not to your real-world identity. We never collect your name, email, or Steam ID. If you choose a leaderboard
+(see _Online_ below), not to your real-world identity. We never collect your name, email, or Steam ID. If you choose a leaderboard
 nickname, that nickname is publicly visible.
 
 ## Online (functional features you ask for)
@@ -124,7 +124,7 @@ data:
 - **Functional Online data** tied to your player ID (the city/gameplay event stream,
   online stats, and your leaderboard nickname) is retained for as long as it is needed
   to provide the online features — for example, leaderboard standings persist while the
-  leaderboard is live — or until you ask us to delete it (see *Your rights* below).
+  leaderboard is live — or until you ask us to delete it (see _Your rights_ below).
 
 ## Local caching on your machine
 

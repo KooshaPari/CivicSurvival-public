@@ -17,10 +17,10 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: "8.0.x"
       - uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: "20.x"
           cache: npm
           cache-dependency-path: CivicSurvival/UI/package-lock.json
       - name: Public policy checks
