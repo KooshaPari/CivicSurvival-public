@@ -50,9 +50,9 @@ roots and generated bindings, stable FFI errors/status serialization, panic cont
 transactional save-load semantics, and golden vectors for empty batches, duplicate commands, invalid
 handles, ABI mismatch, and insufficient output buffers.
 
-The first WP02-A workspace slice is now present under `native/` with model,
-rules, application, FFI, and headless crates plus a locked toolchain and
-architecture smoke test. It is intentionally a boundary skeleton, not a claim
-that FlatBuffers or the final C ABI are complete. The FFI crate now has a
-panic-contained no-op lifecycle and bounded-buffer tests; generated schema
-verification and gameplay behavior remain explicitly absent.
+The preserved warfare-program archive contains a historical WP02-A workspace
+prototype under `native/`, but the current public checkout intentionally does
+not contain that tree. It must be reintroduced only through a focused successor
+PR after WP01 evidence is accepted; archive contents are provenance, not current
+implementation evidence. No claim is made here about a present Rust workspace,
+FlatBuffers verification, C ABI lifecycle, or gameplay behavior.
