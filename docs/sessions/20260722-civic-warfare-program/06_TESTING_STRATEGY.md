@@ -23,6 +23,12 @@ local CS2 assemblies, the modding toolkit, and omitted private generators. A
 licensed Windows/CS2 host must provide separate build, launch-smoke,
 artifact-hash, and provenance evidence before WP01 can pass.
 
+The required host bundle is represented by
+`.agileplus/civic-warfare-program/wp01-evidence.template.json` and checked with
+`python3 scripts/verify_wp01_evidence.py REPO MANIFEST`. The verifier fails
+closed on missing records, wrong subject commits, invalid paths, or hash
+mismatches; the checked-in template remains pending by design.
+
 WP02-A is a planned successor PR, not current implementation evidence. It must
 reintroduce a pinned Rust workspace, FlatBuffers compiler/runtime lockstep,
 safe opaque-handle FFI, verifier coverage, and C smoke tests through fresh

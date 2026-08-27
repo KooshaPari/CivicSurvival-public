@@ -32,6 +32,9 @@ this checkout:
    represented honestly.
 3. `flatc` is unavailable locally. Executable schema conformance is deferred to WP02 with a pinned
    compiler/runtime toolchain.
+4. The admissible host bundle is defined by `wp01-evidence.template.json` and validated with
+   `python3 scripts/verify_wp01_evidence.py REPO MANIFEST`; the checked-in template intentionally
+   returns a pending result until all required records, hashes, and a `GO` decision exist.
 
 ## Release interpretation
 
