@@ -260,7 +260,7 @@ Observed on `2026-08-27` from the Civic program-docs branch:
 | --- | --- | --- |
 | `git diff --check 3821fac^ 3821fac` | pass | intent document introduction |
 | `git diff --check 9b0db159^ 9b0db159` | pass | ADR and traceability update |
-| `git diff --check 05dddb7^ 05dddb7` | pass | prompt/ownership remediation |
+| `git diff --check` | pass on the staged documentation tree committed as the current revision | current documentation syntax/whitespace |
 | `python3 -m pytest -q tests/test_civic_quality_gate.py tests/test_civic_abi_contract.py tests/test_wp01_evidence.py tests/test_binding_projections.py` | 21 passed | public policy, ABI, WP01 fail-closed, bindings |
 | `python3 scripts/contract_check.py` | pass; 1,114 C# binding values represented in generated TypeScript | public binding projection only |
 
