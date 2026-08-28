@@ -112,12 +112,15 @@ base branch, not to an unmet documentation check. `origin/main` at
 constructs including unsupported `post_merge`, combined bot-author conditions,
 `github_accounts` under review requests, and `age>=30d`. PR #3 carries a
 corrected `.mergify.yml`, but Mergify evaluates the base configuration before
-the PR can merge. This is a bootstrap loop.
+the PR can refresh its Queue and Summary automation. This is a Mergify
+bootstrap loop, not a branch-protection deadlock.
 
 Resolution requires a protected-flow decision by the Civic coordinator or
-repository administrator to admit a validated `.mergify.yml` correction onto
-the base branch, then confirm a fresh Queue and Summary result. This document
-does not authorize that workflow change, a bypass, or a merge.
+repository administrator to admit PR #3's validated `.mergify.yml` correction
+through the ordinary protected PR path, then confirm a fresh Queue and Summary
+result. Current `main` protection requires the five CI checks, a fresh approval,
+and resolved conversations; it does not require Mergify Queue or Summary.
+This document does not authorize a workflow change, a bypass, or a merge.
 
 ### Successor PR Decomposition
 
