@@ -87,19 +87,19 @@ claim about the current checkout: `3821fac` (2026-08-27 intent-ledger
 snapshot). The preserved program branch is
 `feat/civic-warfare-program` at `3bd4431b083101669fc9244e2e09afe182c2b10b`.
 
-Live PR evidence was observed at `2026-08-27T10:14:24Z` with:
+Live PR evidence was observed at `2026-08-28T23:18Z` with:
 
 ```text
 gh pr list --repo KooshaPari/CivicSurvival-public --state open \
   --json number,headRefOid,state,mergeStateStatus,reviewDecision,updatedAt,statusCheckRollup
 ```
 
-| PR  | Head SHA                                   | Scope                               | Merge/review state                       | Current non-passing checks                                                                  |
-| --- | ------------------------------------------ | ----------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------- |
-| #2  | `3bd4431b083101669fc9244e2e09afe182c2b10b` | Preserved reviewed decomposition    | Open; dirty/conflicting; review required | Mergify Merge Queue, Summary; Socket alert neutral                                          |
-| #3  | `a360684887e2702ea3c79d628d9ca5681cc13d9c` | Program specification/docs          | Open; blocked; changes requested         | Mergify Merge Queue, Summary                                                                |
-| #4  | `be3b1c15c905da5f56fe4968da687046b1491d89` | Security/Mergify workflow hardening | Open; blocked; review required           | scorecard, Dependency Review, Mergify Merge Queue, Summary; Infisical queued                |
-| #5  | `b7b7161dc27c47ff05b732db81927c4594514627` | Runnable public audit evidence lane | Open; blocked; review required           | scorecard, Dependency Review, Security Scan, Mergify Merge Queue, Summary; Infisical queued |
+| PR  | Head SHA                                   | Scope                               | Merge/review state                       | Current non-passing checks                                         |
+| --- | ------------------------------------------ | ----------------------------------- | ---------------------------------------- | ------------------------------------------------------------------ |
+| #2  | `3bd4431b083101669fc9244e2e09afe182c2b10b` | Preserved reviewed decomposition    | Open; dirty/conflicting; review required | Mergify Merge Queue, Summary; Socket alert neutral                 |
+| #3  | `32bcb22b9b06b232a877570b24efbb07f5fac05b` | Program specification/docs          | Open; blocked; changes requested         | Mergify Merge Queue, Summary                                       |
+| #4  | `79e04eb12e5d88d5ebb7eda347520ae7922bd8f1` | Security/Mergify workflow hardening | Open; blocked; review required           | Dependency Review, Mergify Merge Queue, Summary; Infisical pending |
+| #5  | `5872e55d5b1a9e0a6a9459a9dcd473cb91eb2cc7` | Runnable public audit evidence lane | Open; blocked; review required           | Dependency Review, Mergify Merge Queue, Summary; Infisical pending |
 
 These PRs are separate evidence lanes. No review, merge, or release acceptance
 is implied by a local branch, a passing local command, or a generated artifact.
@@ -155,9 +155,16 @@ one Mergify symptom:
 | #4 at `be3b1c15c905da5f56fe4968da687046b1491d89` | Its `.mergify.yml` requires a non-existent `Civic Evidence Gate`; Dependency Review fails because Dependency Graph is disabled; Scorecard reports `11/88 < 85`.                                                                                                                                                                               | Chat C must correct the unsatisfiable check condition, decide whether Dependency Graph is required, and assign the base Scorecard policy/repository remediation. |
 | #5 at `b7b7161dc27c47ff05b732db81927c4594514627` | Security Scan/Gitleaks fails before scanning because the shallow checkout lacks comparison revision `857fdab3bfe0613545d11688087ad29f1673a15d`. Artifact `9633981837` is a partial scan only. A preceding base run also reports two pre-existing `generic-api-key` findings in `CivicSurvival/Localization/en-US.json` at lines 238 and 1112. | Chat C must provide full PR comparison history to Gitleaks, remediate or explicitly triage the base findings, and require a fresh non-partial scan.              |
 
-PR #4's `ci / lint`, `ci / test`, and CI Security Scan pass. PR #5's
-`ci / lint` and `ci / test` pass, but its CI Security Scan does not. None of
-these observations authorizes a source/workflow modification from this chat.
+As of the latest refresh, PRs #3, #4, and #5 have passing repository CI,
+security, audit, scorecard, and review-bot checks where applicable. Dependency
+Review fails because the fork's Dependency Graph is disabled; Mergify/Summary
+still evaluate the invalid protected `main` configuration; and Infisical remains
+pending on PRs #4 and #5. These observations do not authorize a bypass or
+protected merge.
+
+The PR #4/#5 rows above retain historical failure symptoms for audit
+traceability; the live table is authoritative for their current heads and
+check outcomes.
 
 The two base findings are ordinary localization strings: `en-US.json:238`
 contains "Your offshore account just became {0}% less secret." and
@@ -169,8 +176,8 @@ exception without masking genuine secrets.
 
 PR #5's immediate scan-infrastructure correction is known: add
 `fetch-depth: 0` to the Security Scan checkout in `.github/workflows/ci.yml`.
-The hardened local lineage already contains that exact remedy at `ced0063`; PR
-The PR does not. A full-history local scan over 104 commits and 16.06 MB found only
+The hardened local lineage already contains that exact remedy at `ced0063`, and
+PR #5 now includes it. A full-history local scan over 104 commits and 16.06 MB found only
 the two localization matches above. Any future `.gitleaks.toml` must retain
 the default rules and constrain an allowlist by both exact path and exact line
 regex; it must not disable `generic-api-key` or ignore the entire file.
