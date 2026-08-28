@@ -122,6 +122,28 @@ result. Current `main` protection requires the five CI checks, a fresh approval,
 and resolved conversations; it does not require Mergify Queue or Summary.
 This document does not authorize a workflow change, a bypass, or a merge.
 
+### PR #3 Review-Resolution Gate
+
+As of `2026-08-28T06:05Z`, PR #3 has 53 review threads: 39 resolved and 14
+unresolved. Ten are current and four are outdated. The Mergify configuration
+can only be bootstrapped after the current review surface is resolved or
+explicitly dispositioned:
+
+| Class | Current affected paths | Required disposition |
+| --- | --- | --- |
+| ABI contract already corrected | `.agileplus/civic-warfare-program/contracts/civic_warfare.h`, `contracts/public-api.md` | Reply with the current `CommandDecision` versus `CswResult` contract and resolve the obsolete thread. |
+| Truncated work-package titles | `.agileplus/civic-warfare-program/tasks/WP10*`, `tasks/WP14*`, `tasks/WP15*` through `tasks/WP20*` | Restore full matching YAML and heading titles. |
+| Dependency-delta policy | `.github/workflows/ci.yml` | Replace blanket manifest rejection with declared ecosystem support or a narrower policy. |
+| Scorecard action hygiene | `.github/workflows/scorecard-ci.yml` | Pin actions, disable persisted checkout credentials, and isolate any PR-comment token to its least-privileged step. |
+| Quality-policy semantics | Civic quality specification and governance text | Clarify workflow-scoped `needs`, PR versus protected-push behavior, and exact WP17/WP18/WP19 prerequisite rules. |
+| Already addressed evidence | `.github/workflows/ci.yml`, tracked `Tools/`, `scripts/contract_check.py` | Reply with the current fail-closed security lines, paths, and green Civic Evidence Gate; resolve obsolete threads. |
+
+Four additional threads are outdated: the destroy ABI signature, an earlier
+title batch, stale CI-probe wording, and a relocated ABI-remediation command.
+They require current-line verification before resolution but do not establish a
+new defect. No thread may be resolved by this chat without Chat C's review and
+path/SHA handoff.
+
 ### Successor PR Decomposition
 
 The following additional findings were observed on `2026-08-27` and are
