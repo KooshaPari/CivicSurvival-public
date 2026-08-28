@@ -47,7 +47,7 @@ def test_accepted_manifest_verifies_hashes_and_host(tmp_path):
                 "environment": {"host_class": "licensed-game", "license_basis": "record"},
                 "artifacts": [{"artifact_id": "out", "path": "evidence.txt", "size_bytes": artifact.stat().st_size, "sha256": digest}],
                 "commands": [{"command_id": "run"}],
-                "evidence": [{"evidence_id": evidence_id, "status": "pass", "subject_commit": subject_commit, "command_ids": ["run"], "artifact_ids": ["out"]} for evidence_id in sorted({"WP01:public_audit_build", "WP01:baseline_tests", "WP01:licensed_adapter_build", "WP01:launch_smoke", "WP01:artifact_hash_provenance", "WP01:agileplus_evidence_record"})],
+                "evidence": [{"evidence_id": evidence_id, "status": "pass", "subject_commit": subject_commit, "command_ids": ["run"], "artifact_ids": ["out"]} for evidence_id in sorted({"WP01:public_audit_build", "WP01:baseline_tests", "WP01:licensed_adapter_build", "WP01:launch_smoke", "WP01:artifact_hash_provenance", "WP01:agileplus_evidence_record", "WP01:conditional_go_no_go_pass"})],
                 "decision": {"result": "GO"},
             }
         )
@@ -72,7 +72,7 @@ def test_tampered_artifact_is_rejected(tmp_path):
                 "environment": {"host_class": "licensed-game", "license_basis": "record"},
                 "artifacts": [{"artifact_id": "out", "path": "evidence.txt", "size_bytes": artifact.stat().st_size, "sha256": digest}],
                 "commands": [{"command_id": "run"}],
-                "evidence": [{"evidence_id": evidence_id, "status": "pass", "subject_commit": subject_commit, "command_ids": ["run"], "artifact_ids": ["out"]} for evidence_id in sorted({"WP01:public_audit_build", "WP01:baseline_tests", "WP01:licensed_adapter_build", "WP01:launch_smoke", "WP01:artifact_hash_provenance", "WP01:agileplus_evidence_record"})],
+                "evidence": [{"evidence_id": evidence_id, "status": "pass", "subject_commit": subject_commit, "command_ids": ["run"], "artifact_ids": ["out"]} for evidence_id in sorted({"WP01:public_audit_build", "WP01:baseline_tests", "WP01:licensed_adapter_build", "WP01:launch_smoke", "WP01:artifact_hash_provenance", "WP01:agileplus_evidence_record", "WP01:conditional_go_no_go_pass"})],
                 "decision": {"result": "GO"},
             }
         )
@@ -158,6 +158,7 @@ def test_non_string_ids_fail_closed(tmp_path):
                 "WP01:launch_smoke",
                 "WP01:artifact_hash_provenance",
                 "WP01:agileplus_evidence_record",
+                "WP01:conditional_go_no_go_pass",
             }
         )
     ]
@@ -174,3 +175,22 @@ def test_non_string_ids_fail_closed(tmp_path):
     result = run(tmp_path, manifest)
     assert result.returncode == 1
     assert "artifact_ids must be a list of non-empty strings" in result.stderr
+
+
+def test_schema_version_must_be_an_integer(tmp_path):
+    manifest = tmp_path / "evidence.json"
+    manifest.write_text(json.dumps({"schema": "civic.wp01.evidence", "schema_version": True}))
+    result = run(tmp_path, manifest)
+    assert result.returncode == 1
+    assert "schema_version must be 1" in result.stderr
+
+
+def test_unhashable_artifact_id_fails_closed(tmp_path):
+    artifact = tmp_path / "evidence.txt"
+    artifact.write_text("")
+    subject_commit = git_head(tmp_path)
+    manifest = tmp_path / "evidence.json"
+    manifest.write_text(json.dumps({"schema": "civic.wp01.evidence", "schema_version": 1, "subject": {"commit": subject_commit}, "environment": {"host_class": "licensed-game", "license_basis": "test"}, "decision": {"result": "GO"}, "artifacts": [{"artifact_id": [], "path": "evidence.txt", "size_bytes": 0, "sha256": "0" * 64}]}))
+    result = run(tmp_path, manifest)
+    assert result.returncode == 1
+    assert "non-empty string artifact_id" in result.stderr

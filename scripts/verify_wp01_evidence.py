@@ -18,6 +18,7 @@ REQUIRED_EVIDENCE = {
     "WP01:launch_smoke",
     "WP01:artifact_hash_provenance",
     "WP01:agileplus_evidence_record",
+    "WP01:conditional_go_no_go_pass",
 }
 
 
@@ -48,7 +49,7 @@ def main() -> int:
         return fail(f"manifest cannot be read: {exc}", 2)
     if not isinstance(data, dict):
         return fail("manifest top level must be an object")
-    if data.get("schema") != "civic.wp01.evidence" or data.get("schema_version") != 1:
+    if data.get("schema") != "civic.wp01.evidence" or type(data.get("schema_version")) is not int or data["schema_version"] != 1:
         return fail("schema_version must be 1")
     decision = data.get("decision")
     if not isinstance(decision, dict):
@@ -80,7 +81,10 @@ def main() -> int:
     artifacts = data.get("artifacts")
     if not isinstance(artifacts, list):
         return fail("artifacts must be a list")
-    artifact_map = {item.get("artifact_id"): item for item in artifacts if isinstance(item, dict)}
+    for artifact in artifacts:
+        if not isinstance(artifact, dict) or not isinstance(artifact.get("artifact_id"), str) or not artifact["artifact_id"]:
+            return fail("each artifact needs a non-empty string artifact_id")
+    artifact_map = {item["artifact_id"]: item for item in artifacts}
     if len(artifact_map) != len(artifacts):
         return fail("artifact IDs must be unique")
     for artifact in artifacts:
