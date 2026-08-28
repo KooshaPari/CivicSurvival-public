@@ -170,7 +170,7 @@ exception without masking genuine secrets.
 PR #5's immediate scan-infrastructure correction is known: add
 `fetch-depth: 0` to the Security Scan checkout in `.github/workflows/ci.yml`.
 The hardened local lineage already contains that exact remedy at `ced0063`; PR
-#5 does not. A full-history local scan over 104 commits and 16.06 MB found only
+The PR does not. A full-history local scan over 104 commits and 16.06 MB found only
 the two localization matches above. Any future `.gitleaks.toml` must retain
 the default rules and constrain an allowlist by both exact path and exact line
 regex; it must not disable `generic-api-key` or ignore the entire file.
