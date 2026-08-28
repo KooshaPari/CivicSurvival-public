@@ -141,3 +141,36 @@ def test_non_string_ids_fail_closed(tmp_path):
     result = run(tmp_path, manifest)
     assert result.returncode == 1
     assert "non-empty string command_id" in result.stderr
+
+    valid_evidence = [
+        {
+            "evidence_id": evidence_id,
+            "status": "pass",
+            "subject_commit": subject_commit,
+            "command_ids": ["run"],
+            "artifact_ids": ["out"],
+        }
+        for evidence_id in sorted(
+            {
+                "WP01:public_audit_build",
+                "WP01:baseline_tests",
+                "WP01:licensed_adapter_build",
+                "WP01:launch_smoke",
+                "WP01:artifact_hash_provenance",
+                "WP01:agileplus_evidence_record",
+            }
+        )
+    ]
+    valid_base = {**base, "commands": [{"command_id": "run"}], "evidence": valid_evidence}
+    valid_evidence[0]["command_ids"] = [{}]
+    manifest.write_text(json.dumps(valid_base))
+    result = run(tmp_path, manifest)
+    assert result.returncode == 1
+    assert "command_ids must be a list of non-empty strings" in result.stderr
+
+    valid_evidence[0]["command_ids"] = ["run"]
+    valid_evidence[0]["artifact_ids"] = [{}]
+    manifest.write_text(json.dumps(valid_base))
+    result = run(tmp_path, manifest)
+    assert result.returncode == 1
+    assert "artifact_ids must be a list of non-empty strings" in result.stderr

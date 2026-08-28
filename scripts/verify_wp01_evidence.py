@@ -118,9 +118,19 @@ def main() -> int:
     for item in evidence:
         if item.get("status") != "pass" or item.get("subject_commit") != subject_commit:
             return fail(f"evidence {item.get('evidence_id')} must pass for the subject commit")
-        if not item.get("command_ids") or not set(item["command_ids"]).issubset(command_ids):
+        command_refs = item.get("command_ids")
+        if not isinstance(command_refs, list) or not command_refs or any(
+            not isinstance(command_id, str) or not command_id for command_id in command_refs
+        ):
+            return fail(f"evidence {item.get('evidence_id')} command_ids must be a list of non-empty strings")
+        artifact_refs = item.get("artifact_ids")
+        if not isinstance(artifact_refs, list) or not artifact_refs or any(
+            not isinstance(artifact_id, str) or not artifact_id for artifact_id in artifact_refs
+        ):
+            return fail(f"evidence {item.get('evidence_id')} artifact_ids must be a list of non-empty strings")
+        if not set(command_refs).issubset(command_ids):
             return fail(f"evidence {item.get('evidence_id')} references unknown commands")
-        if not item.get("artifact_ids") or not set(item["artifact_ids"]).issubset(artifact_map):
+        if not set(artifact_refs).issubset(artifact_map):
             return fail(f"evidence {item.get('evidence_id')} references unknown artifacts")
     print(f"WP01 evidence accepted structurally: {len(evidence)} evidence records and {len(artifacts)} artifacts verified")
     return 0

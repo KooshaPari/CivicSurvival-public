@@ -20,40 +20,9 @@ pull_request_rules:
 
           Co-authored-by: {{ author }}
 
-  # Auto-merge dependabot/Renovate PRs when CI passes
-  - name: Auto-merge dependency updates
-    conditions:
-      - or:
-          - author = dependabot[bot]
-          - author = renovate[bot]
-      - check-success = "ci / lint"
-      - check-success = "ci / test"
-      - check-success = "Civic Evidence Gate"
-      - -conflict
-      - -closed
-    actions:
-      merge:
-        method: squash
-        commit_message_template: |
-          {{ title }} (#{{ number }})
-
-          Co-authored-by: {{ author }}
-
-  # Auto-merge bot PRs (CI configs, formatting) when CI passes
-  - name: Auto-merge bot housekeeping PRs
-    conditions:
-      - or:
-          - author = trunk-io[bot]
-          - author = mergify[bot]
-          - author = github-actions[bot]
-      - check-success = "ci / lint"
-      - check-success = "ci / test"
-      - check-success = "Civic Evidence Gate"
-      - -conflict
-      - -closed
-    actions:
-      merge:
-        method: squash
+  # Bot auto-merge rules are intentionally absent. The repository has no
+  # verified Mergify identities for those accounts; retaining them makes the
+  # whole ruleset invalid and would weaken the protected-flow auditability.
 
   # Add reviewers based on changed paths
   - name: Request review from team
