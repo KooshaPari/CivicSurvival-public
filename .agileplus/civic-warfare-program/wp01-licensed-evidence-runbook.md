@@ -36,7 +36,7 @@ license access and it cannot be satisfied by the public macOS checkout alone.
 
 ## Manifest and acceptance
 
-Populate the six required evidence IDs in the template, link each to command
+Populate the seven required evidence IDs in the template, link each to command
 and artifact IDs, and run:
 
 ```text

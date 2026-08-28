@@ -17,7 +17,7 @@ this checkout:
 | Policy/evidence evaluator | pass    | `python3 scripts/civic_quality_gate.py --policy .github/civic-quality-policy.json --strict .` |
 | Binding contracts         | pass    | `python3 scripts/contract_check.py`; Node manifest/codegen checks                             |
 | UI checks                 | pass    | Civic Evidence Gate: declarations, lint rules, UI tests, strict lint, bundle budget           |
-| Repository tests          | pass    | `python3 -m pytest -q` (18 tests)                                                             |
+| Repository tests          | pass    | `python3 -m pytest -q` (28 tests)                                                             |
 | Licensed adapter          | pending | Requires legally local Windows/CS2 host                                                       |
 | AgilePlus evidence        | pending | Supported evidence-recording path unavailable in v0.2.1 CLI                                   |
 
