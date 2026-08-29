@@ -1,6 +1,6 @@
 ---
 work_package_id: WP16
-title: Use hierarchical task planning for faction strateg (WP16)
+title: Use hierarchical task planning for faction strategy, utility scoring for operations, deterministic behavior trees/state machines for execution, and influence maps for spatial reasoning (WP16)
 feature: Civic Warfare and Resilient City Program
 feature_slug: civic-warfare-program
 sequence: 16
@@ -8,7 +8,7 @@ state: planned
 created_at: 2026-07-22T00:00:00Z
 ---
 
-# Work Package: Use hierarchical task planning for faction strateg (WP16)
+# Work Package: Use hierarchical task planning for faction strategy, utility scoring for operations, deterministic behavior trees/state machines for execution, and influence maps for spatial reasoning (WP16)
 
 ## Feature
 

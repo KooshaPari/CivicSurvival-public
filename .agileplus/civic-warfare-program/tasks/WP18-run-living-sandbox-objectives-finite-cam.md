@@ -1,6 +1,6 @@
 ---
 work_package_id: WP18
-title: Run living sandbox objectives, finite campaigns, a (WP18)
+title: Run living sandbox objectives, finite campaigns, and endless escalating survival from one simulation core using validated presets (WP18)
 feature: Civic Warfare and Resilient City Program
 feature_slug: civic-warfare-program
 sequence: 18
@@ -8,7 +8,7 @@ state: planned
 created_at: 2026-07-22T00:00:00Z
 ---
 
-# Work Package: Run living sandbox objectives, finite campaigns, a (WP18)
+# Work Package: Run living sandbox objectives, finite campaigns, and endless escalating survival from one simulation core using validated presets (WP18)
 
 ## Feature
 

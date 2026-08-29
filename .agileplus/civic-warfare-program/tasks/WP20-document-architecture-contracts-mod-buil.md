@@ -1,6 +1,6 @@
 ---
 work_package_id: WP20
-title: Document architecture, contracts, mod build, nativ (WP20)
+title: Document architecture, contracts, mod build, native toolchain, scenario authoring, balancing, testing, debugging, privacy, security, accessibility, and player mechanics (WP20)
 feature: Civic Warfare and Resilient City Program
 feature_slug: civic-warfare-program
 sequence: 20
@@ -8,7 +8,7 @@ state: planned
 created_at: 2026-07-22T00:00:00Z
 ---
 
-# Work Package: Document architecture, contracts, mod build, nativ (WP20)
+# Work Package: Document architecture, contracts, mod build, native toolchain, scenario authoring, balancing, testing, debugging, privacy, security, accessibility, and player mechanics (WP20)
 
 ## Feature
 

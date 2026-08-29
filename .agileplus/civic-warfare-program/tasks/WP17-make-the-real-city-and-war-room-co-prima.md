@@ -1,6 +1,6 @@
 ---
 work_package_id: WP17
-title: Make the real city and War Room co-primary views w (WP17)
+title: Make the real city and War Room co-primary views with synchronized selection, time, alerts, forecasts, commands, and outcomes (WP17)
 feature: Civic Warfare and Resilient City Program
 feature_slug: civic-warfare-program
 sequence: 17
@@ -8,7 +8,7 @@ state: planned
 created_at: 2026-07-22T00:00:00Z
 ---
 
-# Work Package: Make the real city and War Room co-primary views w (WP17)
+# Work Package: Make the real city and War Room co-primary views with synchronized selection, time, alerts, forecasts, commands, and outcomes (WP17)
 
 ## Feature
 

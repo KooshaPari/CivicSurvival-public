@@ -1,6 +1,6 @@
 ---
 work_package_id: WP10
-title: Model air wings, aircraft pools, crews, training,  (WP10)
+title: Model air wings, aircraft pools, crews, training, readiness, maintenance, munitions, fuel, range, basing, runway condition, dispersal, and sortie generation (WP10)
 feature: Civic Warfare and Resilient City Program
 feature_slug: civic-warfare-program
 sequence: 10
@@ -8,7 +8,7 @@ state: planned
 created_at: 2026-07-22T00:00:00Z
 ---
 
-# Work Package: Model air wings, aircraft pools, crews, training, (WP10)
+# Work Package: Model air wings, aircraft pools, crews, training, readiness, maintenance, munitions, fuel, range, basing, runway condition, dispersal, and sortie generation (WP10)
 
 ## Feature
 

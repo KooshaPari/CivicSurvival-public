@@ -1,6 +1,6 @@
 ---
 work_package_id: WP15
-title: Derive legitimacy and unrest from shortages, inequ (WP15)
+title: Derive legitimacy and unrest from shortages, inequality, casualties, displacement, occupation, corruption, repression, service quality, ideology, expectations, and information (WP15)
 feature: Civic Warfare and Resilient City Program
 feature_slug: civic-warfare-program
 sequence: 15
@@ -8,7 +8,7 @@ state: planned
 created_at: 2026-07-22T00:00:00Z
 ---
 
-# Work Package: Derive legitimacy and unrest from shortages, inequ (WP15)
+# Work Package: Derive legitimacy and unrest from shortages, inequality, casualties, displacement, occupation, corruption, repression, service quality, ideology, expectations, and information (WP15)
 
 ## Feature
 

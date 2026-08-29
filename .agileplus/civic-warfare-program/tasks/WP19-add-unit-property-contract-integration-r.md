@@ -1,6 +1,6 @@
 ---
 work_package_id: WP19
-title: Add unit, property, contract, integration, replay, (WP19)
+title: Add unit, property, contract, integration, replay, fuzz, mutation, UI, accessibility, localization, native smoke, scenario, performance, and soak suites tied to requirement evidence (WP19)
 feature: Civic Warfare and Resilient City Program
 feature_slug: civic-warfare-program
 sequence: 19
@@ -8,7 +8,7 @@ state: planned
 created_at: 2026-07-22T00:00:00Z
 ---
 
-# Work Package: Add unit, property, contract, integration, replay, (WP19)
+# Work Package: Add unit, property, contract, integration, replay, fuzz, mutation, UI, accessibility, localization, native smoke, scenario, performance, and soak suites tied to requirement evidence (WP19)
 
 ## Feature
 

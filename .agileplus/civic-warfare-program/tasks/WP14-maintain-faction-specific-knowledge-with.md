@@ -1,6 +1,6 @@
 ---
 work_package_id: WP14
-title: Maintain faction-specific knowledge with sources,  (WP14)
+title: Maintain faction-specific knowledge with sources, confidence, age, contradiction, deception risk, access, classification, and explicit decay (WP14)
 feature: Civic Warfare and Resilient City Program
 feature_slug: civic-warfare-program
 sequence: 14
@@ -8,7 +8,7 @@ state: planned
 created_at: 2026-07-22T00:00:00Z
 ---
 
-# Work Package: Maintain faction-specific knowledge with sources, (WP14)
+# Work Package: Maintain faction-specific knowledge with sources, confidence, age, contradiction, deception risk, access, classification, and explicit decay (WP14)
 
 ## Feature
 
