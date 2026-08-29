@@ -98,12 +98,12 @@ Safe parallel sets:
 
 - WP05 and WP14 after WP04.
 - WP09, WP10, WP11, WP12, and WP15 after their shared substrate passes.
-- WP17 projection primitives, WP18 `authoring-tools` (after WP02), and WP19 harness-foundation may advance early behind stable contracts; WP18 `scenario-tooling` requires WP03. No full-WP completion or downstream implementation is implied.
+- WP17 `projection-primitives`, WP18 `authoring-tools`, and WP19 `harness-foundation` may advance early after WP02 behind stable contracts; WP18 `scenario-tooling` requires WP03. No full-WP completion or downstream implementation is implied.
 - Offline Julia/Python calibration may run beside all runtime lanes but may only contribute versioned coefficients/content.
 
 ## Progress Contract
 
-SQLite WP states are `planned -> doing -> review -> done` with `blocked` as an exception. A lane may enter `doing` only when its canonical DAG dependencies are done, except WP17 `projection-primitives`, WP18 `authoring-tools` after WP02, and WP19 `harness-foundation`; WP18 `scenario-tooling` requires WP03. Program progress is weighted by accepted requirements, not time spent:
+SQLite WP states are `planned -> doing -> review -> done` with `blocked` as an exception. A lane may enter `doing` only when its canonical DAG dependencies are done, except WP17 `projection-primitives`, WP18 `authoring-tools`, and WP19 `harness-foundation` after WP02; WP18 `scenario-tooling` requires WP03. Program progress is weighted by accepted requirements, not time spent:
 
 ```text
 wp_progress = accepted_FRs / 6
