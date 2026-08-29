@@ -615,5 +615,7 @@ namespace CivicSurvival.Core.Utils
             }
             return !Mod.IsUnloading;
         }
+#pragma warning restore CA1054
+#pragma warning restore CA2234
     }
 }
