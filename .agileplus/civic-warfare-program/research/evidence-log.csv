@@ -1,0 +1,16 @@
+evidence_id,claim,source_ids,status,decision
+EVD-001,Public snapshot is not a reproducible full C sharp build,SRC-001,confirmed,Block production warfare until audit build and baseline tests pass
+EVD-002,Existing architecture has domain registry service registry and durable intent-resolution-signal patterns,SRC-001,confirmed,Extend existing seams instead of replacing them
+EVD-003,Current combat is primarily air threat and strategic counterattack without operational ground or naval layers,SRC-001,confirmed,Add persistent theater operational simulation
+EVD-004,City production chains and transport costs should feed defense readiness,SRC-005,confirmed,Use one shared production logistics graph
+EVD-005,Naval invasion legibility requires preparation convoys sea control and air cover,SRC-006,confirmed,Model explicit prerequisites and warnings
+EVD-006,Militia casualties must affect labor and households,SRC-007,confirmed,Recruit population cohorts rather than abstract manpower only
+EVD-007,Hexagonal boundaries allow headless testing and Unity isolation,SRC-002,confirmed,Use ports at Unity native UI and offline tool boundaries
+EVD-008,Blanket event sourcing adds avoidable complexity,SRC-003;SRC-004,confirmed,Use snapshots plus command and coarse-outcome journal
+EVD-009,FlatBuffers supports Rust C sharp TypeScript and Python schema generation,SRC-013,confirmed,Pin compiler and runtimes with schema conformance CI
+EVD-010,Fixed-point authority and canonical hashing are necessary for replay,SRC-015;SRC-019,confirmed,Prohibit floating point in hashed authoritative state
+EVD-011,Petgraph and rstar provide mature graph and spatial primitives,SRC-016;SRC-017,confirmed,Wrap behind domain ports and deterministic ordering
+EVD-012,Existing Rust HTN crates are not mature enough for the strategic planner,SRC-010,confirmed,Implement small domain HTN kernel and borrow published concepts
+EVD-013,Runtime neural agents are opaque and costly for this scale,SRC-010;SRC-011,confirmed,Use HTN utility behavior trees and influence maps
+EVD-014,GPL references can be adopted only with an intentional license change,SRC-023;SRC-024;SRC-025,confirmed,Default reference-only; relicense only after dedicated ADR and provenance audit
+EVD-015,Mojo Vale Nim Pony and similar languages do not justify shipped runtime ownership,SRC-026;SRC-029,confirmed,Keep production runtime to C sharp Rust and TypeScript

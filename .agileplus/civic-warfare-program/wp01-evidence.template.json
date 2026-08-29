@@ -1,0 +1,27 @@
+{
+  "schema": "civic.wp01.evidence",
+  "schema_version": 1,
+  "subject": {
+    "repository": "KooshaPari/CivicSurvival-public",
+    "commit": "REPLACE_WITH_40_HEX_SHA",
+    "ref": "refs/heads/REPLACE"
+  },
+  "environment": {
+    "os": "Windows",
+    "architecture": "REPLACE",
+    "host_class": "licensed-game",
+    "license_basis": "REPLACE_WITH_LICENSED_HOST_RECORD"
+  },
+  "artifacts": [],
+  "commands": [],
+  "evidence": [],
+  "decision": {
+    "result": "CONDITIONAL_NO_GO",
+    "blocking_evidence_ids": [
+      "WP01:licensed_adapter_build",
+      "WP01:launch_smoke",
+      "WP01:artifact_hash_provenance",
+      "WP01:agileplus_evidence_record"
+    ]
+  }
+}
