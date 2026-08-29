@@ -7,6 +7,9 @@ obj/
 Library/
 dist/
 
+# AgilePlus local runtime state is generated evidence tooling output, not source.
+.agileplus/*.db
+
 # Node / UI
 node_modules/
 

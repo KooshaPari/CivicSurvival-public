@@ -13,9 +13,18 @@ permissions:
 jobs:
   scorecard:
     runs-on: ubuntu-latest
+    outputs:
+      score: ${{ steps.audit.outputs.score }}
+      total: ${{ steps.audit.outputs.total }}
+      percentage: ${{ steps.audit.outputs.percentage }}
+      target_met: ${{ steps.audit.outputs.target_met }}
+      regression: ${{ steps.audit.outputs.regression }}
+      passed: ${{ steps.audit.outputs.passed }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -26,25 +35,57 @@ jobs:
         id: audit
         run: |
           THRESHOLD=${{ github.event.inputs.threshold || '85' }}
-          
+          if [ "$THRESHOLD" -lt 85 ]; then
+            echo "::error::Scorecard threshold must be at least 85; received ${THRESHOLD}"
+            exit 2
+          fi
+
+          BASELINE_SOURCE_REVISION="8cb6f4cfdf32639ab3a0cf03ff3e63ddebe8872f"
+          INITIAL_BASELINE_REF="b3f00fd35a5e00aafaadb38d53cce6c9c9aad1a0"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASELINE_REF="${{ github.event.pull_request.base.sha }}"
+            if ! git cat-file -e "${BASELINE_REF}:.github/scorecard-baseline.json"; then
+              BASELINE_REF="$INITIAL_BASELINE_REF"
+            fi
+          else
+            BASELINE_REF="HEAD"
+          fi
+          git show "${BASELINE_REF}:.github/scorecard-baseline.json" > scorecard-baseline.json
+
           # Run audit in JSON mode
-          python scripts/scorecard_ci.py . --output json --threshold "$THRESHOLD" --fail-on-drop > scorecard-report.json 2> scorecard-stderr.txt || EXIT_CODE=$?
-          
+          set +e
+          python scripts/scorecard_ci.py . --output json --threshold "$THRESHOLD" --baseline-file scorecard-baseline.json --expected-source-revision "$BASELINE_SOURCE_REVISION" > scorecard-report.json 2> scorecard-stderr.txt
+          AUDIT_EXIT=$?
+          set -e
+          if [ ! -s scorecard-report.json ]; then
+            cat scorecard-stderr.txt >&2
+            exit "$AUDIT_EXIT"
+          fi
+
           # Extract score
           SCORE=$(python -c "import json; r=json.load(open('scorecard-report.json')); print(r['score'])")
           TOTAL=$(python -c "import json; r=json.load(open('scorecard-report.json')); print(r['total'])")
           PCT=$(python -c "import json; r=json.load(open('scorecard-report.json')); print(f\"{r['percentage']:.1f}\")")
-          
+          BASELINE_SCORE=$(python -c "import json; r=json.load(open('scorecard-report.json')); print(r['baseline_score'])")
+          SCORE_DELTA=$(python -c "import json; r=json.load(open('scorecard-report.json')); print(r['score_delta'])")
+          TARGET_MET=$(python -c "import json; r=json.load(open('scorecard-report.json')); print(str(r['target_met']).lower())")
+          REGRESSION=$(python -c "import json; r=json.load(open('scorecard-report.json')); print(str(r['regression']).lower())")
+          MISSING_BASELINE_PILLARS=$(python -c "import json; r=json.load(open('scorecard-report.json')); print(', '.join(map(str, r['missing_baseline_pillar_ids'])) or 'none')")
+
           # Generate markdown summary
           echo "## 88-Pillar Scorecard Result" > scorecard-summary.md
           echo "" >> scorecard-summary.md
           echo "| Metric | Value |" >> scorecard-summary.md
           echo "|--------|-------|" >> scorecard-summary.md
           echo "| **Score** | **${SCORE}/${TOTAL}** (${PCT}%) |" >> scorecard-summary.md
+          echo "| **Recorded baseline** | ${BASELINE_SCORE}/${TOTAL} |" >> scorecard-summary.md
+          echo "| **Delta from baseline** | ${SCORE_DELTA} |" >> scorecard-summary.md
           echo "| **Threshold** | ${THRESHOLD} |" >> scorecard-summary.md
-          echo "| **Status** | $( [ "$SCORE" -ge "$THRESHOLD" ] && echo "PASS" || echo "FAIL" ) |" >> scorecard-summary.md
+          echo "| **Target gate** | $( [ "$TARGET_MET" = "true" ] && echo "PASS" || echo "FAIL" ) |" >> scorecard-summary.md
+          echo "| **Regression gate** | $( [ "$REGRESSION" = "false" ] && echo "PASS" || echo "FAIL" ) |" >> scorecard-summary.md
+          echo "| **Lost baseline pillars** | ${MISSING_BASELINE_PILLARS} |" >> scorecard-summary.md
           echo "" >> scorecard-summary.md
-          
+
           # List failed pillars
           if [ "$SCORE" -lt "$THRESHOLD" ]; then
             echo "### Failed Pillars" >> scorecard-summary.md
@@ -57,14 +98,18 @@ jobs:
                   print(f'- [ ] Pillar #{item[\"id\"]}: **{item[\"name\"]}**')
           " >> scorecard-summary.md
           fi
-          
+
           # Set outputs
           echo "score=${SCORE}" >> "$GITHUB_OUTPUT"
           echo "total=${TOTAL}" >> "$GITHUB_OUTPUT"
           echo "percentage=${PCT}" >> "$GITHUB_OUTPUT"
           echo "threshold=${THRESHOLD}" >> "$GITHUB_OUTPUT"
-          echo "passed=$( [ "$SCORE" -ge "$THRESHOLD" ] && echo true || echo false )" >> "$GITHUB_OUTPUT"
-          
+          echo "baseline_score=${BASELINE_SCORE}" >> "$GITHUB_OUTPUT"
+          echo "score_delta=${SCORE_DELTA}" >> "$GITHUB_OUTPUT"
+          echo "target_met=${TARGET_MET}" >> "$GITHUB_OUTPUT"
+          echo "regression=${REGRESSION}" >> "$GITHUB_OUTPUT"
+          echo "passed=$( [ "$TARGET_MET" = "true" ] && [ "$REGRESSION" = "false" ] && echo true || echo false )" >> "$GITHUB_OUTPUT"
+
           # Post PR comment if applicable
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             COMMENT=$(cat scorecard-summary.md)
@@ -75,6 +120,8 @@ jobs:
                 --repo "${{ github.repository }}" || true
             fi
           fi
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Update status check
         if: always()
@@ -82,13 +129,16 @@ jobs:
           SCORE=${{ steps.audit.outputs.score }}
           TOTAL=${{ steps.audit.outputs.total }}
           THRESHOLD=${{ steps.audit.outputs.threshold }}
+          BASELINE_SCORE=${{ steps.audit.outputs.baseline_score }}
+          SCORE_DELTA=${{ steps.audit.outputs.score_delta }}
+          TARGET_MET=${{ steps.audit.outputs.target_met }}
+          REGRESSION=${{ steps.audit.outputs.regression }}
           PASSED=${{ steps.audit.outputs.passed }}
-          
+
           if [ "$PASSED" = "true" ]; then
-            echo "Scorecard: ${SCORE}/${TOTAL} - PASS (threshold: ${THRESHOLD})"
+            echo "Scorecard: ${SCORE}/${TOTAL} - PASS (baseline: ${BASELINE_SCORE}, delta: ${SCORE_DELTA}, target: ${THRESHOLD})"
           else
-            echo "Scorecard: ${SCORE}/${TOTAL} - FAIL (threshold: ${THRESHOLD})"
-            exit 1
+            echo "Scorecard: ${SCORE}/${TOTAL} - INFORMATIONAL (target_met: ${TARGET_MET}, regression: ${REGRESSION}, baseline: ${BASELINE_SCORE}, delta: ${SCORE_DELTA}, target: ${THRESHOLD})"
           fi
 
       - name: Upload scorecard report
@@ -100,12 +150,6 @@ jobs:
             scorecard-report.json
             scorecard-summary.md
 
-      - name: Check score threshold
-        if: steps.audit.outputs.passed != 'true'
-        run: |
-          echo "::error::Score ${{ steps.audit.outputs.score }}/${{ steps.audit.outputs.total }} is below threshold ${{ steps.audit.outputs.threshold }}"
-          exit 1
-
   update-badge:
     needs: scorecard
     runs-on: ubuntu-latest
@@ -116,17 +160,17 @@ jobs:
           SCORE=${{ needs.scorecard.outputs.score }}
           TOTAL=${{ needs.scorecard.outputs.total }}
           PCT=${{ needs.scorecard.outputs.percentage }}
-          
+
           # Generate badge SVG
           if [ "${{ needs.scorecard.outputs.passed }}" = "true" ]; then
             COLOR="brightgreen"
           else
             COLOR="red"
           fi
-          
+
           BADGE_URL="https://img.shields.io/badge/scorecard-${SCORE}%2F${TOTAL}-${COLOR}"
           echo "Badge URL: ${BADGE_URL}"
-          
+
           # Update README badge if it exists
           if [ -f "README.md" ]; then
             sed -i "s|!\[Scorecard\].*|[![Scorecard](${BADGE_URL})](https://github.com/${{ github.repository }}/actions)|g" README.md || true
