@@ -33,6 +33,9 @@ license access and it cannot be satisfied by the public macOS checkout alone.
    AgilePlus API/CLI operation. Record the feature slug, WP ID, resulting event
    or record ID, and hash of the submitted evidence. A handwritten SQLite edit
    is not acceptable.
+7. **Conditional go/no-go**: record the independent review decision and
+   program-specific conditional gate as `WP01:conditional_go_no_go_pass` only
+   after the six technical evidence records above are present and verified.
 
 ## Manifest and acceptance
 

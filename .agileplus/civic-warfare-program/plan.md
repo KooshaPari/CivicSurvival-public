@@ -43,7 +43,7 @@ Ground   Air       Sea       Defense   Civil     Campaigns
                        WP20 Docs/license/release
 ```
 
-WP19-foundation starts after WP02 and continuously gates every lane; its final acceptance depends on WP01-WP18. Only the named WP17 projection-primitives, WP18 authoring-tools, and WP19 harness-foundation scopes may advance early; their parent work packages remain incomplete until their full dependencies pass. WP17 completes only after gameplay projections are stable. WP18 has two explicitly named scopes: `authoring-tools` may begin after WP02 for schema/command authoring, while `scenario-tooling` begins after WP03 and completes after domain rules exist; neither scope implies full WP18 completion.
+WP19-foundation starts after WP02 and continuously gates every lane; its final acceptance depends on WP01-WP18. Only the named early scopes may advance before their parent package dependencies are complete: `WP17 projection-primitives`, `WP18 authoring-tools`, and `WP19 harness-foundation` after WP02, plus `WP18 scenario-tooling` after WP03. Their parent work packages remain incomplete until their full dependencies pass. WP17 completes only after gameplay projections are stable, and WP19 completes only after the full validation graph is accepted. WP18's two scopes are explicit: `authoring-tools` is limited to schema/command authoring, while `scenario-tooling` is limited to scenario tooling after WP03 and domain rules; neither scope implies full WP18 completion.
 
 ## Execution Waves
 
