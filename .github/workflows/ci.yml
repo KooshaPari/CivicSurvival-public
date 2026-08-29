@@ -187,7 +187,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   dep-review:
-    name: Dependency Review
+    name: Dependency Delta
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
@@ -234,6 +234,7 @@ jobs:
           npm run test:lint-rules
           npm run test:ui
           npm run lint:strict
+          test -f bundle-baseline.json
           npm run bundle:check
       - name: Evaluate Civic repository evidence
         run: python scripts/civic_quality_gate.py . --policy .github/civic-quality-policy.json --output json --strict > civic-quality-report.json
