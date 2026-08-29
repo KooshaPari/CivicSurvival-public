@@ -6,6 +6,8 @@ Audits a repository against 88 quality and security pillars.
 import os, sys, json, argparse
 from pathlib import Path
 
+MINIMUM_THRESHOLD = 85
+
 PILLARS = [
     {"id":1,"name":"README","check":lambda p:(p/"README.md").exists() or (p/"readme.md").exists()},
     {"id":2,"name":"LICENSE","check":lambda p:any(p.glob("LICENSE*"))},
@@ -112,15 +114,60 @@ def audit_repo(repo_path):
             results.append({"id":pillar["id"],"name":pillar["name"],"passed":False,"error":str(e)})
     return {"score":score,"total":len(PILLARS),"percentage":(score/len(PILLARS))*100,"results":results}
 
+
+def load_baseline(path, total, expected_source_revision=None):
+    try:
+        baseline = json.loads(Path(path).read_text(encoding="utf-8"))
+    except OSError as error:
+        raise ValueError(f"Unable to read baseline file {path}: {error}") from error
+    except json.JSONDecodeError as error:
+        raise ValueError(f"Baseline file {path} is not valid JSON: {error.msg}") from error
+
+    if baseline.get("schema_version") != 1:
+        raise ValueError("Baseline schema_version must equal 1")
+    if not isinstance(baseline.get("source_revision"), str) or not baseline["source_revision"]:
+        raise ValueError("Baseline source_revision must be a non-empty string")
+    if expected_source_revision and baseline["source_revision"] != expected_source_revision:
+        raise ValueError("Baseline source_revision does not match the expected source revision")
+    score = baseline.get("score")
+    baseline_total = baseline.get("total")
+    passed_pillar_ids = baseline.get("passed_pillar_ids")
+    if not isinstance(score, int) or isinstance(score, bool) or score < 0:
+        raise ValueError("Baseline score must be a non-negative integer")
+    if baseline_total != total:
+        raise ValueError(f"Baseline total must equal {total}")
+    if not isinstance(passed_pillar_ids, list):
+        raise ValueError("Baseline passed_pillar_ids must be a list")
+    if any(not isinstance(pillar_id, int) or isinstance(pillar_id, bool) or not 1 <= pillar_id <= total for pillar_id in passed_pillar_ids):
+        raise ValueError(f"Baseline passed_pillar_ids must contain unique pillar IDs from 1 through {total}")
+    if len(set(passed_pillar_ids)) != len(passed_pillar_ids):
+        raise ValueError("Baseline passed_pillar_ids must contain unique pillar IDs")
+    if score != len(passed_pillar_ids):
+        raise ValueError("Baseline score must equal the number of passed_pillar_ids")
+    return {"score": score, "passed_pillar_ids": passed_pillar_ids}
+
 def main():
     parser = argparse.ArgumentParser(description="88-Pillar Scorecard Audit")
     parser.add_argument("path", help="Path to repository")
     parser.add_argument("--threshold", type=int, default=85)
     parser.add_argument("--output", choices=["text","json","markdown"], default="text")
     parser.add_argument("--fail-on-drop", action="store_true")
+    parser.add_argument("--baseline-file", help="JSON baseline evidence used by --fail-on-drop")
+    parser.add_argument("--expected-source-revision", help="Require baseline evidence from this source revision")
     args = parser.parse_args()
     try:
+        if args.threshold < MINIMUM_THRESHOLD:
+            raise ValueError(f"Threshold must be at least {MINIMUM_THRESHOLD}")
         report = audit_repo(args.path)
+        baseline = load_baseline(args.baseline_file, report["total"], args.expected_source_revision) if args.baseline_file else None
+        current_pillar_ids = {result["id"] for result in report["results"] if result["passed"]}
+        baseline_score = baseline["score"] if baseline else None
+        missing_baseline_pillar_ids = sorted(set(baseline["passed_pillar_ids"]) - current_pillar_ids) if baseline else []
+        report["baseline_score"] = baseline_score
+        report["score_delta"] = report["score"] - baseline_score if baseline_score is not None else None
+        report["target_met"] = report["score"] >= args.threshold
+        report["missing_baseline_pillar_ids"] = missing_baseline_pillar_ids
+        report["regression"] = bool(missing_baseline_pillar_ids)
         if args.output == "json":
             print(json.dumps(report, indent=2))
         elif args.output == "markdown":
@@ -135,7 +182,7 @@ def main():
             print(f"Scorecard: {report['score']}/{report['total']} ({report['percentage']:.1f}%)")
             print(f"Threshold: {args.threshold}")
             print("Status: PASS" if report['score'] >= args.threshold else f"Status: FAIL\nFailed: {', '.join(r['name'] for r in report['results'] if not r['passed'])}")
-        if args.fail_on_drop and report['score'] < args.threshold: sys.exit(1)
+        if args.fail_on_drop and (not report["target_met"] or report["regression"]): sys.exit(1)
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr); sys.exit(2)
 

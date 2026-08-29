@@ -45,5 +45,7 @@ namespace CivicSurvival.Core.Utils
 #pragma warning disable CIVIC062 // Fallback path: only allocates for values not in cache
             => s_LowerNames.TryGetValue(value, out var name) ? name : value.ToString().ToLowerInvariant();
 #pragma warning restore CIVIC062
+#pragma warning restore CA1000
+#pragma warning restore CA1308
     }
 }

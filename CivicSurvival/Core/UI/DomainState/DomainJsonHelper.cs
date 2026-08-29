@@ -289,4 +289,5 @@ namespace CivicSurvival.Core.UI.DomainState
             }
         }
     }
+#pragma warning restore CA1720
 }
