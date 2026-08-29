@@ -188,7 +188,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   dep-review:
-    name: Dependency Review
+    name: Dependency Delta
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -197,6 +197,53 @@ jobs:
       - uses: actions/dependency-review-action@v4
         with:
           fail-on-severity: low
+
+  civic-quality:
+    name: Civic Evidence Gate
+    if: always()
+    needs: [security, dep-review]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail closed on prerequisites
+        shell: bash
+        env:
+          SECURITY_RESULT: ${{ needs.security.result }}
+          DEPENDENCY_RESULT: ${{ needs.dep-review.result }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          test "$SECURITY_RESULT" = success
+          if [ "$EVENT_NAME" = pull_request ]; then test "$DEPENDENCY_RESULT" = success; fi
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: CivicSurvival/UI/package-lock.json
+      - name: Run locked UI and Civic checks
+        working-directory: CivicSurvival/UI
+        run: |
+          npm ci --ignore-scripts
+          npm run check:contracts
+          npm run typecheck:declarations
+          npm run test:lint-rules
+          npm run test:ui
+          npm run lint:strict
+          test -f bundle-baseline.json
+          npm run bundle:check
+      - name: Evaluate Civic repository evidence
+        run: python scripts/civic_quality_gate.py . --policy .github/civic-quality-policy.json --output json --strict > civic-quality-report.json
+      - name: Upload Civic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: civic-quality-evidence-${{ github.run_id }}
+          path: civic-quality-report.json
 
   lint:
     name: ci / lint
@@ -215,7 +262,7 @@ jobs:
             "go:${{ needs.go.result }}" \
             "typescript:${{ needs.typescript.result }}" \
             "security:${{ needs.security.result }}" \
-            "dep-review:${{ needs.dependency-review.result }}" \
+            "dep-review:${{ needs.dep-review.result }}" \
             ; do
             name="${pair%%:*}"
             result="${pair#*:}"
