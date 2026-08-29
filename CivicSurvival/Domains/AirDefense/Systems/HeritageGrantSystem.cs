@@ -149,5 +149,7 @@ namespace CivicSurvival.Domains.AirDefense.Systems
 
             Log.Info($"Granted {credits} Heritage credits via event ({productionMW} MW city)");
         }
+#pragma warning restore CIVIC070
+#pragma warning restore CIVIC249
     }
 }
