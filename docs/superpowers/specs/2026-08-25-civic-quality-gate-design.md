@@ -47,8 +47,8 @@ dependencies rather than file checks. The Civic gate is therefore a job in the
 existing `.github/workflows/ci.yml`, configured with `needs: [security, dep-review]`
 and an explicit fail-closed dependency-result check. This retains the actual checks
 already validated on PR #3 without duplicating scanners or pretending the evaluator
-can reproduce them. A separate workflow would not be valid because GitHub Actions
-does not allow `needs` across workflow files.
+can reproduce them. A separate workflow could not share these job dependencies;
+keeping the gate in this workflow makes the ordering and result propagation explicit.
 
 ## Data contract
 
@@ -76,9 +76,16 @@ are informational and cannot change that exit code.
 ## CI behavior
 
 `.github/workflows/ci.yml` gains a `Civic Evidence Gate` job on pull requests and
-protected-branch pushes. It runs after `security` and `dep-review`, performs the
-locked UI command checks, invokes the evaluator, publishes the JSON and Markdown
-report as an artifact, and exposes one required check named `Civic Evidence Gate`.
+protected-branch pushes. It runs after `security` and the pull-request-only
+`dep-review` job; its prerequisite step requires `dep-review` only for pull
+requests, while protected pushes require only the security result. It then
+performs the locked UI command checks, invokes the evaluator, publishes the JSON
+and Markdown report as an artifact, and exposes one required check named
+`Civic Evidence Gate`.
+
+The locked UI commands are public-repository checks: `CivicSurvival/UI` contains
+the lockfile and scripts, so they run without the licensed CS2 host. Only the
+installed-game build and launch remain external WP01 evidence.
 
 The legacy 88-pillar workflow changes to report-only: it still uploads its inventory
 and comments its score, but the target failure is an annotation rather than a failed
