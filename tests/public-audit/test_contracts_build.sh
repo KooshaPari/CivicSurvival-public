@@ -9,4 +9,10 @@ if rg -q 'EnvironmentVariableTarget\.User|Mod\.props|Mod\.targets' "$project"; t
   exit 1
 fi
 
+if ! rg -q '<TargetFrameworks>net8\.0;net48</TargetFrameworks>' "$project"; then
+  echo "contracts project must target net8.0 and net48 for mod/tool compatibility" >&2
+  exit 1
+fi
+
 dotnet build "$project" --framework net8.0 --nologo --verbosity:minimal
+dotnet build "$project" --framework net48 --nologo --verbosity:minimal

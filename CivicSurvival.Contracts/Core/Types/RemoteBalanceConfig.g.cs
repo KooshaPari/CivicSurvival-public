@@ -139,7 +139,7 @@ namespace CivicSurvival.Core.Types
             AirDefense.EvasionPerShot = ClampUnitFinite(AirDefense.EvasionPerShot, 0.12f);
             AirDefense.EvasionMinChance = ClampUnitFinite(AirDefense.EvasionMinChance, 0.05f);
             AirDefense.RaycastEndpointEpsilon = FiniteOr(AirDefense.RaycastEndpointEpsilon, 0.02f);
-            AirDefense.RaycastEndpointEpsilon = Math.Clamp(AirDefense.RaycastEndpointEpsilon, 0.0f, 0.5f);
+            AirDefense.RaycastEndpointEpsilon = ContractMath.Clamp(AirDefense.RaycastEndpointEpsilon, 0.0f, 0.5f);
             AirDefense.LOSAltitudeBypass = FiniteOr(AirDefense.LOSAltitudeBypass, 100.0f);
             AirDefense.LOSAltitudeBypass = Math.Max(AirDefense.LOSAltitudeBypass, 0.0f);
             AirDefense.BallisticSkipAltitude = FiniteOr(AirDefense.BallisticSkipAltitude, 200.0f);
@@ -151,9 +151,9 @@ namespace CivicSurvival.Core.Types
             Waves.SizeFactorDiv = FiniteOr(Waves.SizeFactorDiv, 50.0f);
             Waves.SizeFactorDiv = Math.Max(Waves.SizeFactorDiv, 1.0f);
             Waves.RecoveredThreshold = FiniteOr(Waves.RecoveredThreshold, 0.1f);
-            Waves.RecoveredThreshold = Math.Clamp(Waves.RecoveredThreshold, 0.0f, 1.0f);
+            Waves.RecoveredThreshold = ContractMath.Clamp(Waves.RecoveredThreshold, 0.0f, 1.0f);
             Waves.GraceFraction = FiniteOr(Waves.GraceFraction, 0.3f);
-            Waves.GraceFraction = Math.Clamp(Waves.GraceFraction, 0.0f, 2.0f);
+            Waves.GraceFraction = ContractMath.Clamp(Waves.GraceFraction, 0.0f, 2.0f);
             Waves.NonPlantTargetWeightMW = Math.Max(Waves.NonPlantTargetWeightMW, 1);
             Waves.SurplusFreeThreshold = FiniteOr(Waves.SurplusFreeThreshold, 1.3f);
             Waves.SurplusFreeThreshold = Math.Max(Waves.SurplusFreeThreshold, 1.0f);
@@ -174,11 +174,11 @@ namespace CivicSurvival.Core.Types
             Waves.DensityMaxSizeMult = FiniteOr(Waves.DensityMaxSizeMult, 1.4f);
             Waves.DensityMaxSizeMult = Math.Max(Waves.DensityMaxSizeMult, 1.0f);
             Waves.SurchargeLethalFraction = FiniteOr(Waves.SurchargeLethalFraction, 0.4f);
-            Waves.SurchargeLethalFraction = Math.Clamp(Waves.SurchargeLethalFraction, 0.001f, 1.0f);
+            Waves.SurchargeLethalFraction = ContractMath.Clamp(Waves.SurchargeLethalFraction, 0.001f, 1.0f);
             Repair.HitDamageMW = FiniteOr(Repair.HitDamageMW, 1200.0f);
             Repair.HitDamageMW = Math.Max(Repair.HitDamageMW, 1.0f);
             Repair.HitFleetSharePercent = FiniteOr(Repair.HitFleetSharePercent, 0.1f);
-            Repair.HitFleetSharePercent = Math.Clamp(Repair.HitFleetSharePercent, 0.0f, 0.3f);
+            Repair.HitFleetSharePercent = ContractMath.Clamp(Repair.HitFleetSharePercent, 0.0f, 0.3f);
             Repair.MinHitLossPercent = ClampUnitFinite(Repair.MinHitLossPercent, 0.1f);
             Repair.MaxHitLossPercent = ClampUnitFinite(Repair.MaxHitLossPercent, 0.5f);
             Repair.DestructionThreshold = ClampUnitFinite(Repair.DestructionThreshold, 0.95f);
@@ -207,9 +207,9 @@ namespace CivicSurvival.Core.Types
             Diplomacy.SanctionsBlackMarketMarkup = Math.Max(Diplomacy.SanctionsBlackMarketMarkup, 0.0f);
             Diplomacy.ImportTrustPenaltyDecayPerDay = FiniteOr(Diplomacy.ImportTrustPenaltyDecayPerDay, 1.0f);
             Diplomacy.ImportTrustPenaltyDecayPerDay = Math.Max(Diplomacy.ImportTrustPenaltyDecayPerDay, 0.1f);
-            Diplomacy.ShockAttentionThreshold = Math.Clamp(Diplomacy.ShockAttentionThreshold, 0.0f, 100.0f);
+            Diplomacy.ShockAttentionThreshold = ContractMath.Clamp(Diplomacy.ShockAttentionThreshold, 0.0f, 100.0f);
             Diplomacy.GlobalShockCooldownMultiplier = FiniteOr(Diplomacy.GlobalShockCooldownMultiplier, 0.5f);
-            Diplomacy.GlobalShockCooldownMultiplier = Math.Clamp(Diplomacy.GlobalShockCooldownMultiplier, 0.0f, 1.0f);
+            Diplomacy.GlobalShockCooldownMultiplier = ContractMath.Clamp(Diplomacy.GlobalShockCooldownMultiplier, 0.0f, 1.0f);
             Attention.PsyExodusInfectionThreshold = ClampUnitFinite(Attention.PsyExodusInfectionThreshold, 0.5f);
             Attention.PsyExodusMaxRatePerDay = FiniteOr(Attention.PsyExodusMaxRatePerDay, 4.0f);
             Attention.PsyExodusMaxRatePerDay = Math.Max(Attention.PsyExodusMaxRatePerDay, 0.0f);
@@ -224,7 +224,7 @@ namespace CivicSurvival.Core.Types
             BackupPower.FireRiskMultiplier = FiniteOr(BackupPower.FireRiskMultiplier, 0.01f);
             BackupPower.FireRiskMultiplier = Math.Max(BackupPower.FireRiskMultiplier, 0.0f);
             BackupPower.HomeBatteryEfficiency = FiniteOr(BackupPower.HomeBatteryEfficiency, 0.9f);
-            BackupPower.HomeBatteryEfficiency = Math.Clamp(BackupPower.HomeBatteryEfficiency, 0.01f, 1.0f);
+            BackupPower.HomeBatteryEfficiency = ContractMath.Clamp(BackupPower.HomeBatteryEfficiency, 0.01f, 1.0f);
             BackupPower.FireRiskHomeBattery = ClampUnitFinite(BackupPower.FireRiskHomeBattery, 0.01f);
             BackupPower.FireRiskBusinessUps = ClampUnitFinite(BackupPower.FireRiskBusinessUps, 0.02f);
             BackupPower.FireRiskIndustrialBattery = ClampUnitFinite(BackupPower.FireRiskIndustrialBattery, 0.05f);
@@ -316,23 +316,23 @@ namespace CivicSurvival.Core.Types
             GridWarfare.DronePrepareDuration = FiniteOr(GridWarfare.DronePrepareDuration, 45.0f);
             GridWarfare.DronePrepareDuration = Math.Max(GridWarfare.DronePrepareDuration, 0.1f);
             GridWarfare.DroneBaseDamage = FiniteOr(GridWarfare.DroneBaseDamage, 12.0f);
-            GridWarfare.DroneBaseDamage = Math.Clamp(GridWarfare.DroneBaseDamage, 0.0f, 100.0f);
+            GridWarfare.DroneBaseDamage = ContractMath.Clamp(GridWarfare.DroneBaseDamage, 0.0f, 100.0f);
             GridWarfare.BlackoutCost = Math.Max(GridWarfare.BlackoutCost, 0L);
             GridWarfare.BlackoutPrepareDuration = FiniteOr(GridWarfare.BlackoutPrepareDuration, 30.0f);
             GridWarfare.BlackoutPrepareDuration = Math.Max(GridWarfare.BlackoutPrepareDuration, 0.1f);
             GridWarfare.BlackoutBaseDamage = FiniteOr(GridWarfare.BlackoutBaseDamage, 8.0f);
-            GridWarfare.BlackoutBaseDamage = Math.Clamp(GridWarfare.BlackoutBaseDamage, 0.0f, 100.0f);
+            GridWarfare.BlackoutBaseDamage = ContractMath.Clamp(GridWarfare.BlackoutBaseDamage, 0.0f, 100.0f);
             GridWarfare.DisinfoCost = Math.Max(GridWarfare.DisinfoCost, 0L);
             GridWarfare.DisinfoPrepareDuration = FiniteOr(GridWarfare.DisinfoPrepareDuration, 20.0f);
             GridWarfare.DisinfoPrepareDuration = Math.Max(GridWarfare.DisinfoPrepareDuration, 0.1f);
             GridWarfare.DisinfoBaseDamage = FiniteOr(GridWarfare.DisinfoBaseDamage, 5.0f);
-            GridWarfare.DisinfoBaseDamage = Math.Clamp(GridWarfare.DisinfoBaseDamage, 0.0f, 100.0f);
+            GridWarfare.DisinfoBaseDamage = ContractMath.Clamp(GridWarfare.DisinfoBaseDamage, 0.0f, 100.0f);
             GridWarfare.PressureFloor = FiniteOr(GridWarfare.PressureFloor, 20.0f);
-            GridWarfare.PressureFloor = Math.Clamp(GridWarfare.PressureFloor, 0.0f, 100.0f);
+            GridWarfare.PressureFloor = ContractMath.Clamp(GridWarfare.PressureFloor, 0.0f, 100.0f);
             GridWarfare.PressureCap = FiniteOr(GridWarfare.PressureCap, 100.0f);
             GridWarfare.PressureCap = Math.Max(GridWarfare.PressureCap, 1.0f);
             GridWarfare.MaxStabilityDiscount = FiniteOr(GridWarfare.MaxStabilityDiscount, 0.2f);
-            GridWarfare.MaxStabilityDiscount = Math.Clamp(GridWarfare.MaxStabilityDiscount, 0.0f, 1.0f);
+            GridWarfare.MaxStabilityDiscount = ContractMath.Clamp(GridWarfare.MaxStabilityDiscount, 0.0f, 1.0f);
             GridWarfare.ArsenalStockCap = Math.Max(GridWarfare.ArsenalStockCap, 1);
             GridWarfare.ArsenalDroneBaseCost = Math.Max(GridWarfare.ArsenalDroneBaseCost, 0);
             GridWarfare.ArsenalBallisticBaseCost = Math.Max(GridWarfare.ArsenalBallisticBaseCost, 0);
@@ -341,28 +341,28 @@ namespace CivicSurvival.Core.Types
             GridWarfare.DonorArsenalDroneGrant = Math.Max(GridWarfare.DonorArsenalDroneGrant, 0);
             GridWarfare.DonorArsenalBallisticGrant = Math.Max(GridWarfare.DonorArsenalBallisticGrant, 0);
             GridWarfare.ObjectiveAxisThreshold = FiniteOr(GridWarfare.ObjectiveAxisThreshold, 30.0f);
-            GridWarfare.ObjectiveAxisThreshold = Math.Clamp(GridWarfare.ObjectiveAxisThreshold, 0.0f, 100.0f);
+            GridWarfare.ObjectiveAxisThreshold = ContractMath.Clamp(GridWarfare.ObjectiveAxisThreshold, 0.0f, 100.0f);
             GridWarfare.RespiteWindowHours = FiniteOr(GridWarfare.RespiteWindowHours, 12.0f);
             GridWarfare.RespiteWindowHours = Math.Max(GridWarfare.RespiteWindowHours, 0.0f);
             GridWarfare.RespiteWaveWeakenMultiplier = FiniteOr(GridWarfare.RespiteWaveWeakenMultiplier, 0.5f);
-            GridWarfare.RespiteWaveWeakenMultiplier = Math.Clamp(GridWarfare.RespiteWaveWeakenMultiplier, 0.0f, 1.0f);
+            GridWarfare.RespiteWaveWeakenMultiplier = ContractMath.Clamp(GridWarfare.RespiteWaveWeakenMultiplier, 0.0f, 1.0f);
             GridWarfare.ObjectiveLootShadowCash = Math.Max(GridWarfare.ObjectiveLootShadowCash, 0);
             GridWarfare.MirrorCityRepairRatePerHour = FiniteOr(GridWarfare.MirrorCityRepairRatePerHour, 8.0f);
             GridWarfare.MirrorCityRepairRatePerHour = Math.Max(GridWarfare.MirrorCityRepairRatePerHour, 0.0f);
             GridWarfare.MirrorCityRebuildRatePerHour = FiniteOr(GridWarfare.MirrorCityRebuildRatePerHour, 0.05f);
             GridWarfare.MirrorCityRebuildRatePerHour = Math.Max(GridWarfare.MirrorCityRebuildRatePerHour, 0.0f);
             GridWarfare.MirrorCityConstructionHpFraction = FiniteOr(GridWarfare.MirrorCityConstructionHpFraction, 0.5f);
-            GridWarfare.MirrorCityConstructionHpFraction = Math.Clamp(GridWarfare.MirrorCityConstructionHpFraction, 0.0f, 1.0f);
+            GridWarfare.MirrorCityConstructionHpFraction = ContractMath.Clamp(GridWarfare.MirrorCityConstructionHpFraction, 0.0f, 1.0f);
             GridWarfare.MirrorCityRebuildDelayHours = FiniteOr(GridWarfare.MirrorCityRebuildDelayHours, 6.0f);
             GridWarfare.MirrorCityRebuildDelayHours = Math.Max(GridWarfare.MirrorCityRebuildDelayHours, 0.0f);
             GridWarfare.MirrorCityHpDamagePerAxisPoint = FiniteOr(GridWarfare.MirrorCityHpDamagePerAxisPoint, 10.0f);
             GridWarfare.MirrorCityHpDamagePerAxisPoint = Math.Max(GridWarfare.MirrorCityHpDamagePerAxisPoint, 0.0f);
             GridWarfare.MirrorCityPerAaSiteInterceptChance = FiniteOr(GridWarfare.MirrorCityPerAaSiteInterceptChance, 0.25f);
-            GridWarfare.MirrorCityPerAaSiteInterceptChance = Math.Clamp(GridWarfare.MirrorCityPerAaSiteInterceptChance, 0.0f, 1.0f);
+            GridWarfare.MirrorCityPerAaSiteInterceptChance = ContractMath.Clamp(GridWarfare.MirrorCityPerAaSiteInterceptChance, 0.0f, 1.0f);
             GridWarfare.MirrorCityDroneInterceptMultiplier = FiniteOr(GridWarfare.MirrorCityDroneInterceptMultiplier, 1.0f);
-            GridWarfare.MirrorCityDroneInterceptMultiplier = Math.Clamp(GridWarfare.MirrorCityDroneInterceptMultiplier, 0.0f, 1.0f);
+            GridWarfare.MirrorCityDroneInterceptMultiplier = ContractMath.Clamp(GridWarfare.MirrorCityDroneInterceptMultiplier, 0.0f, 1.0f);
             GridWarfare.MirrorCityKeyTargetCapCutFraction = FiniteOr(GridWarfare.MirrorCityKeyTargetCapCutFraction, 0.12f);
-            GridWarfare.MirrorCityKeyTargetCapCutFraction = Math.Clamp(GridWarfare.MirrorCityKeyTargetCapCutFraction, 0.0f, 1.0f);
+            GridWarfare.MirrorCityKeyTargetCapCutFraction = ContractMath.Clamp(GridWarfare.MirrorCityKeyTargetCapCutFraction, 0.0f, 1.0f);
             GridWarfare.MirrorCityReserveContrib = FiniteOr(GridWarfare.MirrorCityReserveContrib, 8.0f);
             GridWarfare.MirrorCityReserveContrib = Math.Max(GridWarfare.MirrorCityReserveContrib, 0.0f);
             GridWarfare.MirrorCityKeyContrib = FiniteOr(GridWarfare.MirrorCityKeyContrib, 30.0f);
@@ -379,8 +379,8 @@ namespace CivicSurvival.Core.Types
             GridWarfare.MirrorCityAaMaxHp = Math.Max(GridWarfare.MirrorCityAaMaxHp, 1.0f);
             GridWarfare.MirrorCityAaRange = FiniteOr(GridWarfare.MirrorCityAaRange, 2500.0f);
             GridWarfare.MirrorCityAaRange = Math.Max(GridWarfare.MirrorCityAaRange, 0.0f);
-            GridWarfare.MirrorCityRegularMinPerAxis = Math.Clamp(GridWarfare.MirrorCityRegularMinPerAxis, 0, 16);
-            GridWarfare.MirrorCityRegularMaxPerAxis = Math.Clamp(GridWarfare.MirrorCityRegularMaxPerAxis, 1, 16);
+            GridWarfare.MirrorCityRegularMinPerAxis = ContractMath.Clamp(GridWarfare.MirrorCityRegularMinPerAxis, 0, 16);
+            GridWarfare.MirrorCityRegularMaxPerAxis = ContractMath.Clamp(GridWarfare.MirrorCityRegularMaxPerAxis, 1, 16);
             GridWarfare.MirrorCityAaSiteCount = Math.Max(GridWarfare.MirrorCityAaSiteCount, 0);
 
             Threats.ShahedSpeed = PositiveFinite(Threats.ShahedSpeed, 40f);
@@ -411,8 +411,8 @@ namespace CivicSurvival.Core.Types
             Countermeasures.ChargeDivisorBribeCaught = Math.Max(Countermeasures.ChargeDivisorBribeCaught, 1f);
             Countermeasures.HoursPerProgress = Math.Max(Countermeasures.HoursPerProgress, 0.1f);
             Countermeasures.EventCooldownHours = Math.Max(Countermeasures.EventCooldownHours, 0f);
-            Countermeasures.HeatRefundOnResolve = Math.Clamp(Countermeasures.HeatRefundOnResolve, 0f, Countermeasures.HeatMax);
-            Countermeasures.PoliceCooperateEvidenceThreshold = Math.Clamp(Countermeasures.PoliceCooperateEvidenceThreshold, 0f, 100f);
+            Countermeasures.HeatRefundOnResolve = ContractMath.Clamp(Countermeasures.HeatRefundOnResolve, 0f, Countermeasures.HeatMax);
+            Countermeasures.PoliceCooperateEvidenceThreshold = ContractMath.Clamp(Countermeasures.PoliceCooperateEvidenceThreshold, 0f, 100f);
             Countermeasures.ProtestDecaySeconds = Math.Max(Countermeasures.ProtestDecaySeconds, 1f);
             Countermeasures.HeatGainTier1 = Math.Max(Countermeasures.HeatGainTier1, 0f);
             Countermeasures.HeatGainTier2 = Math.Max(Countermeasures.HeatGainTier2, Countermeasures.HeatGainTier1);
@@ -457,7 +457,7 @@ namespace CivicSurvival.Core.Types
             Scenario.RefugeeSupportPerHouseholdPerDay = Math.Max(Scenario.RefugeeSupportPerHouseholdPerDay, 0);
             Scenario.MigrationMaxPerUpdate = Math.Max(Scenario.MigrationMaxPerUpdate, 0);
             Scenario.VictoryMinPopulation = ClampUnit(Scenario.VictoryMinPopulation);
-            Scenario.VictoryMaxCorruption = Math.Clamp(Scenario.VictoryMaxCorruption, 0f, 100f);
+            Scenario.VictoryMaxCorruption = ContractMath.Clamp(Scenario.VictoryMaxCorruption, 0f, 100f);
             Scenario.DefeatIntegrityThreshold = ClampUnit(Scenario.DefeatIntegrityThreshold);
             Scenario.DefeatIntegrityHours = Math.Max(Scenario.DefeatIntegrityHours, MIN_POSITIVE_HOURS);
             Attention.IntegrityMultLoyal = Math.Max(Attention.IntegrityMultLoyal, 0f);
@@ -465,16 +465,16 @@ namespace CivicSurvival.Core.Types
             Attention.IntegrityMultRebellious = Math.Max(Attention.IntegrityMultRebellious, 0f);
             Attention.IntegrityMultBrainwashed = Math.Max(Attention.IntegrityMultBrainwashed, 0f);
             Attention.IntegrityMultZombie = Math.Max(Attention.IntegrityMultZombie, 0f);
-            Attention.IntegrityThresholdLoyal = Math.Clamp(Attention.IntegrityThresholdLoyal, 0f, 1f);
-            Attention.IntegrityThresholdAnxious = Math.Clamp(Attention.IntegrityThresholdAnxious, 0f, 1f);
-            Attention.IntegrityThresholdRebellious = Math.Clamp(Attention.IntegrityThresholdRebellious, 0f, 1f);
-            Attention.IntegrityThresholdBrainwashed = Math.Clamp(Attention.IntegrityThresholdBrainwashed, 0f, 1f);
+            Attention.IntegrityThresholdLoyal = ContractMath.Clamp(Attention.IntegrityThresholdLoyal, 0f, 1f);
+            Attention.IntegrityThresholdAnxious = ContractMath.Clamp(Attention.IntegrityThresholdAnxious, 0f, 1f);
+            Attention.IntegrityThresholdRebellious = ContractMath.Clamp(Attention.IntegrityThresholdRebellious, 0f, 1f);
+            Attention.IntegrityThresholdBrainwashed = ContractMath.Clamp(Attention.IntegrityThresholdBrainwashed, 0f, 1f);
             Attention.IntegrityThresholdAnxious = Math.Min(Attention.IntegrityThresholdAnxious, Attention.IntegrityThresholdLoyal);
             Attention.IntegrityThresholdRebellious = Math.Min(Attention.IntegrityThresholdRebellious, Attention.IntegrityThresholdAnxious);
             Attention.IntegrityThresholdBrainwashed = Math.Min(Attention.IntegrityThresholdBrainwashed, Attention.IntegrityThresholdRebellious);
             Attention.TierDeepConcern = Math.Max(Attention.TierDeepConcern, 0f);
             Attention.TierHeadlines = Math.Max(Attention.TierHeadlines, Attention.TierDeepConcern);
-            Attention.TierGlobalShock = Math.Clamp(Math.Max(Attention.TierGlobalShock, Attention.TierHeadlines), Attention.TierHeadlines, MAX_GLOBAL_SHOCK_TIER);
+            Attention.TierGlobalShock = ContractMath.Clamp(Math.Max(Attention.TierGlobalShock, Attention.TierHeadlines), Attention.TierHeadlines, MAX_GLOBAL_SHOCK_TIER);
             if (Attention.ExodusGlobalMin > Attention.ExodusGlobalMax)
                 (Attention.ExodusGlobalMin, Attention.ExodusGlobalMax) = (Attention.ExodusGlobalMax, Attention.ExodusGlobalMin);
             CityStability.MaxDestroyedBuildings = Math.Max(CityStability.MaxDestroyedBuildings, 1);
@@ -529,20 +529,20 @@ namespace CivicSurvival.Core.Types
             Debt.WarningRatio = Math.Max(Debt.WarningRatio, 0f);
             Debt.RestructureRatio = Math.Max(Debt.RestructureRatio, Debt.WarningRatio);
             Debt.InterestRate = Math.Max(Debt.InterestRate, 0f);
-            Debt.RestructuredRate = Math.Clamp(Debt.RestructuredRate, 0f, Debt.InterestRate);
+            Debt.RestructuredRate = ContractMath.Clamp(Debt.RestructuredRate, 0f, Debt.InterestRate);
             Debt.ReliefPercent = ClampUnit(Debt.ReliefPercent);
             GridStress.YellowZoneFrequency = Math.Min(GridStress.YellowZoneFrequency, GridStress.NormalFrequency);
             GridStress.RedZoneFrequency = Math.Min(GridStress.RedZoneFrequency, GridStress.YellowZoneFrequency);
             GridStress.CollapseFrequency = Math.Min(GridStress.CollapseFrequency, GridStress.RedZoneFrequency);
             GridStress.WarningThresholdYellow = ClampUnit(GridStress.WarningThresholdYellow);
-            GridStress.WarningThresholdRed = Math.Clamp(GridStress.WarningThresholdRed, GridStress.WarningThresholdYellow, 1f);
+            GridStress.WarningThresholdRed = ContractMath.Clamp(GridStress.WarningThresholdRed, GridStress.WarningThresholdYellow, 1f);
             GridStress.GridGraceCoeff = Math.Max(GridStress.GridGraceCoeff, 0f);
             GridStress.GridGraceExponent = Math.Max(GridStress.GridGraceExponent, 0.01f);
             GridStress.GridGraceRefPop = Math.Max(GridStress.GridGraceRefPop, 1);
             GridStress.GridGraceMaxHours = Math.Max(GridStress.GridGraceMaxHours, GridStress.CollapseThresholdHours);
             GridStress.DeficitDeadZoneFraction = ClampUnit(GridStress.DeficitDeadZoneFraction);
             GridStress.DeficitDeadZoneMinKW = Math.Max(GridStress.DeficitDeadZoneMinKW, 0);
-            GridStress.RecoveryStressThreshold = Math.Clamp(GridStress.RecoveryStressThreshold, 0f, GridStress.WarningThresholdYellow);
+            GridStress.RecoveryStressThreshold = ContractMath.Clamp(GridStress.RecoveryStressThreshold, 0f, GridStress.WarningThresholdYellow);
             GridStress.RecoveryHeadroomMinMW = Math.Max(GridStress.RecoveryHeadroomMinMW, 0);
             GridStress.RecoveryHeadroomFraction = ClampUnit(GridStress.RecoveryHeadroomFraction);
             PowerGrid.DefaultLegalExportMw = Math.Max(PowerGrid.DefaultLegalExportMw, 0);
@@ -581,7 +581,7 @@ namespace CivicSurvival.Core.Types
                 (Cognitive.BlackoutVulnThresholdHours, Cognitive.BlackoutVulnMaxHours) = (Cognitive.BlackoutVulnMaxHours, Cognitive.BlackoutVulnThresholdHours);
             Cognitive.BlackoutVulnThresholdHours = Math.Max(Cognitive.BlackoutVulnThresholdHours, 0f);
             Cognitive.BlackoutVulnMaxHours = Math.Max(Cognitive.BlackoutVulnMaxHours, 0.001f);
-            Cognitive.BlackoutVulnMaxBonus = Math.Clamp(Cognitive.BlackoutVulnMaxBonus, 0f, 1f);
+            Cognitive.BlackoutVulnMaxBonus = ContractMath.Clamp(Cognitive.BlackoutVulnMaxBonus, 0f, 1f);
             Cognitive.ModeBonusRealistic = Math.Max(Cognitive.ModeBonusRealistic, 0f);
             Cognitive.ModeBonusAlarmist = Math.Max(Cognitive.ModeBonusAlarmist, 0f);
             Cognitive.ModeBonusSoothing = Math.Max(Cognitive.ModeBonusSoothing, 0f);
@@ -590,8 +590,8 @@ namespace CivicSurvival.Core.Types
             Cognitive.RaidInfectionRate = NonNegativeFinite(Cognitive.RaidInfectionRate, 0.45f);
             Cognitive.FirewallRecoveryMultiplier = NonNegativeFinite(Cognitive.FirewallRecoveryMultiplier, 0.5f);
             Cognitive.HeroRecoveryBonus = NonNegativeFinite(Cognitive.HeroRecoveryBonus, 0.5f);
-            Cognitive.SkepticismFactor = Math.Clamp(Cognitive.SkepticismFactor, 0f, 1f);
-            Cognitive.EnvyStress = Math.Clamp(Cognitive.EnvyStress, 0f, 1f);
+            Cognitive.SkepticismFactor = ContractMath.Clamp(Cognitive.SkepticismFactor, 0f, 1f);
+            Cognitive.EnvyStress = ContractMath.Clamp(Cognitive.EnvyStress, 0f, 1f);
             Cognitive.TraumaGainRate = Math.Max(Cognitive.TraumaGainRate, 0f);
             Cognitive.TraumaDecayRate = Math.Max(Cognitive.TraumaDecayRate, 0f);
             Cognitive.AlarmistStressRate = Math.Max(Cognitive.AlarmistStressRate, 0f);
@@ -602,7 +602,7 @@ namespace CivicSurvival.Core.Types
             Spotter.EvacReturnStaleDays = Math.Max(Spotter.EvacReturnStaleDays, 0f);
             if (Districts.MinPriority > Districts.MaxPriority)
                 (Districts.MinPriority, Districts.MaxPriority) = (Districts.MaxPriority, Districts.MinPriority);
-            Districts.DefaultPriority = Math.Clamp(Districts.DefaultPriority, Districts.MinPriority, Districts.MaxPriority);
+            Districts.DefaultPriority = ContractMath.Clamp(Districts.DefaultPriority, Districts.MinPriority, Districts.MaxPriority);
             CityStability.PhysicalWeight = Math.Max(CityStability.PhysicalWeight, 0f);
             CityStability.DigitalWeight = Math.Max(CityStability.DigitalWeight, 0f);
             CityStability.SocialWeight = Math.Max(CityStability.SocialWeight, 0f);
@@ -696,7 +696,7 @@ namespace CivicSurvival.Core.Types
             GridWarfare.ObjectiveAxisThreshold = Math.Max(GridWarfare.ObjectiveAxisThreshold, GridWarfare.MirrorCityReserveContrib);
         }
 
-        private static float ClampUnit(float value) => Math.Clamp(value, 0f, 1f);
+        private static float ClampUnit(float value) => ContractMath.Clamp(value, 0f, 1f);
 
         private static float ClampUnitFinite(float value, float fallback) =>
             ClampUnit(FiniteOr(value, fallback));
