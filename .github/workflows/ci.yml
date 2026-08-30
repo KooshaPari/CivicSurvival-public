@@ -176,7 +176,6 @@ jobs:
     needs: detect
     if: needs.detect.outputs.has_security == 'true'
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -191,14 +190,16 @@ jobs:
     name: Dependency Delta
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
+          fetch-depth: 0
           persist-credentials: false
-      - uses: actions/dependency-review-action@v4
-        with:
-          fail-on-severity: low
+      - name: Scan changed dependency manifests
+        run: >
+          python3 scripts/dependency_delta.py
+          --base "${{ github.event.pull_request.base.sha }}"
+          --head "${{ github.event.pull_request.head.sha }}"
 
   civic-quality:
     name: Civic Evidence Gate
@@ -257,6 +258,7 @@ jobs:
       - name: Aggregate lint gate
         run: |
           failed=0
+          event_name="${{ github.event_name }}"
           for pair in \
             "rust:${{ needs.rust.result }}" \
             "cargo-deny:${{ needs.cargo-deny.result }}" \
@@ -268,13 +270,23 @@ jobs:
             ; do
             name="${pair%%:*}"
             result="${pair#*:}"
-            if [ "$result" = "failure" ] || [ "$result" = "cancelled" ]; then
+            required=0
+            if [ "$name" = "security" ]; then
+              required=1
+            elif [ "$event_name" = "pull_request" ] && [ "$name" = "dep-review" ]; then
+              required=1
+            fi
+            if [ "$required" -eq 1 ] && [ "$result" != "success" ]; then
+              echo "  ✗ $name: $result"
+              failed=$((failed + 1))
+            elif [ "$result" = "failure" ] || [ "$result" = "cancelled" ]; then
               echo "  ✗ $name: $result"
               failed=$((failed + 1))
             elif [ "$result" = "success" ] || [ "$result" = "skipped" ]; then
               echo "  ✓ $name: $result"
             else
-              echo "  ? $name: $result"
+              echo "  ✗ $name: $result"
+              failed=$((failed + 1))
             fi
           done
           if [ "$failed" -gt 0 ]; then
@@ -293,5 +305,9 @@ jobs:
     steps:
       - name: Test gate
         run: |
-          # Test gate is currently combined with lint
-          echo "✅ All test stages passed (gated via ci / lint)"
+          lint_result="${{ needs.lint.result }}"
+          if [ "$lint_result" != "success" ]; then
+            echo "❌ ci / lint did not pass: $lint_result"
+            exit 1
+          fi
+          echo "✅ ci / lint passed"
