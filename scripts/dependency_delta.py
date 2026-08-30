@@ -1,16 +1,14 @@
-#!/usr/bin/env python3
 """Fail-closed dependency scanners for changed Node and .NET manifests."""
 
 from __future__ import annotations
 
 import argparse
-from dataclasses import dataclass
 import json
 import os
-from pathlib import Path
-from pathlib import PurePosixPath, PureWindowsPath
 import subprocess
-from typing import Callable, Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
+from dataclasses import dataclass
+from pathlib import Path, PurePosixPath, PureWindowsPath
 
 
 class DependencyDeltaError(RuntimeError):
