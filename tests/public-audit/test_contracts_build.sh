@@ -14,7 +14,8 @@ if ! grep -Eq '<TargetFrameworks>net8\.0;net48</TargetFrameworks>' "$project"; t
   exit 1
 fi
 
-if grep -q 'Math\.Clamp' "$repo_root/CivicSurvival.Contracts" --include='*.cs'; then
+if grep -R -qE '(^|[^[:alnum:]_])Math[.]Clamp[[:space:]]*\(' \
+    "$repo_root/CivicSurvival.Contracts" --include='*.cs'; then
   echo "generated contracts must use ContractMath.Clamp for net48 compatibility" >&2
   exit 1
 fi
