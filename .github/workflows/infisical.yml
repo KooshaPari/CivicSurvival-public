@@ -7,10 +7,6 @@ name: Infisical Sync
 on:
   workflow_call:
   workflow_dispatch:
-  push:
-    branches: [main, master]
-    paths:
-      - ".github/workflows/infisical.yml"
 
 jobs:
   sync-secrets:
