@@ -59,11 +59,11 @@ FlatBuffers verification, C ABI lifecycle, or gameplay behavior.
 ## Current public baseline reassessment (2026-08-30)
 
 The historical decision above remains **CONDITIONAL NO-GO**. A fresh checkout
-of `main` at `1a7a229bb2eccb04c0d91ad3c9d35ab93443f258` now verifies:
+of `main` at `755b994addfa00d603865370e9d9fc5b86b9152e` now verifies:
 
 | Check                       | Result                                      |
 | --------------------------- | ------------------------------------------- |
-| Full Python suite           | `57 passed`                                 |
+| Full Python suite           | `55 passed`                                 |
 | Contract check              | passed; 1,114 C# binding values represented |
 | Binding manifest            | passed; 1,114 values                        |
 | Binding codegen projection  | passed                                      |
