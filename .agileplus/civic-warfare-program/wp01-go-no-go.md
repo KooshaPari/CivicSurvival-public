@@ -55,3 +55,21 @@ not contain that tree. It must be reintroduced only through a focused successor
 PR after WP01 evidence is accepted; archive contents are provenance, not current
 implementation evidence. No claim is made here about a present Rust workspace,
 FlatBuffers verification, C ABI lifecycle, or gameplay behavior.
+
+## Current public baseline reassessment (2026-08-30)
+
+The historical decision above remains **CONDITIONAL NO-GO**. A fresh checkout
+of `main` at `1a7a229bb2eccb04c0d91ad3c9d35ab93443f258` now verifies:
+
+| Check                       | Result                                      |
+| --------------------------- | ------------------------------------------- |
+| Full Python suite           | `57 passed`                                 |
+| Contract check              | passed; 1,114 C# binding values represented |
+| Binding manifest            | passed; 1,114 values                        |
+| Binding codegen projection  | passed                                      |
+| Strict Civic quality policy | `required_passed: true`, no failed rules    |
+
+These results strengthen the public-audit baseline only. They do not satisfy
+the licensed adapter, launch-smoke, artifact-provenance, FlatBuffers, or
+AgilePlus evidence requirements above, so the production implementation gate
+remains closed.
