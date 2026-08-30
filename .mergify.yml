@@ -12,6 +12,8 @@ pull_request_rules:
       - check-success = "Dependency Delta"
       - check-success = "ci / lint"
       - check-success = "ci / test"
+      - check-success = "CodeRabbit"
+      - check-success = "Kilo Code Review"
       - -conflict
       - -closed
     actions:
@@ -84,6 +86,8 @@ pull_request_rules:
       - check-success = "Dependency Delta"
       - check-success = "ci / lint"
       - check-success = "ci / test"
+      - check-success = "CodeRabbit"
+      - check-success = "Kilo Code Review"
     actions:
       label:
         add:
