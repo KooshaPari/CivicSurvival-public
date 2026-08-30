@@ -109,15 +109,15 @@ is implied by a local branch, a passing local command, or a generated artifact.
 The table above is a historical observation and is intentionally retained as
 provenance. It is not the current hosted state. The current fork state is:
 
-| Ref | Verified current state | Evidence |
-| --- | --- | --- |
-| `main` | `9d8a99ca6e986f9343286b5b59888db37d500d57` | `git ls-remote origin refs/heads/main` |
-| PR #21 | merged | dual-target contracts; merge SHA recorded in session evidence |
-| PR #23 | merged at `f39b7b2ba046e0348069f15ff98c5f8e964e3448` | protected checks and dependency-delta review reconciled |
-| PR #26 | merged at `d258ae46249019e24eb966b30b1287cf97f2fee1` | licensed-host build boundary recorded |
-| PR #28 | merged at `9d8a99ca6e986f9343286b5b59888db37d500d57` | zero-review Mergify policy and fail-closed prerequisites |
-| PR #25 | closed as superseded by PR #28 | generated Mergify migration notice |
-| PR #2 | open preservation branch; dirty/unsupported for merge | provenance only; no blind merge |
+| Ref    | Verified current state                                | Evidence                                                      |
+| ------ | ----------------------------------------------------- | ------------------------------------------------------------- |
+| `main` | `87214f0ed61e67dda8c98a318a86f9a88db7a5b4`            | `git ls-remote origin refs/heads/main`                        |
+| PR #21 | merged                                                | dual-target contracts; merge SHA recorded in session evidence |
+| PR #23 | merged at `f39b7b2ba046e0348069f15ff98c5f8e964e3448`  | protected checks and dependency-delta review reconciled       |
+| PR #26 | merged at `d258ae46249019e24eb966b30b1287cf97f2fee1`  | licensed-host build boundary recorded                         |
+| PR #28 | merged at `9d8a99ca6e986f9343286b5b59888db37d500d57`  | zero-review Mergify policy and fail-closed prerequisites      |
+| PR #25 | closed as superseded by PR #28                        | generated Mergify migration notice                            |
+| PR #2  | open preservation branch; dirty/unsupported for merge | provenance only; no blind merge                               |
 
 The current required branch-protection contexts are `ci / lint`, `ci / test`,
 `Civic Evidence Gate`, `Security Scan`, and `Dependency Delta`. The invalid
