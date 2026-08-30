@@ -5,7 +5,10 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass
+import json
+import os
 from pathlib import Path
+from pathlib import PurePosixPath, PureWindowsPath
 import subprocess
 from typing import Callable, Iterable, Sequence
 
@@ -25,11 +28,34 @@ Runner = Callable[..., subprocess.CompletedProcess[str]]
 
 
 def _relative(path: str) -> Path:
-    return Path(path.replace("\\", "/"))
+    if not path or "\0" in path:
+        raise DependencyDeltaError(f"unsafe changed path {path!r}: path must be non-empty and NUL-free")
+    parts = path.split("/")
+    if (
+        PurePosixPath(path).is_absolute()
+        or PureWindowsPath(path).is_absolute()
+        or any(part in {"", ".", ".."} for part in parts)
+    ):
+        raise DependencyDeltaError(
+            f"unsafe changed path {path!r}: expected a normalized repository-relative path without traversal"
+        )
+    return Path(*parts)
+
+
+def _repo_path(repo: Path, changed_path: str) -> Path:
+    repo_root = repo.resolve()
+    candidate = (repo_root / _relative(changed_path)).resolve(strict=False)
+    try:
+        candidate.relative_to(repo_root)
+    except ValueError as error:
+        raise DependencyDeltaError(
+            f"unsafe changed path {changed_path!r}: resolved path escapes repository root"
+        ) from error
+    return candidate
 
 
 def _node_plan(repo: Path, changed_path: str) -> ScanCommand:
-    manifest_dir = (repo / _relative(changed_path)).parent
+    manifest_dir = _repo_path(repo, changed_path).parent
     package_json = manifest_dir / "package.json"
     lockfile = manifest_dir / "package-lock.json"
     if not package_json.exists() or not lockfile.exists():
@@ -40,13 +66,13 @@ def _node_plan(repo: Path, changed_path: str) -> ScanCommand:
     return ScanCommand(
         ecosystem="node",
         cwd=manifest_dir,
-        command=("npm", "audit", "--package-lock-only", "--audit-level=low", "--omit=dev"),
+        command=("npm", "audit", "--package-lock-only", "--audit-level=low"),
     )
 
 
 def _csharp_plan(repo: Path, changed_path: str) -> list[ScanCommand]:
     solution = repo / "CivicSurvival.sln"
-    changed = repo / _relative(changed_path)
+    changed = _repo_path(repo, changed_path)
     lockfile = changed if changed.name == "packages.lock.json" else changed.parent / "packages.lock.json"
     if not solution.exists() or not lockfile.exists():
         raise DependencyDeltaError(
@@ -58,7 +84,18 @@ def _csharp_plan(repo: Path, changed_path: str) -> list[ScanCommand]:
         ScanCommand(
             "csharp",
             repo,
-            ("dotnet", "list", "CivicSurvival.sln", "package", "--vulnerable", "--include-transitive"),
+            (
+                "dotnet",
+                "list",
+                "CivicSurvival.sln",
+                "package",
+                "--vulnerable",
+                "--include-transitive",
+                "--format",
+                "json",
+                "--output-version",
+                "1",
+            ),
         ),
     ]
 
@@ -96,11 +133,77 @@ def build_scan_plan(repo: Path, changed_files: Iterable[str]) -> list[ScanComman
     return plan
 
 
+def _invalid_dotnet_json(detail: str) -> DependencyDeltaError:
+    return DependencyDeltaError(f"invalid dotnet vulnerability JSON: {detail}")
+
+
+def _dotnet_vulnerability_findings(stdout: str | bytes) -> list[str]:
+    try:
+        if isinstance(stdout, bytes):
+            stdout = stdout.decode("utf-8")
+        payload = json.loads(stdout)
+    except (UnicodeDecodeError, json.JSONDecodeError, TypeError) as error:
+        raise _invalid_dotnet_json(str(error)) from error
+
+    if not isinstance(payload, dict) or payload.get("version") != 1:
+        raise _invalid_dotnet_json("root object must use output version 1")
+    if not isinstance(payload.get("projects"), list):
+        raise _invalid_dotnet_json("root object must contain a projects array")
+
+    findings: list[str] = []
+    for project in payload["projects"]:
+        if not isinstance(project, dict) or not isinstance(project.get("frameworks"), list):
+            raise _invalid_dotnet_json("each project must contain a frameworks array")
+        project_path = project.get("path", "<unknown-project>")
+        if not isinstance(project_path, str):
+            raise _invalid_dotnet_json("project path must be a string")
+        for framework in project["frameworks"]:
+            if not isinstance(framework, dict):
+                raise _invalid_dotnet_json("each framework must be an object")
+            framework_name = framework.get("framework", "<unknown-framework>")
+            if not isinstance(framework_name, str):
+                raise _invalid_dotnet_json("framework name must be a string")
+            for package_kind in ("topLevelPackages", "transitivePackages"):
+                packages = framework.get(package_kind, [])
+                if not isinstance(packages, list):
+                    raise _invalid_dotnet_json(f"{package_kind} must be an array")
+                for package in packages:
+                    if not isinstance(package, dict):
+                        raise _invalid_dotnet_json(f"each {package_kind} entry must be an object")
+                    package_id = package.get("id", "<unknown-package>")
+                    vulnerabilities = package.get("vulnerabilities", [])
+                    if not isinstance(package_id, str) or not isinstance(vulnerabilities, list):
+                        raise _invalid_dotnet_json("package id must be a string and vulnerabilities must be an array")
+                    for vulnerability in vulnerabilities:
+                        if not isinstance(vulnerability, dict):
+                            raise _invalid_dotnet_json("each vulnerability must be an object")
+                        severity = vulnerability.get("severity", "unknown")
+                        advisory = vulnerability.get("advisoryurl", vulnerability.get("advisoryUrl", "unknown"))
+                        if not isinstance(severity, str) or not isinstance(advisory, str):
+                            raise _invalid_dotnet_json("vulnerability severity and advisory URL must be strings")
+                        findings.append(
+                            f"{project_path} {framework_name} {package_kind} {package_id} "
+                            f"severity={severity} advisory={advisory}"
+                        )
+    return findings
+
+
+def _is_dotnet_vulnerability_scan(scan: ScanCommand) -> bool:
+    return scan.ecosystem == "csharp" and "--vulnerable" in scan.command
+
+
 def run_scan_plan(plan: Sequence[ScanCommand], runner: Runner = subprocess.run) -> None:
     """Execute every scanner and turn any nonzero result into a gate failure."""
     for scan in plan:
+        capture_output = _is_dotnet_vulnerability_scan(scan)
         try:
-            result = runner(scan.command, cwd=scan.cwd, check=False, text=True)
+            result = runner(
+                scan.command,
+                cwd=scan.cwd,
+                check=False,
+                text=True,
+                capture_output=capture_output,
+            )
         except OSError as error:
             raise DependencyDeltaError(
                 f"{scan.ecosystem} scanner could not start in {scan.cwd}: {' '.join(scan.command)}: {error}"
@@ -110,22 +213,44 @@ def run_scan_plan(plan: Sequence[ScanCommand], runner: Runner = subprocess.run) 
                 f"{scan.ecosystem} scanner failed in {scan.cwd}: {' '.join(scan.command)} "
                 f"(exit {result.returncode})"
             )
+        if capture_output:
+            findings = _dotnet_vulnerability_findings(result.stdout)
+            if findings:
+                raise DependencyDeltaError(
+                    "dotnet vulnerability scan found vulnerable packages:\n" + "\n".join(findings)
+                )
 
 
 def changed_paths(repo: Path, base: str, head: str, runner: Runner = subprocess.run) -> list[str]:
     result = runner(
-        ("git", "diff", "--name-only", "--diff-filter=ACMR", base, head),
+        ("git", "diff", "--name-only", "-z", "--diff-filter=ACMRD", base, head),
         cwd=repo,
         check=False,
-        text=True,
+        text=False,
         capture_output=True,
     )
     if result.returncode != 0:
+        stderr = result.stderr
+        if isinstance(stderr, bytes):
+            stderr = stderr.decode("utf-8", errors="replace")
         raise DependencyDeltaError(
             f"git could not determine changed dependency manifests between {base} and {head}: "
-            f"{result.stderr.strip()}"
+            f"{str(stderr).strip()}"
         )
-    return [line for line in result.stdout.splitlines() if line]
+    if not isinstance(result.stdout, bytes):
+        raise DependencyDeltaError("malformed NUL-delimited git diff output: expected bytes")
+    if not result.stdout:
+        return []
+    if not result.stdout.endswith(b"\0"):
+        raise DependencyDeltaError("malformed NUL-delimited git diff output: missing final NUL")
+
+    raw_paths = result.stdout[:-1].split(b"\0")
+    if any(not raw_path for raw_path in raw_paths):
+        raise DependencyDeltaError("malformed NUL-delimited git diff output: empty path")
+    paths = [os.fsdecode(raw_path) for raw_path in raw_paths]
+    for path in paths:
+        _repo_path(repo, path)
+    return paths
 
 
 def main() -> int:
