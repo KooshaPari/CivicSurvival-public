@@ -54,14 +54,21 @@ def _repo_path(repo: Path, changed_path: str) -> Path:
     return candidate
 
 
+def _node_lockfile(manifest_dir: Path) -> Path | None:
+    for name in ("npm-shrinkwrap.json", "package-lock.json"):
+        lockfile = manifest_dir / name
+        if lockfile.exists():
+            return lockfile
+    return None
+
+
 def _node_plan(repo: Path, changed_path: str) -> ScanCommand:
     manifest_dir = _repo_path(repo, changed_path).parent
     package_json = manifest_dir / "package.json"
-    lockfile = manifest_dir / "package-lock.json"
-    if not package_json.exists() or not lockfile.exists():
+    if not package_json.exists() or _node_lockfile(manifest_dir) is None:
         raise DependencyDeltaError(
-            f"{changed_path}: node: add/update package-lock.json alongside package.json "
-            "so npm audit can run with a reproducible lockfile"
+            f"{changed_path}: node: add/update npm-shrinkwrap.json or package-lock.json "
+            "alongside package.json so npm audit can run with a reproducible lockfile"
         )
     return ScanCommand(
         ecosystem="node",
@@ -120,7 +127,7 @@ def build_scan_plan(repo: Path, changed_files: Iterable[str]) -> list[ScanComman
 
     for changed_path in sorted(set(changed_files)):
         name = _relative(changed_path).name
-        if name in {"package.json", "package-lock.json"}:
+        if name in {"package.json", "package-lock.json", "npm-shrinkwrap.json"}:
             command = _node_plan(repo, changed_path)
             key = (command.ecosystem, command.cwd)
             if key not in seen:

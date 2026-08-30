@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -22,6 +23,25 @@ def load_module():
     return module
 
 
+def load_workflow(path: Path) -> dict:
+    ruby = shutil.which("ruby")
+    assert ruby, "Ruby is required for dependency-free structural YAML validation"
+    script = """
+require "json"
+require "yaml"
+source = STDIN.read.sub(/^on:/, '"on":')
+puts JSON.generate(YAML.safe_load(source, aliases: true))
+"""
+    result = subprocess.run(
+        [ruby, "-e", script],
+        input=path.read_text(),
+        capture_output=True,
+        check=True,
+        text=True,
+    )
+    return json.loads(result.stdout)
+
+
 def test_package_lock_change_runs_the_locked_node_audit(tmp_path):
     module = load_module()
     ui = tmp_path / "CivicSurvival" / "UI"
@@ -37,6 +57,60 @@ def test_package_lock_change_runs_the_locked_node_audit(tmp_path):
             ui,
             ("npm", "audit", "--package-lock-only", "--audit-level=low"),
         )
+    ]
+
+
+def test_npm_shrinkwrap_change_runs_the_locked_node_audit_from_project(tmp_path):
+    module = load_module()
+    ui = tmp_path / "CivicSurvival" / "UI"
+    ui.mkdir(parents=True)
+    (ui / "package.json").write_text('{"name":"civic-ui"}')
+    (ui / "npm-shrinkwrap.json").write_text('{"lockfileVersion":3}')
+
+    plan = module.build_scan_plan(tmp_path, ["CivicSurvival/UI/npm-shrinkwrap.json"])
+
+    assert [(item.ecosystem, item.cwd, item.command) for item in plan] == [
+        (
+            "node",
+            ui,
+            ("npm", "audit", "--package-lock-only", "--audit-level=low"),
+        )
+    ]
+
+
+def test_npm_shrinkwrap_takes_precedence_when_both_node_lockfiles_exist(tmp_path):
+    module = load_module()
+    ui = tmp_path / "CivicSurvival" / "UI"
+    ui.mkdir(parents=True)
+    (ui / "package.json").write_text('{"name":"civic-ui"}')
+    (ui / "package-lock.json").write_text('{"lockfileVersion":3}')
+    shrinkwrap = ui / "npm-shrinkwrap.json"
+    shrinkwrap.write_text('{"lockfileVersion":3}')
+
+    assert module._node_lockfile(ui) == shrinkwrap
+
+    plan = module.build_scan_plan(
+        tmp_path,
+        [
+            "CivicSurvival/UI/package-lock.json",
+            "CivicSurvival/UI/npm-shrinkwrap.json",
+        ],
+    )
+    assert len(plan) == 1
+    assert plan[0].cwd == ui
+
+
+def test_civic_quality_node_cache_supports_both_npm_lockfiles():
+    workflow = load_workflow(ROOT / ".github" / "workflows" / "ci.yml")
+    steps = workflow["jobs"]["civic-quality"]["steps"]
+    setup_node = next(
+        step for step in steps if "actions/setup-node@" in step.get("uses", "")
+    )
+
+    assert setup_node["with"]["cache"] == "npm"
+    assert setup_node["with"]["cache-dependency-path"].splitlines() == [
+        "CivicSurvival/UI/npm-shrinkwrap.json",
+        "CivicSurvival/UI/package-lock.json",
     ]
 
 
@@ -330,7 +404,13 @@ def test_changed_paths_uses_nul_delimiters_and_preserves_odd_repo_relative_names
 
 
 @pytest.mark.parametrize(
-    "unsafe_path", [b"/tmp/package.json", b"../package.json", b"deps/../package.json"]
+    "unsafe_path",
+    [
+        b"/tmp/package.json",
+        b"../package.json",
+        b"deps/../package.json",
+        b"../npm-shrinkwrap.json",
+    ],
 )
 def test_changed_paths_rejects_absolute_or_parent_traversal_paths(
     tmp_path, unsafe_path
@@ -374,7 +454,22 @@ def test_deleted_node_lockfile_fails_closed_with_actionable_remedy(tmp_path):
     message = str(excinfo.value)
     assert "CivicSurvival/UI/package-lock.json" in message
     assert "node" in message
-    assert "add/update package-lock.json" in message
+    assert "npm-shrinkwrap.json or package-lock.json" in message
+
+
+def test_deleted_npm_shrinkwrap_fails_closed_without_another_node_lock(tmp_path):
+    module = load_module()
+    ui = tmp_path / "CivicSurvival" / "UI"
+    ui.mkdir(parents=True)
+    (ui / "package.json").write_text('{"name":"civic-ui"}')
+
+    with pytest.raises(module.DependencyDeltaError) as excinfo:
+        module.build_scan_plan(tmp_path, ["CivicSurvival/UI/npm-shrinkwrap.json"])
+
+    message = str(excinfo.value)
+    assert "CivicSurvival/UI/npm-shrinkwrap.json" in message
+    assert "node" in message
+    assert "npm-shrinkwrap.json or package-lock.json" in message
 
 
 def test_hostile_dotnet_problem_fixture_makes_cli_exit_nonzero(tmp_path):
