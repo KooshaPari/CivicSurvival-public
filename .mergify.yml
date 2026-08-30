@@ -15,10 +15,11 @@ pull_request_rules:
     actions:
       merge:
         method: squash
-        commit_message_template: |
-          {{ title }} (#{{ number }})
-
-          Co-authored-by: {{ author }}
+        commit_message_format:
+          title: pr-title
+          body: empty
+          trailers:
+            - co-authored-by
 
   # Bot auto-merge rules are intentionally absent. The repository has no
   # verified Mergify identities for those accounts; retaining them makes the
