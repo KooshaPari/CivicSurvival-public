@@ -111,7 +111,7 @@ provenance. It is not the current hosted state. The current fork state is:
 
 | Ref    | Verified current state                                | Evidence                                                      |
 | ------ | ----------------------------------------------------- | ------------------------------------------------------------- |
-| `main` | `87214f0ed61e67dda8c98a318a86f9a88db7a5b4`            | `git ls-remote origin refs/heads/main`                        |
+| `main` | `755b994addfa00d603865370e9d9fc5b86b9152e`            | `git ls-remote origin refs/heads/main`                        |
 | PR #21 | merged                                                | dual-target contracts; merge SHA recorded in session evidence |
 | PR #23 | merged at `f39b7b2ba046e0348069f15ff98c5f8e964e3448`  | protected checks and dependency-delta review reconciled       |
 | PR #26 | merged at `d258ae46249019e24eb966b30b1287cf97f2fee1`  | licensed-host build boundary recorded                         |
