@@ -116,18 +116,19 @@ jobs:
     needs: detect
     if: needs.detect.outputs.has_python == 'true'
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install ruff
-        run: pip install ruff
-      - name: ruff check
-        run: ruff check . 2>&1 || echo "::warning::ruff issues (advisory)"
-      - name: ruff format --check
-        run: ruff format --check . 2>&1 || echo "::warning::format issues (advisory)"
+      - name: Install test and lint tools
+        run: python3 -m pip install pytest ruff
+      - name: Ruff check dependency delta
+        run: ruff check scripts/dependency_delta.py tests/test_ci_dependency_delta.py
+      - name: Ruff format dependency delta
+        run: ruff format --check scripts/dependency_delta.py tests/test_ci_dependency_delta.py
+      - name: Run hostile dependency delta fixtures
+        run: python3 -m pytest -q tests/test_ci_dependency_delta.py
 
   go:
     name: Go

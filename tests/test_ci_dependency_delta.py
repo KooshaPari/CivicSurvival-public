@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -47,10 +49,16 @@ def test_csharp_lockfile_change_runs_locked_restore_then_vulnerability_scan(tmp_
     project.mkdir()
     (project / "packages.lock.json").write_text("{}")
 
-    plan = module.build_scan_plan(tmp_path, ["CivicSurvival.Contracts/packages.lock.json"])
+    plan = module.build_scan_plan(
+        tmp_path, ["CivicSurvival.Contracts/packages.lock.json"]
+    )
 
     assert [(item.ecosystem, item.cwd, item.command) for item in plan] == [
-        ("csharp", tmp_path, ("dotnet", "restore", "CivicSurvival.sln", "--locked-mode")),
+        (
+            "csharp",
+            tmp_path,
+            ("dotnet", "restore", "CivicSurvival.sln", "--locked-mode"),
+        ),
         (
             "csharp",
             tmp_path,
@@ -108,7 +116,9 @@ def test_csharp_project_without_lockfile_fails_with_path_ecosystem_and_remedy(tm
     (project / "CivicSurvival.Contracts.csproj").write_text("<Project />")
 
     with pytest.raises(module.DependencyDeltaError) as excinfo:
-        module.build_scan_plan(tmp_path, ["CivicSurvival.Contracts/CivicSurvival.Contracts.csproj"])
+        module.build_scan_plan(
+            tmp_path, ["CivicSurvival.Contracts/CivicSurvival.Contracts.csproj"]
+        )
 
     message = str(excinfo.value)
     assert "CivicSurvival.Contracts/CivicSurvival.Contracts.csproj" in message
@@ -153,7 +163,9 @@ def dotnet_scan_command(module, cwd):
 
 
 def dotnet_result(payload):
-    return type("Result", (), {"returncode": 0, "stdout": json.dumps(payload), "stderr": ""})()
+    return type(
+        "Result", (), {"returncode": 0, "stdout": json.dumps(payload), "stderr": ""}
+    )()
 
 
 def test_dotnet_scan_accepts_machine_readable_zero_vulnerability_result(tmp_path):
@@ -164,17 +176,26 @@ def test_dotnet_scan_accepts_machine_readable_zero_vulnerability_result(tmp_path
             {
                 "path": "CivicSurvival.Contracts/CivicSurvival.Contracts.csproj",
                 "frameworks": [
-                    {"framework": "net8.0", "topLevelPackages": [], "transitivePackages": []}
+                    {
+                        "framework": "net8.0",
+                        "topLevelPackages": [],
+                        "transitivePackages": [],
+                    }
                 ],
             }
         ],
     }
 
-    module.run_scan_plan([dotnet_scan_command(module, tmp_path)], runner=lambda *_args, **_kwargs: dotnet_result(payload))
+    module.run_scan_plan(
+        [dotnet_scan_command(module, tmp_path)],
+        runner=lambda *_args, **_kwargs: dotnet_result(payload),
+    )
 
 
 @pytest.mark.parametrize("package_kind", ["topLevelPackages", "transitivePackages"])
-def test_dotnet_scan_fails_when_machine_readable_result_contains_vulnerabilities(tmp_path, package_kind):
+def test_dotnet_scan_fails_when_machine_readable_result_contains_vulnerabilities(
+    tmp_path, package_kind
+):
     module = load_module()
     payload = {
         "version": 1,
@@ -221,18 +242,60 @@ def test_dotnet_scan_fails_when_machine_readable_result_contains_vulnerabilities
         json.dumps({"version": 1, "projects": "bad"}),
     ],
 )
-def test_dotnet_scan_fails_closed_on_malformed_machine_readable_result(tmp_path, stdout):
+def test_dotnet_scan_fails_closed_on_malformed_machine_readable_result(
+    tmp_path, stdout
+):
     module = load_module()
     result = type("Result", (), {"returncode": 0, "stdout": stdout, "stderr": ""})()
 
-    with pytest.raises(module.DependencyDeltaError, match="invalid dotnet vulnerability JSON"):
+    with pytest.raises(
+        module.DependencyDeltaError, match="invalid dotnet vulnerability JSON"
+    ):
         module.run_scan_plan(
             [dotnet_scan_command(module, tmp_path)],
             runner=lambda *_args, **_kwargs: result,
         )
 
 
-def test_changed_paths_uses_nul_delimiters_and_preserves_odd_repo_relative_names(tmp_path):
+@pytest.mark.parametrize("level", ["warning", "error"])
+def test_dotnet_scan_fails_closed_on_reported_problems(tmp_path, level):
+    module = load_module()
+    payload = {
+        "version": 1,
+        "problems": [{"level": level, "text": "vulnerability source unavailable"}],
+        "projects": [
+            {
+                "path": "CivicSurvival.Contracts/CivicSurvival.Contracts.csproj",
+                "frameworks": [{"framework": "net8.0"}],
+            }
+        ],
+    }
+
+    with pytest.raises(module.DependencyDeltaError) as excinfo:
+        module.run_scan_plan(
+            [dotnet_scan_command(module, tmp_path)],
+            runner=lambda *_args, **_kwargs: dotnet_result(payload),
+        )
+
+    message = str(excinfo.value)
+    assert level in message
+    assert "vulnerability source unavailable" in message
+
+
+def test_dotnet_scan_fails_closed_when_nonempty_solution_reports_no_projects(tmp_path):
+    module = load_module()
+    payload = {"version": 1, "problems": [], "projects": []}
+
+    with pytest.raises(module.DependencyDeltaError, match="no projects"):
+        module.run_scan_plan(
+            [dotnet_scan_command(module, tmp_path)],
+            runner=lambda *_args, **_kwargs: dotnet_result(payload),
+        )
+
+
+def test_changed_paths_uses_nul_delimiters_and_preserves_odd_repo_relative_names(
+    tmp_path,
+):
     module = load_module()
     calls = []
     result = type(
@@ -267,8 +330,12 @@ def test_changed_paths_uses_nul_delimiters_and_preserves_odd_repo_relative_names
     assert calls[0][1]["text"] is False
 
 
-@pytest.mark.parametrize("unsafe_path", [b"/tmp/package.json", b"../package.json", b"deps/../package.json"])
-def test_changed_paths_rejects_absolute_or_parent_traversal_paths(tmp_path, unsafe_path):
+@pytest.mark.parametrize(
+    "unsafe_path", [b"/tmp/package.json", b"../package.json", b"deps/../package.json"]
+)
+def test_changed_paths_rejects_absolute_or_parent_traversal_paths(
+    tmp_path, unsafe_path
+):
     module = load_module()
     result = type(
         "Result",
@@ -277,7 +344,9 @@ def test_changed_paths_rejects_absolute_or_parent_traversal_paths(tmp_path, unsa
     )()
 
     with pytest.raises(module.DependencyDeltaError, match="unsafe changed path"):
-        module.changed_paths(tmp_path, "base", "head", runner=lambda *_args, **_kwargs: result)
+        module.changed_paths(
+            tmp_path, "base", "head", runner=lambda *_args, **_kwargs: result
+        )
 
 
 def test_changed_paths_rejects_malformed_non_terminated_output(tmp_path):
@@ -289,7 +358,9 @@ def test_changed_paths_rejects_malformed_non_terminated_output(tmp_path):
     )()
 
     with pytest.raises(module.DependencyDeltaError, match="malformed NUL-delimited"):
-        module.changed_paths(tmp_path, "base", "head", runner=lambda *_args, **_kwargs: result)
+        module.changed_paths(
+            tmp_path, "base", "head", runner=lambda *_args, **_kwargs: result
+        )
 
 
 def test_deleted_node_lockfile_fails_closed_with_actionable_remedy(tmp_path):
@@ -307,17 +378,104 @@ def test_deleted_node_lockfile_fails_closed_with_actionable_remedy(tmp_path):
     assert "add/update package-lock.json" in message
 
 
+def test_hostile_dotnet_problem_fixture_makes_cli_exit_nonzero(tmp_path):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "--quiet"], cwd=repo, check=True)
+    subprocess.run(
+        ["git", "config", "user.email", "tests@example.invalid"], cwd=repo, check=True
+    )
+    subprocess.run(["git", "config", "user.name", "Civic tests"], cwd=repo, check=True)
+    (repo / "CivicSurvival.sln").write_text("Microsoft Visual Studio Solution File")
+    project = repo / "CivicSurvival.Contracts"
+    project.mkdir()
+    subprocess.run(["git", "add", "."], cwd=repo, check=True)
+    subprocess.run(["git", "commit", "--quiet", "-m", "base"], cwd=repo, check=True)
+    base = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+
+    (project / "packages.lock.json").write_text("{}")
+    subprocess.run(["git", "add", "."], cwd=repo, check=True)
+    subprocess.run(
+        ["git", "commit", "--quiet", "-m", "hostile lock change"], cwd=repo, check=True
+    )
+    head = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    dotnet = bin_dir / "dotnet"
+    hostile = {
+        "version": 1,
+        "problems": [{"level": "warning", "text": "vulnerability source unavailable"}],
+        "projects": [
+            {
+                "path": "CivicSurvival.Contracts/CivicSurvival.Contracts.csproj",
+                "frameworks": [{"framework": "net8.0"}],
+            }
+        ],
+    }
+    dotnet.write_text(
+        "#!/bin/sh\n"
+        'if [ "$1" = restore ]; then exit 0; fi\n'
+        f"printf '%s\\n' '{json.dumps(hostile)}'\n"
+    )
+    dotnet.chmod(0o755)
+    environment = os.environ.copy()
+    environment["PATH"] = f"{bin_dir}{os.pathsep}{environment['PATH']}"
+
+    result = subprocess.run(
+        [sys.executable, SCRIPT, "--repo", repo, "--base", base, "--head", head],
+        check=False,
+        capture_output=True,
+        text=True,
+        env=environment,
+    )
+
+    assert result.returncode == 1
+    assert "vulnerability source unavailable" in result.stdout
+
+
 def test_ci_aggregate_gates_reject_failed_or_skipped_required_results():
     workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text()
-    security_job = workflow.split("  security:\n", 1)[1].split("\n  dep-review:\n", 1)[0]
-    dependency_job = workflow.split("  dep-review:\n", 1)[1].split("\n  civic-quality:\n", 1)[0]
+    python_job = workflow.split("  python:\n", 1)[1].split("\n  go:\n", 1)[0]
+    security_job = workflow.split("  security:\n", 1)[1].split("\n  dep-review:\n", 1)[
+        0
+    ]
+    dependency_job = workflow.split("  dep-review:\n", 1)[1].split(
+        "\n  civic-quality:\n", 1
+    )[0]
 
     assert "continue-on-error" not in security_job
     assert "continue-on-error" not in dependency_job
     assert "actions/dependency-review-action" not in dependency_job
     assert "python3 scripts/dependency_delta.py" in dependency_job
+    assert "continue-on-error" not in python_job
+    assert (
+        "ruff check scripts/dependency_delta.py tests/test_ci_dependency_delta.py"
+        in python_job
+    )
+    assert (
+        "ruff format --check scripts/dependency_delta.py tests/test_ci_dependency_delta.py"
+        in python_job
+    )
+    assert "python3 -m pytest -q tests/test_ci_dependency_delta.py" in python_job
+    assert "|| echo" not in python_job
     assert 'if [ "$name" = "security" ]; then' in workflow
-    assert 'if [ "$event_name" = "pull_request" ] && [ "$name" = "dep-review" ]; then' in workflow
+    assert (
+        'if [ "$event_name" = "pull_request" ] && [ "$name" = "dep-review" ]; then'
+        in workflow
+    )
     assert 'if [ "$required" -eq 1 ] && [ "$result" != "success" ]; then' in workflow
     assert 'lint_result="${{ needs.lint.result }}"' in workflow
     assert 'if [ "$lint_result" != "success" ]; then' in workflow

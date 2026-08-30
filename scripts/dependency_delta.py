@@ -29,7 +29,9 @@ Runner = Callable[..., subprocess.CompletedProcess[str]]
 
 def _relative(path: str) -> Path:
     if not path or "\0" in path:
-        raise DependencyDeltaError(f"unsafe changed path {path!r}: path must be non-empty and NUL-free")
+        raise DependencyDeltaError(
+            f"unsafe changed path {path!r}: path must be non-empty and NUL-free"
+        )
     parts = path.split("/")
     if (
         PurePosixPath(path).is_absolute()
@@ -73,14 +75,20 @@ def _node_plan(repo: Path, changed_path: str) -> ScanCommand:
 def _csharp_plan(repo: Path, changed_path: str) -> list[ScanCommand]:
     solution = repo / "CivicSurvival.sln"
     changed = _repo_path(repo, changed_path)
-    lockfile = changed if changed.name == "packages.lock.json" else changed.parent / "packages.lock.json"
+    lockfile = (
+        changed
+        if changed.name == "packages.lock.json"
+        else changed.parent / "packages.lock.json"
+    )
     if not solution.exists() or not lockfile.exists():
         raise DependencyDeltaError(
             f"{changed_path}: csharp: add packages.lock.json and keep CivicSurvival.sln "
             "available so restore can run in --locked-mode"
         )
     return [
-        ScanCommand("csharp", repo, ("dotnet", "restore", "CivicSurvival.sln", "--locked-mode")),
+        ScanCommand(
+            "csharp", repo, ("dotnet", "restore", "CivicSurvival.sln", "--locked-mode")
+        ),
         ScanCommand(
             "csharp",
             repo,
@@ -100,7 +108,9 @@ def _csharp_plan(repo: Path, changed_path: str) -> list[ScanCommand]:
     ]
 
 
-def _unsupported(changed_path: str, ecosystem: str, remedy: str) -> DependencyDeltaError:
+def _unsupported(
+    changed_path: str, ecosystem: str, remedy: str
+) -> DependencyDeltaError:
     return DependencyDeltaError(f"{changed_path}: {ecosystem}: {remedy}")
 
 
@@ -123,13 +133,35 @@ def build_scan_plan(repo: Path, changed_files: Iterable[str]) -> list[ScanComman
                 plan.extend(_csharp_plan(repo, changed_path))
                 csharp_added = True
         elif name in {"Cargo.toml", "Cargo.lock"}:
-            raise _unsupported(changed_path, "rust", "add a supported Rust dependency scanner before changing this manifest")
+            raise _unsupported(
+                changed_path,
+                "rust",
+                "add a supported Rust dependency scanner before changing this manifest",
+            )
         elif name in {"go.mod", "go.sum"}:
-            raise _unsupported(changed_path, "go", "add a supported Go dependency scanner before changing this manifest")
-        elif name in {"pyproject.toml", "setup.py", "requirements.txt", "Pipfile.lock", "poetry.lock"}:
-            raise _unsupported(changed_path, "python", "add a supported Python dependency scanner before changing this manifest")
+            raise _unsupported(
+                changed_path,
+                "go",
+                "add a supported Go dependency scanner before changing this manifest",
+            )
+        elif name in {
+            "pyproject.toml",
+            "setup.py",
+            "requirements.txt",
+            "Pipfile.lock",
+            "poetry.lock",
+        }:
+            raise _unsupported(
+                changed_path,
+                "python",
+                "add a supported Python dependency scanner before changing this manifest",
+            )
         elif name in {"yarn.lock", "pnpm-lock.yaml"}:
-            raise _unsupported(changed_path, "node", "use package-lock.json or add a scanner for this lockfile format")
+            raise _unsupported(
+                changed_path,
+                "node",
+                "use package-lock.json or add a scanner for this lockfile format",
+            )
     return plan
 
 
@@ -147,12 +179,37 @@ def _dotnet_vulnerability_findings(stdout: str | bytes) -> list[str]:
 
     if not isinstance(payload, dict) or payload.get("version") != 1:
         raise _invalid_dotnet_json("root object must use output version 1")
-    if not isinstance(payload.get("projects"), list):
+    problems = payload.get("problems", [])
+    if not isinstance(problems, list):
+        raise _invalid_dotnet_json("problems must be an array")
+    if problems:
+        problem_details: list[str] = []
+        for problem in problems:
+            if not isinstance(problem, dict):
+                raise _invalid_dotnet_json("each problem must be an object")
+            level = problem.get("level")
+            text = problem.get("text")
+            if not isinstance(level, str) or not isinstance(text, str):
+                raise _invalid_dotnet_json("problem level and text must be strings")
+            problem_details.append(f"{level}: {text}")
+        raise DependencyDeltaError(
+            "dotnet vulnerability report contains problems:\n"
+            + "\n".join(problem_details)
+        )
+
+    projects = payload.get("projects")
+    if not isinstance(projects, list):
         raise _invalid_dotnet_json("root object must contain a projects array")
+    if not projects:
+        raise DependencyDeltaError(
+            "dotnet vulnerability report contains no projects for nonempty CivicSurvival.sln"
+        )
 
     findings: list[str] = []
-    for project in payload["projects"]:
-        if not isinstance(project, dict) or not isinstance(project.get("frameworks"), list):
+    for project in projects:
+        if not isinstance(project, dict) or not isinstance(
+            project.get("frameworks"), list
+        ):
             raise _invalid_dotnet_json("each project must contain a frameworks array")
         project_path = project.get("path", "<unknown-project>")
         if not isinstance(project_path, str):
@@ -169,18 +226,32 @@ def _dotnet_vulnerability_findings(stdout: str | bytes) -> list[str]:
                     raise _invalid_dotnet_json(f"{package_kind} must be an array")
                 for package in packages:
                     if not isinstance(package, dict):
-                        raise _invalid_dotnet_json(f"each {package_kind} entry must be an object")
+                        raise _invalid_dotnet_json(
+                            f"each {package_kind} entry must be an object"
+                        )
                     package_id = package.get("id", "<unknown-package>")
                     vulnerabilities = package.get("vulnerabilities", [])
-                    if not isinstance(package_id, str) or not isinstance(vulnerabilities, list):
-                        raise _invalid_dotnet_json("package id must be a string and vulnerabilities must be an array")
+                    if not isinstance(package_id, str) or not isinstance(
+                        vulnerabilities, list
+                    ):
+                        raise _invalid_dotnet_json(
+                            "package id must be a string and vulnerabilities must be an array"
+                        )
                     for vulnerability in vulnerabilities:
                         if not isinstance(vulnerability, dict):
-                            raise _invalid_dotnet_json("each vulnerability must be an object")
+                            raise _invalid_dotnet_json(
+                                "each vulnerability must be an object"
+                            )
                         severity = vulnerability.get("severity", "unknown")
-                        advisory = vulnerability.get("advisoryurl", vulnerability.get("advisoryUrl", "unknown"))
-                        if not isinstance(severity, str) or not isinstance(advisory, str):
-                            raise _invalid_dotnet_json("vulnerability severity and advisory URL must be strings")
+                        advisory = vulnerability.get(
+                            "advisoryurl", vulnerability.get("advisoryUrl", "unknown")
+                        )
+                        if not isinstance(severity, str) or not isinstance(
+                            advisory, str
+                        ):
+                            raise _invalid_dotnet_json(
+                                "vulnerability severity and advisory URL must be strings"
+                            )
                         findings.append(
                             f"{project_path} {framework_name} {package_kind} {package_id} "
                             f"severity={severity} advisory={advisory}"
@@ -217,11 +288,14 @@ def run_scan_plan(plan: Sequence[ScanCommand], runner: Runner = subprocess.run) 
             findings = _dotnet_vulnerability_findings(result.stdout)
             if findings:
                 raise DependencyDeltaError(
-                    "dotnet vulnerability scan found vulnerable packages:\n" + "\n".join(findings)
+                    "dotnet vulnerability scan found vulnerable packages:\n"
+                    + "\n".join(findings)
                 )
 
 
-def changed_paths(repo: Path, base: str, head: str, runner: Runner = subprocess.run) -> list[str]:
+def changed_paths(
+    repo: Path, base: str, head: str, runner: Runner = subprocess.run
+) -> list[str]:
     result = runner(
         ("git", "diff", "--name-only", "-z", "--diff-filter=ACMRD", base, head),
         cwd=repo,
@@ -238,15 +312,21 @@ def changed_paths(repo: Path, base: str, head: str, runner: Runner = subprocess.
             f"{str(stderr).strip()}"
         )
     if not isinstance(result.stdout, bytes):
-        raise DependencyDeltaError("malformed NUL-delimited git diff output: expected bytes")
+        raise DependencyDeltaError(
+            "malformed NUL-delimited git diff output: expected bytes"
+        )
     if not result.stdout:
         return []
     if not result.stdout.endswith(b"\0"):
-        raise DependencyDeltaError("malformed NUL-delimited git diff output: missing final NUL")
+        raise DependencyDeltaError(
+            "malformed NUL-delimited git diff output: missing final NUL"
+        )
 
     raw_paths = result.stdout[:-1].split(b"\0")
     if any(not raw_path for raw_path in raw_paths):
-        raise DependencyDeltaError("malformed NUL-delimited git diff output: empty path")
+        raise DependencyDeltaError(
+            "malformed NUL-delimited git diff output: empty path"
+        )
     paths = [os.fsdecode(raw_path) for raw_path in raw_paths]
     for path in paths:
         _repo_path(repo, path)
@@ -261,7 +341,9 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
-        plan = build_scan_plan(args.repo, changed_paths(args.repo, args.base, args.head))
+        plan = build_scan_plan(
+            args.repo, changed_paths(args.repo, args.base, args.head)
+        )
         if not plan:
             print("No supported dependency manifest changes detected.")
             return 0
