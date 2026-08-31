@@ -22,9 +22,22 @@ jobs:
           persist-credentials: false
 
       - name: Install Infisical CLI
+        shell: bash
         run: |
-          curl -1sLf "https://dl.cloudsmith.io/public/infisical/infisical-cli/setup.deb.sh" | sudo -E bash
-          sudo apt-get install -y infisical
+          set -euo pipefail
+          version="0.43.128"
+          checksum="a3f460be321ad46fefba99cba883bcc601d0f18b02849d2d30ae9b398a8d99dc"
+          archive="$RUNNER_TEMP/infisical-cli.tar.gz"
+          install_dir="$RUNNER_TEMP/infisical-cli"
+          url="https://github.com/Infisical/cli/releases/download/v${version}/cli_${version}_linux_amd64.tar.gz"
+
+          mkdir -p "$install_dir/bin"
+          curl --fail --location --proto '=https' --tlsv1.2 --silent --show-error \
+            "$url" --output "$archive"
+          printf '%s  %s\n' "$checksum" "$archive" | sha256sum --check --strict
+          tar -xzf "$archive" -C "$install_dir" infisical
+          install -m 0755 "$install_dir/infisical" "$install_dir/bin/infisical"
+          echo "$install_dir/bin" >> "$GITHUB_PATH"
 
       - name: Validate Infisical environment
         env:
