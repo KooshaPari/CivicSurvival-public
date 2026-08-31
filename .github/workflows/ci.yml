@@ -124,11 +124,11 @@ jobs:
       - name: Install test and lint tools
         run: python3 -m pip install pytest ruff
       - name: Ruff check dependency delta
-        run: ruff check scripts/dependency_delta.py tests/test_ci_dependency_delta.py
+        run: ruff check scripts/dependency_delta.py tests/test_ci_dependency_delta.py tests/test_public_audit_workflow.py
       - name: Ruff format dependency delta
-        run: ruff format --check scripts/dependency_delta.py tests/test_ci_dependency_delta.py
+        run: ruff format --check scripts/dependency_delta.py tests/test_ci_dependency_delta.py tests/test_public_audit_workflow.py
       - name: Run hostile dependency delta fixtures
-        run: python3 -m pytest -q tests/test_ci_dependency_delta.py
+        run: python3 -m pytest -q tests/test_ci_dependency_delta.py tests/test_public_audit_workflow.py
 
   go:
     name: Go

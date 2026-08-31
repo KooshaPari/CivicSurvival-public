@@ -22,7 +22,9 @@ jobs:
         with:
           node-version: "20.x"
           cache: npm
-          cache-dependency-path: CivicSurvival/UI/package-lock.json
+          cache-dependency-path: |
+            CivicSurvival/UI/npm-shrinkwrap.json
+            CivicSurvival/UI/package-lock.json
       - name: Public policy checks
         run: node scripts/ci/check-public-audit.mjs .
       - name: Contracts build and audit runner
