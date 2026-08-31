@@ -33,6 +33,10 @@ EXPECTED_VALIDATION_STATEMENTS = [
         "--token \"$INFISICAL_TOKEN\" -- bash -c 'true'"
     ),
 ]
+INFISICAL_VERSION = "0.43.128"
+INFISICAL_LINUX_AMD64_SHA256 = (
+    "a3f460be321ad46fefba99cba883bcc601d0f18b02849d2d30ae9b398a8d99dc"
+)
 
 
 def _workflow() -> dict:
@@ -86,6 +90,30 @@ def test_infisical_runs_only_when_called_or_manually_dispatched():
     triggers = _workflow()["on"]
 
     assert set(triggers) == {"workflow_call", "workflow_dispatch"}
+
+
+def test_infisical_install_is_pinned_verified_and_non_root():
+    workflow = _workflow()
+    steps = {step["name"]: step for step in workflow["jobs"]["sync-secrets"]["steps"]}
+    install = steps["Install Infisical CLI"]["run"]
+
+    assert f'version="{INFISICAL_VERSION}"' in install
+    assert f'checksum="{INFISICAL_LINUX_AMD64_SHA256}"' in install
+    assert (
+        "https://github.com/Infisical/cli/releases/download/v${version}/"
+        "cli_${version}_linux_amd64.tar.gz" in install
+    )
+    assert "sha256sum --check --strict" in install
+    assert 'tar -xzf "$archive" -C "$install_dir" infisical' in install
+    assert (
+        'install -m 0755 "$install_dir/infisical" "$install_dir/bin/infisical"'
+        in install
+    )
+    assert 'echo "$install_dir/bin" >> "$GITHUB_PATH"' in install
+    assert "setup.deb.sh" not in install
+    assert "apt-get" not in install
+    assert "sudo" not in install
+    assert "curl |" not in install
 
 
 def test_infisical_validation_does_not_enumerate_secret_environment():
