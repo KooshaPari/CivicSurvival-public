@@ -540,6 +540,13 @@ def main():
             print(
                 f"**Status:** {'PASS' if report['score'] >= args.threshold else 'FAIL'}\n"
             )
+            print(f"**Baseline score:** {json.dumps(report['baseline_score'])}\n")
+            print(f"**Score delta:** {json.dumps(report['score_delta'])}\n")
+            print(
+                "**Missing baseline pillars:** "
+                f"{json.dumps(report['missing_baseline_pillar_ids'])}\n"
+            )
+            print(f"**Regression:** {json.dumps(report['regression'])}\n")
             print("## Results\n| ID | Pillar | Status |\n|---|--------|--------|")
             for r in report["results"]:
                 print(
