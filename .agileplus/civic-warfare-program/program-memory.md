@@ -84,12 +84,15 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
 
 ## Next Meaningful Work
 
-1. Publish and merge the worktree-reconciliation evidence through protection,
-   then retire only the proven-redundant worktrees while preserving refs.
-2. Close the AgilePlus evidence-recording gap without direct database
+1. Publish the corrective worktree-reconciliation successor PR, then require
+   protected checks and both review bots to pass before cleanup.
+2. Retire only the proven-redundant worktrees while preserving refs, and update
+   the successor branch with the actual post-cleanup evidence.
+3. Merge the completed reconciliation record through protection.
+4. Close the AgilePlus evidence-recording gap without direct database
    fabrication.
-3. Obtain licensed game-adapter build and launch-smoke evidence.
-4. Prepare a fresh WP02-A successor PR from current `origin/main`, with
+5. Obtain licensed game-adapter build and launch-smoke evidence.
+6. Prepare a fresh WP02-A successor PR from current `origin/main`, with
    test-first ABI/schema/golden-vector evidence only after WP01 acceptance.
-5. Keep production warfare implementation closed until WP01 is formally
+7. Keep production warfare implementation closed until WP01 is formally
    accepted.

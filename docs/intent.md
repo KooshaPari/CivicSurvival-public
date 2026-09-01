@@ -143,7 +143,12 @@ provenance. It is not the current hosted state. The current fork state is:
 | PR #26 | merged at `d258ae46249019e24eb966b30b1287cf97f2fee1` | licensed-host build boundary recorded                         |
 | PR #28 | merged at `9d8a99ca6e986f9343286b5b59888db37d500d57` | zero-review Mergify policy and fail-closed prerequisites      |
 | PR #25 | closed as superseded by PR #28                       | generated Mergify migration notice                            |
-| PR #2  | closed unmerged as superseded by PR #3               | source branch preserved; provenance only                      |
+| PR #2  | open, unmerged                                       | source branch preserved; provenance only                      |
+
+On 2026-09-01 at 04:17:22 UTC, PR #2 was closed unmerged as superseded by PR
+#3. Its head remains preserved at
+`3bd4431b083101669fc9244e2e09afe182c2b10b` through GitHub's PR ref and the
+local `origin/feat/civic-warfare-program` tracking ref.
 
 The current required branch-protection contexts are `ci / lint`, `ci / test`,
 `Civic Evidence Gate`, `Security Scan`, and `Dependency Delta`. The invalid
