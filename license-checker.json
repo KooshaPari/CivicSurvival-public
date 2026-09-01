@@ -1,0 +1,71 @@
+{
+  "name": "civic-survival-public-tooling",
+  "version": "0.3.25",
+  "description": "License manifest for the CivicSurvival public source mirror. Declares the license under which each artifact (code, docs, samples, build evidence, tests) ships so that downstream tooling and forked repos can detect the license state without manual review.",
+  "private": true,
+  "licenses": [
+    {
+      "name": "MIT",
+      "path": "LICENSE",
+      "applies_to": [
+        "scripts/",
+        "tests/",
+        "docs/",
+        "build-evidence/",
+        ".github/",
+        "fuzz/",
+        "benches/",
+        "*.md",
+        "*.py",
+        "*.toml",
+        "*.json",
+        "*.yml",
+        "*.yaml",
+        "*.cfg",
+        "*.ini",
+        "Makefile",
+        "Justfile",
+        ".releaserc",
+        "package.json"
+      ]
+    },
+    {
+      "name": "MIT (CivicSurvival mod source)",
+      "path": "CivicSurvival/",
+      "applies_to": [
+        "CivicSurvival/**/*.cs",
+        "CivicSurvival/**/*.json",
+        "CivicSurvival/**/*.xml"
+      ],
+      "notes": "The C# mod source is MIT-licensed and is the actual published mod. The Paradox Mods launcher shows the project license (this file's MIT entry) at install time."
+    }
+  ],
+  "blockedLicenses": [
+    "AGPL-1.0",
+    "AGPL-3.0",
+    "SSPL-1.0",
+    "BUSL-1.1",
+    "Commons-Clause"
+  ],
+  "allowlist": [
+    "MIT",
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "MPL-2.0",
+    "Unlicense",
+    "CC0-1.0",
+    "MIT-0"
+  ],
+  "excludedPaths": [
+    "build-evidence/.cache",
+    "node_modules",
+    "__pycache__",
+    ".pytest_cache",
+    ".hypothesis",
+    "**/*.pyc"
+  ],
+  "production": false,
+  "notes": "Declarative license manifest. The actual enforcement is done by license-checker + CI; this file is the source of truth that license-checker consumes. If you add a new dependency with a non-MIT license, update the allowlist here first, then run license-checker --failOnDisallowed."
+}

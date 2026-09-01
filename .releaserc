@@ -1,0 +1,33 @@
+# CivicSurvival Public -- semantic-release configuration
+#
+# Declares the release pipeline contract: channel order (main -> patch,
+# minor; staging -> prerelease), versioning strategy (semver), and the
+# branch list. Implementation is delegated to scripts/release.py -- this
+# file is declarative source-of-truth read by contributors and CI.
+#
+# Real authority for version-state lives in scripts/release.py and the
+# GitHub tag at refs/tags/<version>. This file is the contract, not the
+# executor.
+
+branches:
+  - name: main
+    channel: latest
+    prerelease: false
+  - name: staging
+    channel: next
+    prerelease: true
+    prereleaseIdentifier: rc
+
+# Version surfaces (must agree at all times; the public-audit gate enforces)
+surfaces:
+  csproj: "CivicSurvival/CivicSurvival.csproj#<Version>"
+  manifest: "CivicSurvival/manifest.json#version_number"
+  publishConfig: "CivicSurvival/Properties/PublishConfiguration.xml#<ModVersion>"
+  changelog: "CivicSurvival/Properties/CHANGELOG.md#first-section"
+
+plugins:
+  - path: "./scripts/release.py"
+    name: civic-release
+
+tagFormat: "${version}"
+releaseCommitMessage: "chore(release): v${version} [skip ci]"
