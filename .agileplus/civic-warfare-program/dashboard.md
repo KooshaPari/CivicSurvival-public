@@ -47,7 +47,7 @@ WP01 [planned] public audit green; formal evidence and licensed adapter pending
 2. Require all protected checks plus substantive CodeRabbit and Kilo reviews to pass before cleanup.
 3. Complete only the proven-safe local cleanup without deleting refs.
 4. Record the actual post-cleanup worktree count, ref-preservation evidence, primary-checkout state, and hosted rerun IDs on the successor branch.
-5. Merge the completed reconciliation record through protection.
+5. Only after branch-protection governance is verified stable, merge the completed reconciliation record through protection; auto-merge and queueing are prohibited beforehand.
 6. Close the AgilePlus evidence-recording gap and obtain licensed-adapter evidence for WP01.
 7. Begin WP02-A native ABI/schema boundary work only after WP01 acceptance.
 
