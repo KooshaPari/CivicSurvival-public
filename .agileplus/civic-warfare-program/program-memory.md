@@ -24,7 +24,9 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
 ## Locked Decisions
 
 1. Fork `KooshaPari/CivicSurvival-public`; preserve `Theorist100/CivicSurvival-public` as upstream.
-2. Branch/worktree: `feat/civic-warfare-program` in `CivicSurvival-public-wtrees/civic-warfare-program`.
+2. Preserve `feat/civic-warfare-program` at `3bd4431b083101669fc9244e2e09afe182c2b10b`
+   as immutable provenance. The formerly recorded dedicated worktree path is
+   absent and is not a current execution dependency.
 3. Rust authoritative deterministic runtime; C# Unity/ECS host; TypeScript/React UI; Python/Julia offline; Zig build candidate; Mojo experimental; Nim/Pony/Vale research only.
 4. Modular monolith; functional core/imperative shell; hexagonal ownership boundaries; bounded contexts; commands plus immutable projections; snapshots plus selective command/outcome journal.
 5. No Rust-side generic ECS, authoritative actor model, blanket event sourcing, microservices, runtime neural agent, or live LP/MIP solver.
@@ -45,9 +47,24 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
 
 ## Current State
 
+- Repository reconciliation: current fork main is
+  `4f34815f4a29be55799c37071db55dcb30e6a2ee`; PRs #46 and #47 extend the
+  previously verified `ed78823` snapshot. Exact-main CI, Trunk, public audit,
+  and OpenSSF Scorecard pass. The 88-Pillar workflow completes successfully as
+  informational evidence, but its exact-main score is `13/88`, below the
+  configured threshold; it is not a passing Civic or WP01 gate.
+- Local estate: all 15 auxiliary worktrees are represented by merged history
+  through tree equality, patch equivalence, or ancestry. Cleanup is pending a
+  protected preservation PR; no branch/ref deletion is authorized. Evidence
+  is in `worktree-reconciliation-20260901.md`.
 - Audit/research: complete for v0.3.24 snapshot `0b218074`.
 - Specification: complete and registered; 120 FRs.
-- AgilePlus: the supported CLI currently reports 20 planned WPs only after generating a local operational DB; its generated dependency graph is fully serial and does not reconcile with the reviewed `plan.md`. The DB is provisional and must not be treated as canonical until an import/reconciliation path exists.
+- AgilePlus: a local operational DB reports 20 planned WPs only after
+  generation; its fully serial dependency graph does not reconcile with the
+  reviewed `plan.md`. The healthy canonical MCP service currently has no Civic
+  feature, WPs, governance result, or audit chain. The local DB is provisional
+  and is not a supported evidence receipt until an import/reconciliation path
+  exists.
 - Canonical DAG/WBS: complete in `plan.md`; the CLI-generated serial graph is explicitly superseded.
 - Architecture/data model/public contracts: complete for planning baseline.
 - Governance/dashboard/checklist/validation: complete; branch publication complete.
@@ -67,7 +84,12 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
 
 ## Next Meaningful Work
 
-1. Close the AgilePlus evidence-recording gap without direct database fabrication.
-2. Obtain licensed game-adapter build and launch-smoke evidence.
-3. Reconcile the AgilePlus evidence-recording capability and prepare a fresh WP02-A successor PR from `origin/main`, with test-first ABI/schema/golden-vector evidence.
-4. Keep production warfare implementation closed until WP01 is formally accepted.
+1. Publish and merge the worktree-reconciliation evidence through protection,
+   then retire only the proven-redundant worktrees while preserving refs.
+2. Close the AgilePlus evidence-recording gap without direct database
+   fabrication.
+3. Obtain licensed game-adapter build and launch-smoke evidence.
+4. Prepare a fresh WP02-A successor PR from current `origin/main`, with
+   test-first ABI/schema/golden-vector evidence only after WP01 acceptance.
+5. Keep production warfare implementation closed until WP01 is formally
+   accepted.

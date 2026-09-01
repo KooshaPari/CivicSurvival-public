@@ -1,7 +1,8 @@
 # Civic Warfare Program Dashboard
 
-**Generated from**: AgilePlus DB `.agileplus/civic-warfare-program-v4.db` plus canonical `plan.md`
-**Feature state**: planned | **Implementation gate**: closed | **Baseline**: v0.3.24 `0b218074`
+**Generated from**: provisional local AgilePlus DB `.agileplus/civic-warfare-program-v4.db` plus canonical `plan.md`
+**Feature state**: planned | **Implementation gate**: closed | **Current main**: `4f34815f4a29be55799c37071db55dcb30e6a2ee`
+**Canonical MCP state**: healthy service; Civic feature absent; evidence receipt unavailable
 
 ```text
 Specification     [##########] 100%  120/120 FRs defined
@@ -11,9 +12,10 @@ Data/contracts    [##########] 100%  model + ABI + C header + FlatBuffers draft
 DAG/WBS           [##########] 100%  20/20 WPs registered and mapped
 Implementation    [..........]   0%  0/120 FRs accepted
 Quality gates     [######....]  60%  public audit green; licensed adapter/evidence recording pending
+Reconciliation    [########..]  80%  equivalence proven; protected record and local cleanup pending
 ```
 
-## Live WP State
+## Provisional Local WP State
 
 | State   | Count |
 | ------- | ----: |
@@ -39,8 +41,9 @@ WP01 [planned] public audit green; formal evidence and licensed adapter pending
 
 ## Next Meaningful Work
 
-1. Close the AgilePlus evidence-recording gap and obtain licensed adapter evidence for WP01.
-2. Begin WP02-A native ABI/schema boundary work behind the conditional gate.
+1. Merge the protected worktree-reconciliation record and complete the proven-safe local cleanup without deleting refs.
+2. Close the AgilePlus evidence-recording gap and obtain licensed adapter evidence for WP01.
+3. Begin WP02-A native ABI/schema boundary work only after WP01 acceptance.
 
 ## Refresh Commands
 
@@ -50,4 +53,8 @@ agileplus dashboard --db "$PWD/.agileplus/civic-warfare-program-v4.db" --json
 agileplus validate --repo "$PWD" --db "$PWD/.agileplus/civic-warfare-program-v4.db" --feature civic-warfare-program --force
 ```
 
-The installed CLI's inferred dependencies are false positives caused by broad research-text file-scope extraction. `plan.md` is the reviewed canonical DAG until AgilePlus supports dependency overrides; SQLite remains canonical for feature/WP state counts.
+The installed CLI's inferred dependencies are false positives caused by broad
+research-text file-scope extraction. `plan.md` is the reviewed canonical DAG
+until AgilePlus supports dependency overrides. The local SQLite counts are a
+planning snapshot, not canonical engine state or WP01 evidence; the canonical
+MCP service must first receive and verify the Civic feature and its evidence.
