@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import fnmatch
 import json
 import os
 import re
@@ -167,6 +168,33 @@ def _unsupported(
     return DependencyDeltaError(f"{changed_path}: {ecosystem}: {remedy}")
 
 
+def _load_civicignore(repo: Path) -> list[str]:
+    """Load ignore patterns from .civicignore in the repository root.
+
+    Returns a list of fnmatch-style glob patterns.  Lines starting with
+    ``#`` and blank lines are ignored.
+    """
+    ignore_file = repo / ".civicignore"
+    if not ignore_file.exists():
+        return []
+    patterns: list[str] = []
+    for raw_line in ignore_file.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        patterns.append(line)
+    return patterns
+
+
+def _is_ignored(path: str, patterns: list[str]) -> bool:
+    """Return True if *path* matches any of the ignore *patterns*.
+
+    Patterns are matched using fnmatch (case-sensitive) against the
+    full repository-relative path.
+    """
+    return any(fnmatch.fnmatch(path, pat) for pat in patterns)
+
+
 def build_scan_plan(
     repo: Path,
     changed_files: Iterable[str],
@@ -176,15 +204,20 @@ def build_scan_plan(
     """Create scanner commands, rejecting changed dependency formats without a scanner.
 
     *diff_provider(repo, changed_path)* optionally returns the unified diff text
-    for a single changed file. When provided, .csproj changes that touch ONLY
+    for a single changed file.  When provided, .csproj changes that touch ONLY
     metadata elements (e.g. ``<Version>``) are skipped because they do not alter
     the resolved package graph.
+
+    Changed files matching patterns in ``.civicignore`` are silently skipped.
     """
     plan: list[ScanCommand] = []
     seen: set[tuple[str, Path]] = set()
     csharp_added = False
+    civicignore = _load_civicignore(repo)
 
     for changed_path in sorted(set(changed_files)):
+        if civicignore and _is_ignored(changed_path, civicignore):
+            continue
         name = _relative(changed_path).name
         if name in {"package.json", "package-lock.json", "npm-shrinkwrap.json"}:
             command = _node_plan(repo, changed_path)

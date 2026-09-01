@@ -1,0 +1,17 @@
+# .civicignore — paths excluded from the Dependency Delta scanner.
+#
+# Lines starting with # are comments.  Blank lines are ignored.
+# Each non-comment line is a repository-relative glob pattern (matched
+# with fnmatch.fnmatch, case-sensitive) applied against changed file
+# paths.  Matching files are silently skipped — no scan command is
+# generated and no error is raised.
+#
+# Use cases:
+#   - Projects that require local-only tooling not available on CI
+#     (e.g. CS2 Modding Toolkit for CivicSurvival.csproj)
+#   - Generated lock files that are verified by a different gate
+#   - Documentation-only changes that happen to touch a manifest dir
+
+# CS2 Modding Toolkit projects — dotnet restore requires Mod.props
+# from a local CS2 installation that is unavailable on CI runners.
+CivicSurvival/CivicSurvival.csproj
