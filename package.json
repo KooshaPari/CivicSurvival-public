@@ -1,0 +1,34 @@
+{
+  "name": "civic-survival-public-tooling",
+  "version": "0.3.25",
+  "description": "Tooling configuration for the CivicSurvival public source mirror (CI/QA scripts, tests, scorecard).",
+  "main": "scripts/scorecard_ci.py",
+  "scripts": {
+    "test": "pytest -q",
+    "lint": "ruff check scripts tests",
+    "format": "ruff format scripts tests",
+    "scorecard": "python scripts/scorecard_ci.py .",
+    "scorecard:check": "python scripts/scorecard_ci.py . --fail-on-drop --baseline-file .github/scorecard-baseline.json",
+    "release:current": "python scripts/release.py current",
+    "release:verify": "python scripts/release.py verify"
+  },
+  "keywords": [
+    "civic-survival",
+    "ci",
+    "qa",
+    "tooling",
+    "scorecard",
+    "cs2-mod"
+  ],
+  "author": "Koosha Pari <kooshapari@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KooshaPari/CivicSurvival-public.git"
+  },
+  "bugs": {
+    "url": "https://github.com/KooshaPari/CivicSurvival-public/issues"
+  },
+  "private": true,
+  "note": "This package.json exists for monorepo tooling consistency and to satisfy the scorecard PACKAGE_JSON detector. The actual game UI is bundled separately under CivicSurvival/UI/."
+}
