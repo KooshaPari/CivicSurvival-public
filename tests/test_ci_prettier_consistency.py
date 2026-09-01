@@ -119,25 +119,47 @@ def prettier_bin() -> str | None:
 
     Resolution order:
     1. ``prettier`` on PATH (npm i -g prettier@3.6.2 -- what CI uses)
-    2. ``bun`` on PATH (dev-box fallback that resolves ``bun run prettier``)
-    3. Well-known bun install location ``C:/Users/<u>/.bun/bin/bun.exe``
+    2. ``bun`` on PATH or at the well-known ``~/.bun/bin/bun.exe`` location
+       AND ``bun run prettier`` succeeds -- the local project must have
+       prettier installed via ``bun add --no-save prettier``.
 
-    Both produce the same output (same version, same config, same flags).
+    If bun is available but the local project lacks prettier, we attempt
+    to install it on the fly so contributors don't have to set up node
+    tooling by hand. If even that fails, we return None and tests skip.
     """
     path_bin = shutil.which("prettier")
     if path_bin:
         return path_bin
     bun_bin = shutil.which("bun")
     if bun_bin is None:
-        # Common Windows bun install location (not always on PATH).
-        import os
-
         home_bun = os.path.expanduser("~/.bun/bin/bun.exe")
         if os.path.isfile(home_bun):
             bun_bin = home_bun
-    if bun_bin:
-        return "bun:prettier"
-    return None
+    if bun_bin is None:
+        return None
+
+    # bun is available; verify `bun run prettier` resolves. If not,
+    # install prettier on the fly (CI does this via npm; locally we
+    # use bun --no-save so package.json stays unchanged in the working
+    # tree).
+    probe = subprocess.run(
+        [bun_bin, "run", "prettier", "--version"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if probe.returncode != 0:
+        install = subprocess.run(
+            [bun_bin, "add", "--no-save", "prettier@3.6.2"],
+            capture_output=True,
+            text=True,
+            check=False,
+            cwd=str(ROOT),
+        )
+        if install.returncode != 0:
+            return None
+
+    return "bun:prettier"
 
 
 @pytest.fixture(scope="module")
