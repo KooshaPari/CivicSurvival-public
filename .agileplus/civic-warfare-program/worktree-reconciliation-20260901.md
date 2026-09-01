@@ -1,9 +1,9 @@
 # Civic Worktree Reconciliation Evidence
 
-**Repository**: `KooshaPari/CivicSurvival-public`  
-**Read-only upstream**: `Theorist100/CivicSurvival-public`  
-**Evidence base**: `4f34815f4a29be55799c37071db55dcb30e6a2ee`  
-**Recorded**: 2026-09-01 UTC  
+**Repository**: `KooshaPari/CivicSurvival-public`
+**Read-only upstream**: `Theorist100/CivicSurvival-public`
+**Evidence base**: `4f34815f4a29be55799c37071db55dcb30e6a2ee`
+**Recorded**: 2026-09-01 UTC
 **Cleanup state**: PENDING
 
 This record proves the disposition of the local Civic worktree estate before
