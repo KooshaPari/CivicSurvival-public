@@ -1,0 +1,19 @@
+# CODEOWNERS
+# This file follows the GitHub CODEOWNERS spec:
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+# When a pull request changes a file, the listed owners are auto-requested for review.
+
+# Default owner for everything not matched by a more specific rule below.
+*       @KooshaPari
+
+# Workflow and CI changes touch shared automation; require an extra set of eyes.
+# (Currently the same person, but this is the right shape for the day a second
+# maintainer joins.)
+/.github/        @KooshaPari
+/scripts/ci/     @KooshaPari
+/scripts/dependency_delta.py  @KooshaPari
+/scripts/release.py           @KooshaPari
+/scripts/scorecard_ci.py      @KooshaPari
+
+# Localization is jointly maintained with the community translators.
+/CivicSurvival/Localization/  @KooshaPari
