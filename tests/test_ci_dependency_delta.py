@@ -366,6 +366,134 @@ def test_csproj_version_only_diff_in_real_git_repo_is_accepted(tmp_path):
     assert "No supported dependency manifest changes detected." in result.stdout
 
 
+def test_civicignore_silently_skips_matched_paths(tmp_path):
+    module = load_module()
+    (tmp_path / ".civicignore").write_text(
+        "# ignored manifests\n"
+        "CivicSurvival/CivicSurvival.csproj\n"
+        "CivicSurvival/UI/package.json\n"
+    )
+
+    plan = module.build_scan_plan(
+        tmp_path,
+        [
+            "CivicSurvival/CivicSurvival.csproj",
+            "CivicSurvival/UI/package.json",
+        ],
+    )
+
+    assert plan == []
+
+
+def test_civicignore_does_not_mask_unmatched_paths(tmp_path):
+    module = load_module()
+    (tmp_path / ".civicignore").write_text("CivicSurvival/CivicSurvival.csproj\n")
+    ui = tmp_path / "CivicSurvival" / "UI"
+    ui.mkdir(parents=True)
+    (ui / "package.json").write_text('{"name":"civic-ui"}')
+    (ui / "package-lock.json").write_text('{"lockfileVersion":3}')
+
+    plan = module.build_scan_plan(
+        tmp_path,
+        [
+            "CivicSurvival/CivicSurvival.csproj",
+            "CivicSurvival/UI/package-lock.json",
+        ],
+    )
+
+    assert [(item.ecosystem, item.cwd) for item in plan] == [("node", ui)]
+
+
+def test_civicignore_supports_fnmatch_globs(tmp_path):
+    module = load_module()
+    (tmp_path / ".civicignore").write_text("**/*.csproj\n")
+
+    plan = module.build_scan_plan(
+        tmp_path,
+        ["CivicSurvival/CivicSurvival.csproj"],
+        diff_provider=lambda _r, _p: (
+            "--- a/CivicSurvival/CivicSurvival.csproj\n"
+            "+++ b/CivicSurvival/CivicSurvival.csproj\n"
+            "@@ -10 +10 @@\n"
+            '-  <PackageReference Include="X" />\n'
+            '+  <PackageReference Include="Y" />\n'
+        ),
+    )
+
+    assert plan == []
+
+
+def test_civicignore_blank_and_comment_lines_are_ignored(tmp_path):
+    module = load_module()
+    (tmp_path / ".civicignore").write_text(
+        "\n"
+        "   \n"
+        "# this is a comment\n"
+        "CivicSurvival/CivicSurvival.csproj\n"
+        "# trailing comment\n"
+    )
+    ui = tmp_path / "CivicSurvival" / "UI"
+    ui.mkdir(parents=True)
+    (ui / "package.json").write_text('{"name":"civic-ui"}')
+    (ui / "package-lock.json").write_text('{"lockfileVersion":3}')
+
+    plan = module.build_scan_plan(
+        tmp_path,
+        [
+            "CivicSurvival/CivicSurvival.csproj",
+            "CivicSurvival/UI/package-lock.json",
+        ],
+    )
+
+    assert [(item.ecosystem, item.cwd) for item in plan] == [("node", ui)]
+
+
+def test_missing_civicignore_does_not_fail(tmp_path):
+    module = load_module()
+    assert not (tmp_path / ".civicignore").exists()
+
+    ui = tmp_path / "CivicSurvival" / "UI"
+    ui.mkdir(parents=True)
+    (ui / "package.json").write_text('{"name":"civic-ui"}')
+    (ui / "package-lock.json").write_text('{"lockfileVersion":3}')
+
+    plan = module.build_scan_plan(
+        tmp_path,
+        ["CivicSurvival/UI/package-lock.json"],
+    )
+
+    assert len(plan) == 1
+    assert plan[0].ecosystem == "node"
+
+
+def test_civicignore_is_loaded_only_once_per_call(tmp_path):
+    module = load_module()
+    (tmp_path / ".civicignore").write_text("CivicSurvival/CivicSurvival.csproj\n")
+
+    seen_loads: list[int] = []
+
+    original = module._load_civicignore
+
+    def counting(repo: Path) -> list[str]:
+        seen_loads.append(1)
+        return original(repo)
+
+    module._load_civicignore = counting  # type: ignore[assignment]
+    try:
+        module.build_scan_plan(
+            tmp_path,
+            [
+                "CivicSurvival/CivicSurvival.csproj",
+                "CivicSurvival/CivicSurvival.csproj",
+                "CivicSurvival/CivicSurvival.csproj",
+            ],
+        )
+    finally:
+        module._load_civicignore = original  # type: ignore[assignment]
+
+    assert len(seen_loads) == 1
+
+
 def test_scanner_failure_propagates_to_the_required_gate(tmp_path):
     module = load_module()
     ui = tmp_path / "CivicSurvival" / "UI"

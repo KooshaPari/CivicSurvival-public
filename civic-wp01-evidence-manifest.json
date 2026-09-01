@@ -1,0 +1,121 @@
+{
+  "schema": "civic.wp01.evidence",
+  "schema_version": 1,
+  "subject": {
+    "repository": "KooshaPari/CivicSurvival-public",
+    "commit": "2aa9033bad5736d737ab936836b4201876737720",
+    "ref": "refs/heads/main"
+  },
+  "environment": {
+    "os": "Windows 11 Pro Insider Preview 10.0.28120 Build 28120",
+    "architecture": "x64",
+    "host_class": "licensed-game",
+    "license_basis": "Steam licensed Cities: Skylines II installation",
+    "cpu": "AMD Ryzen 7 5800X 8-Core (8 cores / 16 threads)",
+    "gpu": "NVIDIA GeForce RTX 3090 Ti",
+    "ram_mb": 65434,
+    "dotnet_sdks": ["6.0.201", "8.0.419", "9.0.317", "10.0.201"],
+    "python": "3.14.5",
+    "cs2_version": "Unity 2022.3.71f1",
+    "cs2_assemblies_count": 105
+  },
+  "artifacts": [
+    {
+      "id": "contracts-dll-net8",
+      "path": "CivicSurvival.Contracts/bin/Debug/net8.0/CivicSurvival.Contracts.dll",
+      "sha256": "39109fd422cad953e0d2e13bafb0264667115c0a580d5d7585888d5606bbff95",
+      "size_bytes": 362496
+    },
+    {
+      "id": "game-dll-reference",
+      "path": "C:/Program Files (x86)/Steam/steamapps/common/Cities Skylines II/Cities2_Data/Managed/Game.dll",
+      "sha256": "721e7e17bf74299aa2b988c1bd07e90874bb8bc72d263229500c4bf639e7e4ee",
+      "size_bytes": 12055552
+    }
+  ],
+  "commands": [
+    {
+      "id": "contracts-build",
+      "command": "dotnet build CivicSurvival.Contracts/CivicSurvival.Contracts.csproj --framework net8.0",
+      "exit_code": 0,
+      "note": "Builds successfully with 1 warning (SYSLIB0051 obsolete API)"
+    },
+    {
+      "id": "quality-gate",
+      "command": "python -X utf8 scripts/civic_quality_gate.py --policy .github/civic-quality-policy.json --strict .",
+      "exit_code": 0,
+      "note": "All 12 quality rules pass"
+    },
+    {
+      "id": "contract-check",
+      "command": "python -X utf8 scripts/contract_check.py",
+      "exit_code": 0,
+      "note": "1114 binding values verified"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "WP01:public_audit_build",
+      "status": "pass",
+      "detail": "Contracts build, localization parity, source roots all green. Quality gate 12/12 pass."
+    },
+    {
+      "id": "WP01:baseline_tests",
+      "status": "pass",
+      "detail": "28/29 tests pass. 1 pre-existing failure (Python 3.14 Windows encoding issue in contract_check subprocess)."
+    },
+    {
+      "id": "WP01:licensed_adapter_build",
+      "status": "fail",
+      "detail": "261 errors from missing source-generated code (CivicSurvival.Analyzers not in public snapshot). Framework mismatch (net48/net8.0) resolved by PR #21 multi-targeting."
+    },
+    {
+      "id": "WP01:launch_smoke",
+      "status": "blocked",
+      "detail": "Blocked by WP01:licensed_adapter_build failure."
+    },
+    {
+      "id": "WP01:artifact_hash_provenance",
+      "status": "pass",
+      "detail": "Contracts DLL and Game.dll SHA-256 hashes captured."
+    },
+    {
+      "id": "WP01:quality_gate",
+      "status": "pass",
+      "detail": "All 12 civic quality rules pass. External gate WP01 = pending."
+    },
+    {
+      "id": "WP01:openssf_scorecard",
+      "status": "pass",
+      "detail": "10+ consecutive SUCCESS runs. Invalid codeql-action SHA fixed in PR #12."
+    }
+  ],
+  "decision": {
+    "result": "CONDITIONAL_NO_GO",
+    "reason": "Public snapshot is not buildable end-to-end by design. Source generators (CivicSurvival.Analyzers) excluded from public snapshot produce 261 compile errors. All audit-only gates pass. Framework mismatch resolved.",
+    "blocking_evidence_ids": [
+      "WP01:licensed_adapter_build"
+    ],
+    "resolved_blockers": [
+      {
+        "id": "framework-mismatch",
+        "description": "net48/net8.0 framework mismatch between CS2 Modding Toolkit and CivicSurvival.Contracts",
+        "resolution": "PR #21 multi-targeted CivicSurvival.Contracts to net8.0;net48"
+      }
+    ],
+    "smallest_next_actions": [
+      "Publish CivicSurvival.Analyzers source generators to public snapshot, OR",
+      "Build adapter from private repo and attach as release artifact, OR",
+      "Document public snapshot as read-only audit surface (current state)"
+    ]
+  },
+  "metadata": {
+    "collected_at_utc": "2026-08-31T00:00:00Z",
+    "collector": "Main-PC WP01 runtime-evidence manager",
+    "toolchain_versions": {
+      "dotnet_sdk": "9.0.317",
+      "ruff": "0.16.5",
+      "python": "3.14.5"
+    }
+  }
+}
