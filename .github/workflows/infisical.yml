@@ -8,6 +8,10 @@ on:
   workflow_call:
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event.workflow_run.id || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   sync-secrets:
     name: Pull secrets from Infisical
