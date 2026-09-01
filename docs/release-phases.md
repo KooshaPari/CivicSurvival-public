@@ -7,12 +7,12 @@ documented contract. This file fixes that gap.
 
 ## TL;DR
 
-| Phrase in docs/code | Phrase in this doc | Where it lives |
-|---|---|---|
-| "Phase 1 / 2 / 3 / 4" (USER_GUIDE) | **Wave 1 / 2 / 3 / 4** | `RemoteBalanceConfig.FeatureGates.Waves` |
-| "Unavailable / closed" | **Wave 99 (sentinel)** | `CivicSurvival.Core.Types.FeatureWaveConstants.WAVE_SENTINEL_UNAVAILABLE` |
-| "Preview / dimmed in UI" | **Future wave below sentinel** | `FeatureManifest.IsPreview()` |
-| "Dormant / not registered" | **Future wave** | `FeatureManifest.IsWaveReached()` is `false` |
+| Phrase in docs/code                | Phrase in this doc             | Where it lives                                                            |
+| ---------------------------------- | ------------------------------ | ------------------------------------------------------------------------- |
+| "Phase 1 / 2 / 3 / 4" (USER_GUIDE) | **Wave 1 / 2 / 3 / 4**         | `RemoteBalanceConfig.FeatureGates.Waves`                                  |
+| "Unavailable / closed"             | **Wave 99 (sentinel)**         | `CivicSurvival.Core.Types.FeatureWaveConstants.WAVE_SENTINEL_UNAVAILABLE` |
+| "Preview / dimmed in UI"           | **Future wave below sentinel** | `FeatureManifest.IsPreview()`                                             |
+| "Dormant / not registered"         | **Future wave**                | `FeatureManifest.IsWaveReached()` is `false`                              |
 
 ## The wave system at a glance
 
@@ -39,14 +39,14 @@ named `ReleasePhase` enum. This is deliberate:
 
 ## Code surface
 
-| Concept | Where |
-|---|---|
-| Sentinel for unavailable features | `CivicSurvival/Core/Types/FeatureWaveConstants.cs:5` (`WAVE_SENTINEL_UNAVAILABLE = 99`) |
-| Wave-to-state resolution | `CivicSurvival/Core/Infrastructure/FeatureManifest.cs:44` (`WaveOf`) |
-| Reached vs preview vs unavailable | `CivicSurvival/Core/Infrastructure/FeatureManifest.cs:58` (`IsWaveReached`, `IsPreview`) |
-| Build manifest from balance config | `CivicSurvival/Core/Infrastructure/FeatureManifest.cs:140` (`FromBalance`) |
-| Validate wave ordering invariants | `CivicSurvival/Core/Infrastructure/FeatureManifest.cs:111` (`ValidateWaveOrdering`) |
-| Apply at system registration | `CivicSurvival/Mod.cs:456` (`SystemRegistrar.RegisterAll(updateSystem, manifest)`) |
+| Concept                            | Where                                                                                    |
+| ---------------------------------- | ---------------------------------------------------------------------------------------- |
+| Sentinel for unavailable features  | `CivicSurvival/Core/Types/FeatureWaveConstants.cs:5` (`WAVE_SENTINEL_UNAVAILABLE = 99`)  |
+| Wave-to-state resolution           | `CivicSurvival/Core/Infrastructure/FeatureManifest.cs:44` (`WaveOf`)                     |
+| Reached vs preview vs unavailable  | `CivicSurvival/Core/Infrastructure/FeatureManifest.cs:58` (`IsWaveReached`, `IsPreview`) |
+| Build manifest from balance config | `CivicSurvival/Core/Infrastructure/FeatureManifest.cs:140` (`FromBalance`)               |
+| Validate wave ordering invariants  | `CivicSurvival/Core/Infrastructure/FeatureManifest.cs:111` (`ValidateWaveOrdering`)      |
+| Apply at system registration       | `CivicSurvival/Mod.cs:456` (`SystemRegistrar.RegisterAll(updateSystem, manifest)`)       |
 
 ## Wave ordering invariants
 
@@ -63,12 +63,12 @@ locks this in.
 
 The USER_GUIDE mentions four phases:
 
-| Phase | What ships | Wave | Notes |
-|---|---|---|---|
-| **Phase 1** | Wave execution, air defense, tutorial, scenario, civic narrative, basic economy | 1 | Default wave; features default to wave 1 when no entry is present in the balance config |
-| **Phase 2** | Network topology, Arena, Arena leaderboards, advanced diplomacy | 2 | `Network`, `Arena`, `ArenaUI` are the canonical Phase 2 trio |
-| **Phase 3** | Grid warfare (multi-district cooperation), refugees, mobilization | 3 | `GridWarfare`, `Refugees`, `Mobilization` |
-| **Phase 4** | Cross-domain coordinator features, efficiency telemetry, advanced UI | 4 | `Efficiency`, `DamageAccounting`, full `UIDomain` |
+| Phase       | What ships                                                                      | Wave | Notes                                                                                   |
+| ----------- | ------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------- |
+| **Phase 1** | Wave execution, air defense, tutorial, scenario, civic narrative, basic economy | 1    | Default wave; features default to wave 1 when no entry is present in the balance config |
+| **Phase 2** | Network topology, Arena, Arena leaderboards, advanced diplomacy                 | 2    | `Network`, `Arena`, `ArenaUI` are the canonical Phase 2 trio                            |
+| **Phase 3** | Grid warfare (multi-district cooperation), refugees, mobilization               | 3    | `GridWarfare`, `Refugees`, `Mobilization`                                               |
+| **Phase 4** | Cross-domain coordinator features, efficiency telemetry, advanced UI            | 4    | `Efficiency`, `DamageAccounting`, full `UIDomain`                                       |
 
 Any feature can be **preview-only** (waves > currentWave but < sentinel)
 so the UI can dim-render it as a roadmap hint. To enable a preview
