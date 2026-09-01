@@ -9,8 +9,11 @@ const json = async (file) => JSON.parse(await read(file));
 
 const versionProject = await read("CivicSurvival/CivicSurvival.csproj");
 const manifest = await json("CivicSurvival/manifest.json");
+const publishConfig = await read("CivicSurvival/Properties/PublishConfiguration.xml");
 const version = versionProject.match(/<Version>([^<]+)<\/Version>/)?.[1];
+const publishModVersion = publishConfig.match(/<ModVersion\s+Value="([^"]+)"\s*\/>/)?.[1];
 if (version !== manifest.version_number) failures.push(`version drift: project=${version} manifest=${manifest.version_number}`);
+if (version !== publishModVersion) failures.push(`version drift: project=${version} publishConfig=${publishModVersion}`);
 if (!manifest.website_url || manifest.website_url.includes("yourusername")) failures.push("manifest website URL is not canonical");
 
 const privacy = await read("PRIVACY.md");
