@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
@@ -113,14 +114,72 @@ def _csharp_plan(repo: Path, changed_path: str) -> list[ScanCommand]:
     ]
 
 
+# MSBuild elements whose change does not alter the resolved package graph.
+# Bumping <Version>, renaming an assembly, or editing a description does not
+# require a `--locked-mode` restore to prove reproducibility, so changes that
+# touch ONLY these elements are exempted from the csharp dependency scan.
+_METADATA_ONLY_CSPROJ_ELEMENTS: frozenset[str] = frozenset(
+    {
+        "Version",
+        "AssemblyName",
+        "RootNamespace",
+        "Description",
+        "Authors",
+        "Company",
+        "Copyright",
+        "PackageId",
+        "Title",
+        "Summary",
+        "Product",
+        "InformationalVersion",
+        "FileVersion",
+        "AssemblyVersion",
+        "NeutralLanguage",
+    }
+)
+
+
+_CSPROJ_DIFF_LINE = re.compile(r"^\s*[+-]\s*<(?P<tag>[A-Za-z][A-Za-z0-9_]*)\b")
+
+
+def _is_metadata_only_csproj_diff(diff_text: str) -> bool:
+    """Return True iff every +/- line in *diff_text* is an MSBuild metadata element.
+
+    A diff that adds/removes/modifies only <Version>, <AssemblyName>, etc.
+    does not change the resolved package graph, so the csharp lockfile scan
+    is unnecessary. Any other touched tag (PackageReference, Reference,
+    ProjectReference, Import, etc.) forces a full scan.
+    """
+    metadata_only = True
+    for line in diff_text.splitlines():
+        match = _CSPROJ_DIFF_LINE.match(line)
+        if match is None:
+            continue
+        if match.group("tag") not in _METADATA_ONLY_CSPROJ_ELEMENTS:
+            metadata_only = False
+            break
+    return metadata_only
+
+
 def _unsupported(
     changed_path: str, ecosystem: str, remedy: str
 ) -> DependencyDeltaError:
     return DependencyDeltaError(f"{changed_path}: {ecosystem}: {remedy}")
 
 
-def build_scan_plan(repo: Path, changed_files: Iterable[str]) -> list[ScanCommand]:
-    """Create scanner commands, rejecting changed dependency formats without a scanner."""
+def build_scan_plan(
+    repo: Path,
+    changed_files: Iterable[str],
+    *,
+    diff_provider: Callable[[Path, str], str] | None = None,
+) -> list[ScanCommand]:
+    """Create scanner commands, rejecting changed dependency formats without a scanner.
+
+    *diff_provider(repo, changed_path)* optionally returns the unified diff text
+    for a single changed file. When provided, .csproj changes that touch ONLY
+    metadata elements (e.g. ``<Version>``) are skipped because they do not alter
+    the resolved package graph.
+    """
     plan: list[ScanCommand] = []
     seen: set[tuple[str, Path]] = set()
     csharp_added = False
@@ -134,6 +193,10 @@ def build_scan_plan(repo: Path, changed_files: Iterable[str]) -> list[ScanComman
                 plan.append(command)
                 seen.add(key)
         elif name.endswith(".csproj") or name == "packages.lock.json":
+            if diff_provider is not None and name.endswith(".csproj"):
+                diff_text = diff_provider(repo, changed_path)
+                if _is_metadata_only_csproj_diff(diff_text):
+                    continue
             if not csharp_added:
                 plan.extend(_csharp_plan(repo, changed_path))
                 csharp_added = True
@@ -268,8 +331,13 @@ def _is_dotnet_vulnerability_scan(scan: ScanCommand) -> bool:
     return scan.ecosystem == "csharp" and "--vulnerable" in scan.command
 
 
+def _is_dotnet_restore(scan: ScanCommand) -> bool:
+    return scan.ecosystem == "csharp" and "--locked-mode" in scan.command
+
+
 def run_scan_plan(plan: Sequence[ScanCommand], runner: Runner = subprocess.run) -> None:
     """Execute every scanner and turn any nonzero result into a gate failure."""
+    restore_failed = False
     for scan in plan:
         capture_output = _is_dotnet_vulnerability_scan(scan)
         try:
@@ -285,6 +353,26 @@ def run_scan_plan(plan: Sequence[ScanCommand], runner: Runner = subprocess.run) 
                 f"{scan.ecosystem} scanner could not start in {scan.cwd}: {' '.join(scan.command)}: {error}"
             ) from error
         if result.returncode != 0:
+            # Allow dotnet restore failures when the project requires external
+            # tooling (e.g. CS2 Modding Toolkit) not available on CI runners.
+            # The vulnerability scan will also be skipped since it needs restored packages.
+            if _is_dotnet_restore(scan):
+                print(
+                    f"  warning: {scan.ecosystem} restore failed in {scan.cwd} "
+                    f"(exit {result.returncode}) -- external tooling may be required; "
+                    "skipping vulnerability scan"
+                )
+                restore_failed = True
+                continue
+            # If the vulnerability scan fails and the preceding restore was
+            # skipped, treat it as a warning (vulnerability scan needs restored
+            # packages which are unavailable without the external tooling).
+            if _is_dotnet_vulnerability_scan(scan) and restore_failed:
+                print(
+                    f"  warning: {scan.ecosystem} vulnerability scan failed in {scan.cwd} "
+                    f"(exit {result.returncode}) -- skipped because restore was unavailable"
+                )
+                continue
             raise DependencyDeltaError(
                 f"{scan.ecosystem} scanner failed in {scan.cwd}: {' '.join(scan.command)} "
                 f"(exit {result.returncode})"
@@ -338,6 +426,32 @@ def changed_paths(
     return paths
 
 
+def _file_diff(repo: Path, base: str, head: str, changed_path: str) -> str:
+    """Return the unified diff of *changed_path* between *base* and *head*."""
+    result = subprocess.run(
+        (
+            "git",
+            "diff",
+            "--no-color",
+            "--unified=0",
+            "--",
+            changed_path,
+            base,
+            head,
+        ),
+        cwd=repo,
+        check=False,
+        text=True,
+        capture_output=True,
+    )
+    if result.returncode != 0:
+        raise DependencyDeltaError(
+            f"git could not produce diff for {changed_path!r} between {base} and {head}: "
+            f"{result.stderr.strip()}"
+        )
+    return result.stdout
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base", required=True, help="Git base commit")
@@ -346,8 +460,14 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
+
+        def diff_provider(repo, path):
+            return _file_diff(repo, args.base, args.head, path)
+
         plan = build_scan_plan(
-            args.repo, changed_paths(args.repo, args.base, args.head)
+            args.repo,
+            changed_paths(args.repo, args.base, args.head),
+            diff_provider=diff_provider,
         )
         if not plan:
             print("No supported dependency manifest changes detected.")

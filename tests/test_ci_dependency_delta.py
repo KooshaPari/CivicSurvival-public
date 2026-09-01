@@ -199,6 +199,173 @@ def test_csharp_project_without_lockfile_fails_with_path_ecosystem_and_remedy(tm
     assert "packages.lock.json" in message
 
 
+def test_csproj_version_only_change_is_exempt_from_dependency_scan(tmp_path):
+    module = load_module()
+    diff = (
+        "--- a/CivicSurvival/CivicSurvival.csproj\n"
+        "+++ b/CivicSurvival/CivicSurvival.csproj\n"
+        "@@ -10 +10 @@\n"
+        "-  <Version>0.3.24</Version>\n"
+        "+  <Version>0.3.25</Version>\n"
+    )
+
+    def provider(_repo, _path):
+        return diff
+
+    plan = module.build_scan_plan(
+        tmp_path,
+        ["CivicSurvival/CivicSurvival.csproj"],
+        diff_provider=provider,
+    )
+
+    assert plan == []
+
+
+def test_csproj_description_change_is_exempt_from_dependency_scan(tmp_path):
+    module = load_module()
+    diff = (
+        "--- a/CivicSurvival/CivicSurvival.csproj\n"
+        "+++ b/CivicSurvival/CivicSurvival.csproj\n"
+        "@@ -20 +20 @@\n"
+        "-  <Description>old</Description>\n"
+        "+  <Description>new</Description>\n"
+    )
+
+    plan = module.build_scan_plan(
+        tmp_path,
+        ["CivicSurvival/CivicSurvival.csproj"],
+        diff_provider=lambda _r, _p: diff,
+    )
+
+    assert plan == []
+
+
+def test_csproj_metadata_combined_with_version_is_exempt_from_dependency_scan(tmp_path):
+    module = load_module()
+    diff = (
+        "--- a/CivicSurvival/CivicSurvival.csproj\n"
+        "+++ b/CivicSurvival/CivicSurvival.csproj\n"
+        "@@ -10,3 +10,3 @@\n"
+        "-  <Version>0.3.24</Version>\n"
+        "-  <AssemblyName>CivicSurvival</AssemblyName>\n"
+        "-  <Description>old</Description>\n"
+        "+  <Version>0.3.25</Version>\n"
+        "+  <AssemblyName>CivicSurvival.v2</AssemblyName>\n"
+        "+  <Description>new</Description>\n"
+    )
+
+    plan = module.build_scan_plan(
+        tmp_path,
+        ["CivicSurvival/CivicSurvival.csproj"],
+        diff_provider=lambda _r, _p: diff,
+    )
+
+    assert plan == []
+
+
+def test_csproj_package_reference_change_still_triggers_dependency_scan(tmp_path):
+    module = load_module()
+    diff = (
+        "--- a/CivicSurvival/CivicSurvival.csproj\n"
+        "+++ b/CivicSurvival/CivicSurvival.csproj\n"
+        "@@ -10,3 +10,3 @@\n"
+        "-  <Version>0.3.24</Version>\n"
+        '-  <PackageReference Include="Foo" Version="1.0.0" />\n'
+        "-  <Description>old</Description>\n"
+        "+  <Version>0.3.25</Version>\n"
+        '+  <PackageReference Include="Foo" Version="2.0.0" />\n'
+        "+  <Description>new</Description>\n"
+    )
+
+    with pytest.raises(module.DependencyDeltaError, match="packages.lock.json"):
+        module.build_scan_plan(
+            tmp_path,
+            ["CivicSurvival/CivicSurvival.csproj"],
+            diff_provider=lambda _r, _p: diff,
+        )
+
+
+def test_csproj_target_framework_change_still_triggers_dependency_scan(tmp_path):
+    module = load_module()
+    diff = (
+        "--- a/CivicSurvival/CivicSurvival.csproj\n"
+        "+++ b/CivicSurvival/CivicSurvival.csproj\n"
+        "@@ -1 +1 @@\n"
+        "-<TargetFramework>net8.0</TargetFramework>\n"
+        "+<TargetFramework>net9.0</TargetFramework>\n"
+    )
+
+    with pytest.raises(module.DependencyDeltaError, match="packages.lock.json"):
+        module.build_scan_plan(
+            tmp_path,
+            ["CivicSurvival/CivicSurvival.csproj"],
+            diff_provider=lambda _r, _p: diff,
+        )
+
+
+def test_csproj_no_diff_provider_still_fails_closed_on_csproj_changes(tmp_path):
+    module = load_module()
+    with pytest.raises(module.DependencyDeltaError, match="packages.lock.json"):
+        module.build_scan_plan(tmp_path, ["CivicSurvival/CivicSurvival.csproj"])
+
+
+def test_csproj_version_only_diff_in_real_git_repo_is_accepted(tmp_path):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "--quiet"], cwd=repo, check=True)
+    subprocess.run(
+        ["git", "config", "user.email", "tests@example.invalid"],
+        cwd=repo,
+        check=True,
+    )
+    subprocess.run(["git", "config", "user.name", "Civic tests"], cwd=repo, check=True)
+    (repo / "CivicSurvival.csproj").write_text(
+        "<Project><PropertyGroup>"
+        "<TargetFramework>net8.0</TargetFramework>"
+        "<Version>0.3.24</Version>"
+        "</PropertyGroup></Project>"
+    )
+    subprocess.run(["git", "add", "."], cwd=repo, check=True)
+    subprocess.run(["git", "commit", "--quiet", "-m", "base"], cwd=repo, check=True)
+    base = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+
+    (repo / "CivicSurvival.csproj").write_text(
+        "<Project><PropertyGroup>"
+        "<TargetFramework>net8.0</TargetFramework>"
+        "<Version>0.3.25</Version>"
+        "</PropertyGroup></Project>"
+    )
+    subprocess.run(["git", "add", "."], cwd=repo, check=True)
+    subprocess.run(
+        ["git", "commit", "--quiet", "-m", "version bump"],
+        cwd=repo,
+        check=True,
+    )
+    head = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+
+    result = subprocess.run(
+        [sys.executable, SCRIPT, "--repo", repo, "--base", base, "--head", head],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stdout
+    assert "No supported dependency manifest changes detected." in result.stdout
+
+
 def test_scanner_failure_propagates_to_the_required_gate(tmp_path):
     module = load_module()
     ui = tmp_path / "CivicSurvival" / "UI"

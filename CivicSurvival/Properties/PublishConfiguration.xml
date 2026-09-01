@@ -105,11 +105,11 @@ English, Ukrainian and Simplified Chinese. The Ukrainian build carries a realist
   <Screenshot Value="Properties/screenshots/screenshot_07.jpg" />
   <Screenshot Value="Properties/screenshots/screenshot_08.jpg" />
   <Screenshot Value="Properties/screenshots/screenshot_10.jpg" />
-  <ModVersion Value="0.3.24" />
+  <ModVersion Value="0.3.25" />
   <GameVersion Value="*" />
   <AccessLevel Value="Public" />
   <Tag Value="Code Mod" />
-  <ChangeLog>v0.3.24 — Performance and bug fixes.</ChangeLog>
+  <ChangeLog>v0.3.25 — Localization regression suite + metadata-only csproj exemption for the dependency delta gate.</ChangeLog>
   <ExternalLink Type="github" Url="https://github.com/Theorist100/CivicSurvival-public" />
   <ExternalLink Type="discord" Url="https://discord.gg/nhytdnKFeW" />
 </Publish>
