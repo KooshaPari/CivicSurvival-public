@@ -22,7 +22,7 @@ Each domain implements `IFeatureModule` and registers its ECS systems in `Mod.On
 | 12 | `Scenario` | 2300 | `ScenarioDomain.cs` | State machine, intro, crisis, milestones |
 | 13 | `Tutorial` | 2310 | `TutorialDomain.cs` | Tutorial modals and guidance |
 | 14 | `Attention` | 2400 | `AttentionDomain.cs` | World shock, exodus |
-| 15 | `ThreatUI` | 2500 | `ThreatUIDomain.cs` | Identification, audio, UI for threat display |
+| 15 | `ThreatUI` | 2503 | `ThreatUIDomain.cs` | Identification, audio, UI for threat display |
 | 16 | `ThreatFlight` | 2501 | `ThreatFlightDomain.cs` | Drone/ballistic movement, obstacle avoidance, render sync |
 | 17 | `ThreatDamage` | 2502 | `ThreatDamageDomain.cs` | Arrival detection, debris, damage application |
 | 18 | `AirDefense` | 2510 | `AirDefenseDomain.cs` | AA installations, interception, ammo, tracers |
