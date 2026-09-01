@@ -94,7 +94,9 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
 3. Retire only the proven-redundant worktrees while preserving refs.
 4. Record the actual post-cleanup worktree count, ref-preservation evidence,
    primary-checkout state, and hosted rerun IDs on the successor branch.
-5. Merge the completed reconciliation record through protection.
+5. Only after branch-protection governance is verified stable, merge the
+   completed reconciliation record through protection; auto-merge and queueing
+   are prohibited beforehand.
 6. Close the AgilePlus evidence-recording gap without direct database
    fabrication.
 7. Obtain licensed game-adapter build and launch-smoke evidence.
