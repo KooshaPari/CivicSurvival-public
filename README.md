@@ -2,6 +2,8 @@
 
 **Infrastructure Survival Mod for Cities: Skylines II**
 
+[![AI slop inside](https://sladge.net/badge.svg)](https://sladge.net) [![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/KooshaPari/CivicSurvival-public/total)](https://github.com/KooshaPari/CivicSurvival-public/releases)
+
 > *"Systems critical. Initiating blackout protocol."*
 
 Transform your city into an infrastructure survival challenge: keep the power grid
