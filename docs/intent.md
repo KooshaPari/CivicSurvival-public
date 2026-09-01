@@ -14,6 +14,29 @@ AgilePlus artifacts live under `.agileplus/civic-warfare-program/` and define
 120 functional requirements (`FR-001` through `FR-120`), 20 quality
 requirements (`QR-001` through `QR-020`), and 20 ordered work packages.
 
+## Current Ownership Snapshot (2026-09-01)
+
+The sole writable repository is `KooshaPari/CivicSurvival-public` at verified
+main `4f34815f4a29be55799c37071db55dcb30e6a2ee`. Theorist100 is a read-only
+upstream. The preserved `feat/civic-warfare-program` ref remains immutable at
+`3bd4431b083101669fc9244e2e09afe182c2b10b`. PR #2 was closed unmerged as
+superseded by focused successor PR #3; the source ref remains the provenance
+record rather than an integration candidate.
+
+The source merge train through PR #47 is represented on main, and all 15
+auxiliary local worktrees have been proven content-equivalent to merged
+history. Their removal is still pending the protected preservation checkpoint;
+no branch or ref deletion is authorized. The machine evidence and exact
+disposition matrix are recorded in
+`.agileplus/civic-warfare-program/worktree-reconciliation-20260901.md`.
+
+The checked-in provisional AgilePlus database reports 20 planned WPs with no
+implementation events. The healthy canonical MCP service currently has no
+Civic feature, WPs, governance result, or audit chain, so it does not yet
+provide a supported receipt. WP01 is still `NO-GO`: licensed adapter build,
+launch smoke, artifact provenance, supported AgilePlus receipt, verifier
+success, and conditional `GO` remain required before production warfare work.
+
 ## Directives
 
 - Do not merge production warfare behavior until WP01 is accepted.
@@ -63,8 +86,11 @@ these fields against AgilePlus state before advancing a dependency.
 
 ## Work Package Gate
 
-AgilePlus currently records `civic-warfare-program` as `planned` with all 20
-WPs planned and none doing, review, done, or blocked. WP01 is the first gate:
+The checked-in provisional database records `civic-warfare-program` as
+`planned` with all 20 WPs planned and none doing, review, done, or blocked.
+The canonical MCP service does not currently contain the feature, so these
+counts are planning data rather than accepted engine state. WP01 is the first
+gate:
 
 | Required WP01 evidence                      | Current boundary                              |
 | ------------------------------------------- | --------------------------------------------- |
@@ -109,15 +135,15 @@ is implied by a local branch, a passing local command, or a generated artifact.
 The table above is a historical observation and is intentionally retained as
 provenance. It is not the current hosted state. The current fork state is:
 
-| Ref    | Verified current state                                | Evidence                                                      |
-| ------ | ----------------------------------------------------- | ------------------------------------------------------------- |
-| `main` | `755b994addfa00d603865370e9d9fc5b86b9152e`            | `git ls-remote origin refs/heads/main`                        |
-| PR #21 | merged                                                | dual-target contracts; merge SHA recorded in session evidence |
-| PR #23 | merged at `f39b7b2ba046e0348069f15ff98c5f8e964e3448`  | protected checks and dependency-delta review reconciled       |
-| PR #26 | merged at `d258ae46249019e24eb966b30b1287cf97f2fee1`  | licensed-host build boundary recorded                         |
-| PR #28 | merged at `9d8a99ca6e986f9343286b5b59888db37d500d57`  | zero-review Mergify policy and fail-closed prerequisites      |
-| PR #25 | closed as superseded by PR #28                        | generated Mergify migration notice                            |
-| PR #2  | open preservation branch; dirty/unsupported for merge | provenance only; no blind merge                               |
+| Ref    | Verified current state                               | Evidence                                                      |
+| ------ | ---------------------------------------------------- | ------------------------------------------------------------- |
+| `main` | `755b994addfa00d603865370e9d9fc5b86b9152e`           | `git ls-remote origin refs/heads/main`                        |
+| PR #21 | merged                                               | dual-target contracts; merge SHA recorded in session evidence |
+| PR #23 | merged at `f39b7b2ba046e0348069f15ff98c5f8e964e3448` | protected checks and dependency-delta review reconciled       |
+| PR #26 | merged at `d258ae46249019e24eb966b30b1287cf97f2fee1` | licensed-host build boundary recorded                         |
+| PR #28 | merged at `9d8a99ca6e986f9343286b5b59888db37d500d57` | zero-review Mergify policy and fail-closed prerequisites      |
+| PR #25 | closed as superseded by PR #28                       | generated Mergify migration notice                            |
+| PR #2  | closed unmerged as superseded by PR #3               | source branch preserved; provenance only                      |
 
 The current required branch-protection contexts are `ci / lint`, `ci / test`,
 `Civic Evidence Gate`, `Security Scan`, and `Dependency Delta`. The invalid
