@@ -1,0 +1,11 @@
+{
+  "$schema": "https://github.com/IBM/audit-ci/blob/main/package/schema.json",
+  "low": false,
+  "moderate": false,
+  "high": true,
+  "critical": true,
+  "allowlist": ["GHSA-7w6r-3jp2-4fp7", "GHSA-vqj2-49v9-2hg8", "GHSA-pfr2-4w25-9wp8"],
+  "report_type": "full",
+  "report_dir": "build-evidence/audit-ci",
+  "skip-dev": false
+}

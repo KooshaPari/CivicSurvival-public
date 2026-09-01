@@ -1,0 +1,30 @@
+# .coveragerc for CivicSurvival-public
+# Aligned with the existing pytest --cov invocation in .circleci/config.yml
+# and the new scorecard pillar 30 (CODE_COVERAGE).
+
+[run]
+branch = True
+source = scripts,tests
+omit =
+    tests/__pycache__/*
+    */__pycache__/*
+    build-evidence/*
+    .venv/*
+    venv/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    \.\.\.
+    pass
+
+show_missing = True
+skip_covered = False
+precision = 2
+
+[html]
+directory = build-evidence/coverage-html
+title = CivicSurvival coverage report
