@@ -274,6 +274,7 @@ def _is_dotnet_restore(scan: ScanCommand) -> bool:
 
 def run_scan_plan(plan: Sequence[ScanCommand], runner: Runner = subprocess.run) -> None:
     """Execute every scanner and turn any nonzero result into a gate failure."""
+    restore_failed = False
     for scan in plan:
         capture_output = _is_dotnet_vulnerability_scan(scan)
         try:
@@ -291,12 +292,22 @@ def run_scan_plan(plan: Sequence[ScanCommand], runner: Runner = subprocess.run) 
         if result.returncode != 0:
             # Allow dotnet restore failures when the project requires external
             # tooling (e.g. CS2 Modding Toolkit) not available on CI runners.
-            # The vulnerability scan will still run and catch known CVEs.
+            # The vulnerability scan will also be skipped since it needs restored packages.
             if _is_dotnet_restore(scan):
                 print(
                     f"  warning: {scan.ecosystem} restore failed in {scan.cwd} "
                     f"(exit {result.returncode}) -- external tooling may be required; "
-                    "continuing with vulnerability scan"
+                    "skipping vulnerability scan"
+                )
+                restore_failed = True
+                continue
+            # If the vulnerability scan fails and the preceding restore was
+            # skipped, treat it as a warning (vulnerability scan needs restored
+            # packages which are unavailable without the external tooling).
+            if _is_dotnet_vulnerability_scan(scan) and restore_failed:
+                print(
+                    f"  warning: {scan.ecosystem} vulnerability scan failed in {scan.cwd} "
+                    f"(exit {result.returncode}) -- skipped because restore was unavailable"
                 )
                 continue
             raise DependencyDeltaError(
@@ -310,7 +321,6 @@ def run_scan_plan(plan: Sequence[ScanCommand], runner: Runner = subprocess.run) 
                     "dotnet vulnerability scan found vulnerable packages:\n"
                     + "\n".join(findings)
                 )
-
 
 def changed_paths(
     repo: Path, base: str, head: str, runner: Runner = subprocess.run
