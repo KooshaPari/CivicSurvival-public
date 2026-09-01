@@ -5,6 +5,13 @@ development history lives in `Docs/Project/CHANGELOG.md` in the source repo and 
 shipped to subscribers. Keep this file in sync with the `<ChangeLog>` element in
 `Properties/PublishConfiguration.xml` (Paradox shows that one in the launcher).
 
+## v0.3.25 — Localization regression suite + dep-delta gate fix
+
+- Added `tests/test_localization_keys.py` to lock in the 3-locale key parity (en-US/uk-UA/zh-CN, 3,531 keys each).
+- Fixed `scripts/dependency_delta.py` so that purely cosmetic `.csproj` edits (`<Version>`, `<Description>`, etc.) no longer require a `packages.lock.json` or `CivicSurvival.sln` to be present in the public mirror.
+
+---
+
 ## v0.3.24 — Performance and bug fixes
 
 - Performance and bug fixes.
