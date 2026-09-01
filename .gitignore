@@ -31,3 +31,9 @@ thumbnail.png
 # IDE
 .vs/
 .idea/
+
+# Python — caches from running pytest locally.
+__pycache__/
+.pytest_cache/
+*.pyc
+*.pyo
