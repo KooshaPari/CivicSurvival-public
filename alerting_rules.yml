@@ -1,0 +1,72 @@
+# CivicSurvival Public -- Alerting Rules
+---
+description: >
+  Declares the alerts the maintainer cares about. The actual firing is via
+  GitHub's PR-check status API for the public side and via in-game toast
+  notifications for the client side. Each alert has a name, severity, source,
+  and response workflow.
+public_mirror_alerts:
+  - id: public-audit-version-drift
+    severity: high
+    source: scripts/ci/check-public-audit.mjs
+    description: csproj / manifest / publishConfig disagree on the version.
+    response: fix the surfaces and re-run.
+  - id: dependency-delta-missing-lockfile
+    severity: high
+    source: scripts/dependency_delta.py
+    description: >
+      A .csproj changed but no packages.lock.json is present. Either regenerate
+      the lockfile or add a metadata-only exemption (see PR #47).
+    response: regenerate lockfile or extend the metadata-only exemption.
+  - id: scorecard-regression
+    severity: medium
+    source: scripts/scorecard_ci.py --fail-on-drop
+    description: >
+      A previously-tracked pillar ID no longer passes on the live repo.
+    response: >
+      Diagnose via scripts/scorecard_ci.py, restore the contributing file,
+      and bump the baseline via chore/scorecard-baseline.
+  - id: localization-drift
+    severity: medium
+    source: tests/test_localization_keys.py
+    description: >
+      The 3 locales (en-US / uk-UA / zh-CN) disagree on which keys exist.
+    response: run `make loc-audit` and fix drift.
+  - id: license-checker-fail
+    severity: medium
+    source: license-checker.json (declarative)
+    description: a new dependency has a license not on the allowlist.
+    response: add the license to the allowlist with rationale.
+  - id: format-lint-fail
+    severity: low
+    source: ruff check, ruff format --check, prettier --check
+    description: code or docs are not formatted.
+    response: ruff format / prettier --write.
+  - id: baseline-freshness
+    severity: low
+    source: tests/test_scorecard_baseline_freshness.py
+    description: >
+      The scorecard baseline is stale relative to the current passing state.
+    response: >
+      Bump the baseline intentionally and commit; do not auto-bump without
+      a justification comment in the PR.
+
+client_side_alerts:
+  - id: crash-pattern-detected
+    severity: high
+    source: Telemetry/CrashDetector.cs
+    description: same N-frame pattern seen >=3 times this session.
+  - id: save-corrupt-suspected
+    severity: high
+    source: Telemetry/SaveMetrics.cs
+    description: sha256 mismatch on save write + load.
+  - id: domain-tick-budget-exceeded
+    severity: medium
+    source: Telemetry/PerformanceWatchdog.cs
+    description: domain tick > 16ms for >=5 consecutive frames.
+  - id: config-churn
+    severity: low
+    source: Telemetry/ConfigChurnDetector.cs
+    description: same config key toggled >=10 times in <60s.
+
+# Last updated: 2026-09-01.

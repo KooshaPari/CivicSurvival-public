@@ -46,7 +46,7 @@ packages = []
 
 [tool.pytest.ini_options]
 minversion = "8.0"
-testpaths = ["tests"]
+testpaths = ["tests", "benches"]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
 addopts = [
@@ -59,6 +59,7 @@ markers = [
     "fuzz: property-based fuzz tests (uses Hypothesis)",
     "bench: pytest-benchmark performance gates",
     "stress: soak / stress tests (long-running)",
+    "e2e: end-to-end tests requiring the CS2 runtime (run in the closed CI)",
     "env_sensitive: requires external CLI not present on all hosts",
 ]
 filterwarnings = [
