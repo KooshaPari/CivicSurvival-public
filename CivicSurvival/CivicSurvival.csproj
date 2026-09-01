@@ -15,7 +15,7 @@
     <PropertyGroup>
         <!-- Mod information -->
         <Title>Civic Survival</Title>
-        <Version>0.3.24</Version>
+        <Version>0.3.25</Version>
         <Description>Infrastructure survival mod. Manage power grids, schedule outages, protect critical systems. One mod, two experiences.</Description>
         <Authors>Theorist100</Authors>
         <Copyright>Copyright © 2026 Theorist100</Copyright>
