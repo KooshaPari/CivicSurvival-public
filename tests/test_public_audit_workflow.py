@@ -66,9 +66,7 @@ def _assert_no_secret_or_environment_surface(workflow: dict) -> None:
 def test_public_audit_cache_supports_both_npm_lockfiles():
     workflow = _workflow()
     steps = workflow["jobs"]["public-audit"]["steps"]
-    setup_nodes = [
-        step for step in steps if "actions/setup-node@" in step.get("uses", "")
-    ]
+    setup_nodes = [step for step in steps if "actions/setup-node@" in step.get("uses", "")]
 
     assert set(workflow["on"]) == {"push", "pull_request"}
     assert len(setup_nodes) == 1, f"expected one setup-node step, found {setup_nodes!r}"
@@ -86,9 +84,7 @@ def test_public_audit_cache_change_has_no_secret_or_environment_surface():
     _assert_no_secret_or_environment_surface(workflow)
 
 
-@pytest.mark.parametrize(
-    "expression", ["${{ secrets.TOKEN }}", "${{ secrets['TOKEN'] }}"]
-)
+@pytest.mark.parametrize("expression", ["${{ secrets.TOKEN }}", "${{ secrets['TOKEN'] }}"])
 def test_public_audit_rejects_secret_context_syntax(expression):
     workflow = _workflow()
     workflow["jobs"]["public-audit"]["name"] = expression
@@ -124,11 +120,7 @@ def test_workflow_parser_surfaces_sanitized_diagnostics(tmp_path):
 
 def test_hosted_python_job_runs_public_audit_workflow_policy_tests():
     workflow = _workflow(CI_WORKFLOW)
-    steps = {
-        step["name"]: step
-        for step in workflow["jobs"]["python"]["steps"]
-        if "name" in step
-    }
+    steps = {step["name"]: step for step in workflow["jobs"]["python"]["steps"] if "name" in step}
     test_path = "tests/test_public_audit_workflow.py"
 
     assert test_path in steps["Ruff check dependency delta"]["run"]

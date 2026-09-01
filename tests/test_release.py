@@ -97,9 +97,7 @@ def test_version_parse_strips_whitespace():
     assert release.Version.parse("  1.2.3  ") == release.Version(1, 2, 3)
 
 
-@pytest.mark.parametrize(
-    "bad", ["", "1.2", "1.2.3.4", "1.2.x", "v1.2.3", "1.-2.3", "  "]
-)
+@pytest.mark.parametrize("bad", ["", "1.2", "1.2.3.4", "1.2.x", "v1.2.3", "1.-2.3", "  "])
 def test_version_parse_rejects_invalid_inputs(bad: str):
     with pytest.raises(ValueError, match="invalid version"):
         release.Version.parse(bad)
@@ -147,9 +145,7 @@ def test_current_version_returns_none_when_xml_mod_version_drifts(repo: Path):
 # ---------------------------------------------------------------------------
 
 
-def test_bump_writes_all_four_surfaces_atomically(
-    repo: Path, monkeypatch: pytest.MonkeyPatch
-):
+def test_bump_writes_all_four_surfaces_atomically(repo: Path, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.chdir(repo)
     code = release.main(
         [
@@ -305,18 +301,14 @@ def test_bump_requires_non_empty_title(repo: Path, monkeypatch: pytest.MonkeyPat
 # ---------------------------------------------------------------------------
 
 
-def test_cmd_current_prints_version_when_consistent(
-    repo: Path, capsys: pytest.CaptureFixture[str]
-):
+def test_cmd_current_prints_version_when_consistent(repo: Path, capsys: pytest.CaptureFixture[str]):
     code = release.main(["--repo", str(repo), "current"])
     out = capsys.readouterr().out
     assert code == 0
     assert out.strip() == "0.3.25"
 
 
-def test_cmd_current_exits_one_when_inconsistent(
-    repo: Path, capsys: pytest.CaptureFixture[str]
-):
+def test_cmd_current_exits_one_when_inconsistent(repo: Path, capsys: pytest.CaptureFixture[str]):
     paths = _paths(repo)
     text = _read(paths.csproj)
     text = text.replace("<Version>0.3.25</Version>", "<Version>9.9.9</Version>")

@@ -18,7 +18,9 @@ def run(repo: Path, manifest: Path):
 
 def git_head(repo: Path) -> str:
     subprocess.run(["git", "init", "--quiet", str(repo)], check=True)
-    subprocess.run(["git", "-C", str(repo), "config", "user.email", "tests@example.invalid"], check=True)
+    subprocess.run(
+        ["git", "-C", str(repo), "config", "user.email", "tests@example.invalid"], check=True
+    )
     subprocess.run(["git", "-C", str(repo), "config", "user.name", "Civic tests"], check=True)
     subprocess.run(["git", "-C", str(repo), "add", "evidence.txt"], check=True)
     subprocess.run(["git", "-C", str(repo), "commit", "--quiet", "-m", "evidence"], check=True)
@@ -27,7 +29,9 @@ def git_head(repo: Path) -> str:
 
 def test_template_is_pending(tmp_path):
     manifest = tmp_path / "evidence.json"
-    manifest.write_text((ROOT / ".agileplus/civic-warfare-program/wp01-evidence.template.json").read_text())
+    manifest.write_text(
+        (ROOT / ".agileplus/civic-warfare-program/wp01-evidence.template.json").read_text()
+    )
     result = run(tmp_path, manifest)
     assert result.returncode == 1
     assert "pending" in result.stdout
@@ -42,12 +46,39 @@ def test_accepted_manifest_verifies_hashes_and_host(tmp_path):
     manifest.write_text(
         json.dumps(
             {
-                "schema": "civic.wp01.evidence", "schema_version": 1,
+                "schema": "civic.wp01.evidence",
+                "schema_version": 1,
                 "subject": {"commit": subject_commit},
                 "environment": {"host_class": "licensed-game", "license_basis": "record"},
-                "artifacts": [{"artifact_id": "out", "path": "evidence.txt", "size_bytes": artifact.stat().st_size, "sha256": digest}],
+                "artifacts": [
+                    {
+                        "artifact_id": "out",
+                        "path": "evidence.txt",
+                        "size_bytes": artifact.stat().st_size,
+                        "sha256": digest,
+                    }
+                ],
                 "commands": [{"command_id": "run"}],
-                "evidence": [{"evidence_id": evidence_id, "status": "pass", "subject_commit": subject_commit, "command_ids": ["run"], "artifact_ids": ["out"]} for evidence_id in sorted({"WP01:public_audit_build", "WP01:baseline_tests", "WP01:licensed_adapter_build", "WP01:launch_smoke", "WP01:artifact_hash_provenance", "WP01:agileplus_evidence_record", "WP01:conditional_go_no_go_pass"})],
+                "evidence": [
+                    {
+                        "evidence_id": evidence_id,
+                        "status": "pass",
+                        "subject_commit": subject_commit,
+                        "command_ids": ["run"],
+                        "artifact_ids": ["out"],
+                    }
+                    for evidence_id in sorted(
+                        {
+                            "WP01:public_audit_build",
+                            "WP01:baseline_tests",
+                            "WP01:licensed_adapter_build",
+                            "WP01:launch_smoke",
+                            "WP01:artifact_hash_provenance",
+                            "WP01:agileplus_evidence_record",
+                            "WP01:conditional_go_no_go_pass",
+                        }
+                    )
+                ],
                 "decision": {"result": "GO"},
             }
         )
@@ -67,12 +98,39 @@ def test_tampered_artifact_is_rejected(tmp_path):
     manifest.write_text(
         json.dumps(
             {
-                "schema": "civic.wp01.evidence", "schema_version": 1,
+                "schema": "civic.wp01.evidence",
+                "schema_version": 1,
                 "subject": {"commit": subject_commit},
                 "environment": {"host_class": "licensed-game", "license_basis": "record"},
-                "artifacts": [{"artifact_id": "out", "path": "evidence.txt", "size_bytes": artifact.stat().st_size, "sha256": digest}],
+                "artifacts": [
+                    {
+                        "artifact_id": "out",
+                        "path": "evidence.txt",
+                        "size_bytes": artifact.stat().st_size,
+                        "sha256": digest,
+                    }
+                ],
                 "commands": [{"command_id": "run"}],
-                "evidence": [{"evidence_id": evidence_id, "status": "pass", "subject_commit": subject_commit, "command_ids": ["run"], "artifact_ids": ["out"]} for evidence_id in sorted({"WP01:public_audit_build", "WP01:baseline_tests", "WP01:licensed_adapter_build", "WP01:launch_smoke", "WP01:artifact_hash_provenance", "WP01:agileplus_evidence_record", "WP01:conditional_go_no_go_pass"})],
+                "evidence": [
+                    {
+                        "evidence_id": evidence_id,
+                        "status": "pass",
+                        "subject_commit": subject_commit,
+                        "command_ids": ["run"],
+                        "artifact_ids": ["out"],
+                    }
+                    for evidence_id in sorted(
+                        {
+                            "WP01:public_audit_build",
+                            "WP01:baseline_tests",
+                            "WP01:licensed_adapter_build",
+                            "WP01:launch_smoke",
+                            "WP01:artifact_hash_provenance",
+                            "WP01:agileplus_evidence_record",
+                            "WP01:conditional_go_no_go_pass",
+                        }
+                    )
+                ],
                 "decision": {"result": "GO"},
             }
         )
@@ -89,7 +147,9 @@ def test_non_object_manifest_fields_fail_closed(tmp_path):
     assert result.returncode == 1
     assert "top level must be an object" in result.stderr
 
-    manifest.write_text(json.dumps({"schema": "civic.wp01.evidence", "schema_version": 1, "decision": []}))
+    manifest.write_text(
+        json.dumps({"schema": "civic.wp01.evidence", "schema_version": 1, "decision": []})
+    )
     result = run(tmp_path, manifest)
     assert result.returncode == 1
     assert "decision must be an object" in result.stderr
@@ -100,7 +160,16 @@ def test_subject_commit_must_match_checkout(tmp_path):
     artifact.write_text("licensed smoke output\n")
     subject_commit = git_head(tmp_path)
     manifest = tmp_path / "evidence.json"
-    manifest.write_text(json.dumps({"schema": "civic.wp01.evidence", "schema_version": 1, "subject": {"commit": "a" * 40}, "decision": {"result": "GO"}}))
+    manifest.write_text(
+        json.dumps(
+            {
+                "schema": "civic.wp01.evidence",
+                "schema_version": 1,
+                "subject": {"commit": "a" * 40},
+                "decision": {"result": "GO"},
+            }
+        )
+    )
     result = run(tmp_path, manifest)
     assert result.returncode == 1
     assert subject_commit in result.stderr
@@ -111,7 +180,21 @@ def test_malformed_command_and_evidence_entries_fail_closed(tmp_path):
     artifact.write_text("x\n")
     subject_commit = git_head(tmp_path)
     manifest = tmp_path / "evidence.json"
-    common = {"schema": "civic.wp01.evidence", "schema_version": 1, "subject": {"commit": subject_commit}, "environment": {"host_class": "licensed-game", "license_basis": "test"}, "artifacts": [{"artifact_id": "out", "path": "evidence.txt", "size_bytes": artifact.stat().st_size, "sha256": hashlib.sha256(artifact.read_bytes()).hexdigest()}], "decision": {"result": "GO"}}
+    common = {
+        "schema": "civic.wp01.evidence",
+        "schema_version": 1,
+        "subject": {"commit": subject_commit},
+        "environment": {"host_class": "licensed-game", "license_basis": "test"},
+        "artifacts": [
+            {
+                "artifact_id": "out",
+                "path": "evidence.txt",
+                "size_bytes": artifact.stat().st_size,
+                "sha256": hashlib.sha256(artifact.read_bytes()).hexdigest(),
+            }
+        ],
+        "decision": {"result": "GO"},
+    }
     manifest.write_text(json.dumps({**common, "commands": ["run"]}))
     result = run(tmp_path, manifest)
     assert result.returncode == 1
@@ -125,7 +208,9 @@ def test_malformed_command_and_evidence_entries_fail_closed(tmp_path):
 
 def test_duplicate_json_keys_are_rejected(tmp_path):
     manifest = tmp_path / "evidence.json"
-    manifest.write_text('{"schema":"civic.wp01.evidence","schema":"civic.wp01.evidence","schema_version":1}')
+    manifest.write_text(
+        '{"schema":"civic.wp01.evidence","schema":"civic.wp01.evidence","schema_version":1}'
+    )
     result = run(tmp_path, manifest)
     assert result.returncode == 2
     assert "duplicate JSON key" in result.stderr
@@ -136,7 +221,21 @@ def test_non_string_ids_fail_closed(tmp_path):
     artifact.write_text("x\n")
     subject_commit = git_head(tmp_path)
     manifest = tmp_path / "evidence.json"
-    base = {"schema": "civic.wp01.evidence", "schema_version": 1, "subject": {"commit": subject_commit}, "environment": {"host_class": "licensed-game", "license_basis": "test"}, "artifacts": [{"artifact_id": "out", "path": "evidence.txt", "size_bytes": artifact.stat().st_size, "sha256": hashlib.sha256(artifact.read_bytes()).hexdigest()}], "decision": {"result": "GO"}}
+    base = {
+        "schema": "civic.wp01.evidence",
+        "schema_version": 1,
+        "subject": {"commit": subject_commit},
+        "environment": {"host_class": "licensed-game", "license_basis": "test"},
+        "artifacts": [
+            {
+                "artifact_id": "out",
+                "path": "evidence.txt",
+                "size_bytes": artifact.stat().st_size,
+                "sha256": hashlib.sha256(artifact.read_bytes()).hexdigest(),
+            }
+        ],
+        "decision": {"result": "GO"},
+    }
     manifest.write_text(json.dumps({**base, "commands": [{"command_id": []}]}))
     result = run(tmp_path, manifest)
     assert result.returncode == 1
@@ -190,7 +289,20 @@ def test_unhashable_artifact_id_fails_closed(tmp_path):
     artifact.write_text("")
     subject_commit = git_head(tmp_path)
     manifest = tmp_path / "evidence.json"
-    manifest.write_text(json.dumps({"schema": "civic.wp01.evidence", "schema_version": 1, "subject": {"commit": subject_commit}, "environment": {"host_class": "licensed-game", "license_basis": "test"}, "decision": {"result": "GO"}, "artifacts": [{"artifact_id": [], "path": "evidence.txt", "size_bytes": 0, "sha256": "0" * 64}]}))
+    manifest.write_text(
+        json.dumps(
+            {
+                "schema": "civic.wp01.evidence",
+                "schema_version": 1,
+                "subject": {"commit": subject_commit},
+                "environment": {"host_class": "licensed-game", "license_basis": "test"},
+                "decision": {"result": "GO"},
+                "artifacts": [
+                    {"artifact_id": [], "path": "evidence.txt", "size_bytes": 0, "sha256": "0" * 64}
+                ],
+            }
+        )
+    )
     result = run(tmp_path, manifest)
     assert result.returncode == 1
     assert "non-empty string artifact_id" in result.stderr

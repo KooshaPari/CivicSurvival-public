@@ -96,7 +96,9 @@ def _text_probe(repo: Path, rule: dict[str, Any]) -> str | None:
 
 
 def _workflow_probe(repo: Path, rule: dict[str, Any]) -> str | None:
-    return _text_probe(repo, {"path": rule["path"], "contains": rule.get("contains", rule.get("tokens", []))})
+    return _text_probe(
+        repo, {"path": rule["path"], "contains": rule.get("contains", rule.get("tokens", []))}
+    )
 
 
 def _program_probe(repo: Path, rule: dict[str, Any]) -> str | None:
@@ -111,7 +113,10 @@ def _program_traceability(repo: Path, rule: dict[str, Any]) -> str | None:
     reason = _program_probe(repo, rule)
     if reason:
         return reason
-    fr_text = "\n".join(safe_path(repo, rel).read_text(encoding="utf-8", errors="replace") for rel in rule.get("requirement_paths", []))
+    fr_text = "\n".join(
+        safe_path(repo, rel).read_text(encoding="utf-8", errors="replace")
+        for rel in rule.get("requirement_paths", [])
+    )
     for prefix, expected in (("FR", 120), ("QR", 20)):
         values = re.findall(rf"\b{prefix}-(\d{{3}})\b", fr_text)
         unique = {int(value) for value in values}
@@ -135,17 +140,26 @@ def _program_dag(repo: Path, rule: dict[str, Any]) -> str | None:
         return reason
     plan = safe_path(repo, rule["plan_path"]).read_text(encoding="utf-8", errors="replace")
     try:
-        governance = json.loads(safe_path(repo, rule["governance_path"]).read_text(encoding="utf-8"))
+        governance = json.loads(
+            safe_path(repo, rule["governance_path"]).read_text(encoding="utf-8")
+        )
     except (KeyError, json.JSONDecodeError, OSError) as exc:
         return f"invalid governance JSON: {exc}"
-    transitions = {item.get("transition") for item in governance.get("rules", []) if isinstance(item, dict)}
+    transitions = {
+        item.get("transition") for item in governance.get("rules", []) if isinstance(item, dict)
+    }
     for number in range(1, 21):
         wp = f"WP{number:02d}"
-        if f"{wp}: Doing -> Review" not in transitions or f"{wp}: Review -> Done" not in transitions:
+        if (
+            f"{wp}: Doing -> Review" not in transitions
+            or f"{wp}: Review -> Done" not in transitions
+        ):
             return f"governance is missing transitions for {wp}"
     go_no_go_path = rule.get("go_no_go_path")
     if go_no_go_path:
-        go_no_go = safe_path(repo, go_no_go_path).read_text(encoding="utf-8", errors="replace").lower()
+        go_no_go = (
+            safe_path(repo, go_no_go_path).read_text(encoding="utf-8", errors="replace").lower()
+        )
         if "conditional no-go" not in go_no_go or "licensed" not in go_no_go:
             return "WP01 go/no-go must retain the licensed-host conditional boundary"
     nodes = {f"WP{i:02d}" for i in range(1, 21)}
@@ -198,12 +212,22 @@ def evaluate(repo: Path, policy: dict[str, Any]) -> dict[str, Any]:
         kind = rule["kind"]
         reason: str | None = None
         if kind == "all_paths_exist":
-            missing = [value for value in rule.get("paths", []) if not safe_path(repo, value).is_file()]
+            missing = [
+                value for value in rule.get("paths", []) if not safe_path(repo, value).is_file()
+            ]
             reason = f"missing files: {', '.join(missing)}" if missing else None
         elif kind in {"text_contains", "workflow_steps"}:
-            reason = _text_probe(repo, rule) if kind == "text_contains" else _workflow_probe(repo, rule)
+            reason = (
+                _text_probe(repo, rule) if kind == "text_contains" else _workflow_probe(repo, rule)
+            )
         elif kind == "external_gate":
-            external.append({"external": True, "id": rule.get("external_id", "WP01"), "state": rule.get("state", "pending")})
+            external.append(
+                {
+                    "external": True,
+                    "id": rule.get("external_id", "WP01"),
+                    "state": rule.get("state", "pending"),
+                }
+            )
         elif kind == "program_traceability":
             reason = _program_traceability(repo, rule)
         elif kind == "program_dag":
@@ -249,7 +273,10 @@ def main(argv: list[str] | None = None) -> int:
     except (PolicyError, KeyError, OSError) as exc:
         print(f"civic quality gate error: {exc}", file=sys.stderr)
         return 2
-    print(json.dumps(report, sort_keys=True) if args.output == "json" else render_markdown(report), end="" if args.output == "json" else "")
+    print(
+        json.dumps(report, sort_keys=True) if args.output == "json" else render_markdown(report),
+        end="" if args.output == "json" else "",
+    )
     return 0 if report["required_passed"] else 1
 
 

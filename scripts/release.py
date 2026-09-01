@@ -43,9 +43,7 @@ class Version:
     def parse(cls, raw: str) -> "Version":
         match = VERSION_RE.match(raw.strip())
         if not match:
-            raise ValueError(
-                f"invalid version {raw!r}: expected MAJOR.MINOR.PATCH (digits only)"
-            )
+            raise ValueError(f"invalid version {raw!r}: expected MAJOR.MINOR.PATCH (digits only)")
         return cls(int(match.group(1)), int(match.group(2)), int(match.group(3)))
 
     def __str__(self) -> str:
@@ -80,9 +78,7 @@ class ReleasePaths:
 # Readers -- one per surface, each returns a single source-of-truth string.
 # ---------------------------------------------------------------------------
 
-_CSPROJ_VERSION_RE = re.compile(
-    r"<Version>\s*([0-9]+\.[0-9]+\.[0-9]+)\s*</Version>", re.IGNORECASE
-)
+_CSPROJ_VERSION_RE = re.compile(r"<Version>\s*([0-9]+\.[0-9]+\.[0-9]+)\s*</Version>", re.IGNORECASE)
 _XML_MOD_VERSION_RE = re.compile(r'<ModVersion\s+Value="([0-9]+\.[0-9]+\.[0-9]+)"\s*/>')
 
 
@@ -123,9 +119,7 @@ def read_current_version(paths: ReleasePaths) -> Version | None:
 
 def write_csproj_version(paths: ReleasePaths, version: Version) -> None:
     text = _read_text(paths.csproj)
-    new_text, count = _CSPROJ_VERSION_RE.subn(
-        f"<Version>{version}</Version>", text, count=1
-    )
+    new_text, count = _CSPROJ_VERSION_RE.subn(f"<Version>{version}</Version>", text, count=1)
     if count == 0:
         raise FileNotFoundError(f"no <Version> element found in {paths.csproj}")
     paths.csproj.write_text(new_text, encoding="utf-8")
@@ -142,9 +136,7 @@ def write_manifest_version(paths: ReleasePaths, version: Version) -> None:
 
 def write_xml_mod_version(paths: ReleasePaths, version: Version) -> None:
     text = _read_text(paths.xml)
-    new_text, count = _XML_MOD_VERSION_RE.subn(
-        f'<ModVersion Value="{version}" />', text, count=1
-    )
+    new_text, count = _XML_MOD_VERSION_RE.subn(f'<ModVersion Value="{version}" />', text, count=1)
     if count == 0:
         raise FileNotFoundError(f"no <ModVersion> element found in {paths.xml}")
     paths.xml.write_text(new_text, encoding="utf-8")
@@ -274,8 +266,7 @@ def cmd_bump(args: argparse.Namespace) -> int:
     post = read_current_version(paths)
     if post != new_version:
         print(
-            f"release: post-bump verification failed -- read back {post}, "
-            f"expected {new_version}",
+            f"release: post-bump verification failed -- read back {post}, expected {new_version}",
             file=sys.stderr,
         )
         return 1
@@ -305,12 +296,8 @@ def _build_parser() -> argparse.ArgumentParser:
     sub.add_parser("verify", help="Exit 0 if all surfaces agree on the version, else 1")
 
     bump = sub.add_parser("bump", help="Bump the version across all surfaces")
-    bump.add_argument(
-        "--version", required=True, help="New version (MAJOR.MINOR.PATCH)"
-    )
-    bump.add_argument(
-        "--title", required=True, help="Heading for the new CHANGELOG.md section"
-    )
+    bump.add_argument("--version", required=True, help="New version (MAJOR.MINOR.PATCH)")
+    bump.add_argument("--title", required=True, help="Heading for the new CHANGELOG.md section")
     bump.add_argument(
         "--summary",
         required=True,

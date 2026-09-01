@@ -37,7 +37,11 @@ def test_complete_file_and_text_policy_passes(tmp_path):
     policy = write_policy(
         tmp_path,
         [
-            {"id": "CIVIC-DOC-001", "kind": "all_paths_exist", "paths": ["README.md", "BUILDING.md"]},
+            {
+                "id": "CIVIC-DOC-001",
+                "kind": "all_paths_exist",
+                "paths": ["README.md", "BUILDING.md"],
+            },
             {
                 "id": "CIVIC-DOC-002",
                 "kind": "text_contains",
@@ -68,10 +72,22 @@ def test_missing_required_evidence_is_actionable(tmp_path):
 @pytest.mark.parametrize(
     "policy_data",
     [
-        {"version": 1, "required_rule_ids": ["A", "A"], "rules": [{"id": "A", "kind": "all_paths_exist", "paths": []}]},
-        {"version": 1, "required_rule_ids": ["A"], "rules": [{"id": "A", "kind": "unknown", "paths": []}]},
+        {
+            "version": 1,
+            "required_rule_ids": ["A", "A"],
+            "rules": [{"id": "A", "kind": "all_paths_exist", "paths": []}],
+        },
+        {
+            "version": 1,
+            "required_rule_ids": ["A"],
+            "rules": [{"id": "A", "kind": "unknown", "paths": []}],
+        },
         {"version": 1, "required_rule_ids": [], "rules": []},
-        {"version": 1, "required_rule_ids": ["A"], "rules": [{"id": "A", "kind": "all_paths_exist", "paths": [7]}]},
+        {
+            "version": 1,
+            "required_rule_ids": ["A"],
+            "rules": [{"id": "A", "kind": "all_paths_exist", "paths": [7]}],
+        },
     ],
 )
 def test_malformed_policy_exits_two(tmp_path, policy_data):
