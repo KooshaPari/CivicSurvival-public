@@ -1,0 +1,53 @@
+# Dependabot configuration
+# See: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+
+updates:
+  # .NET / NuGet ecosystem — covers CivicSurvival.csproj + CivicSurvival.Contracts.csproj.
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    groups:
+      microsoft-aspnet:
+        patterns:
+          - "Microsoft.AspNetCore*"
+          - "Microsoft.Extensions*"
+      monomodular:
+        patterns:
+          - "Mono*"
+          - "Unity*"
+    commit-message:
+      prefix: "deps(nuget)"
+    labels:
+      - "dependencies"
+      - "nuget"
+
+  # GitHub Actions — keep workflow actions pinned and current.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci(actions)"
+    labels:
+      - "dependencies"
+      - "github-actions"
+
+  # Python ecosystem — scripts/ and tests/.
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "deps(pip)"
+    labels:
+      - "dependencies"
+      - "pip"
