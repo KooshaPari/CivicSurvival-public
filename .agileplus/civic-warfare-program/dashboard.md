@@ -5,6 +5,7 @@
 **Dated reconciliation snapshot**: `4f34815f4a29be55799c37071db55dcb30e6a2ee`
 **Observed fork main / branch base (2026-09-01 09:32 UTC)**: `7f221f897f877aa5b2fea50b5969c67845928c01`
 **Canonical MCP state**: healthy service; Civic feature absent; evidence receipt unavailable
+**Resume marker**: 2026-09-01 GLM session handoff after Codex `019fab2f-4c10-7770-b288-0e5826ed1ad5` hit usage limit; active branch is `docs/civic-reconciliation-governance-hard-stop-20260901` at `94767dc5198ffd0a926958ba649f6590bdbf0241`.
 
 ```text
 Specification     [##########] 100%  120/120 FRs defined
