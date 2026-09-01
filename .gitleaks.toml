@@ -1,0 +1,35 @@
+# gitleaks configuration for CivicSurvival-public
+# https://github.com/gitleaks/gitleaks
+
+title = "CivicSurvival gitleaks config"
+
+# Allowlist rules for known-safe patterns in this public mirror.
+# The repo contains mod metadata, build evidence, and pre-commit artifacts
+# that may include strings which look like secrets but are not.
+[allowlist]
+description = "Public-transparency mirror allowlist"
+paths = [
+  # Build evidence and CI cache artifacts
+  '''build-evidence/.*''',
+  '''_build_detail\.log''',
+  '''civic-wp01-evidence-manifest\.json''',
+  # Test fixtures and evidence docs (synthetic data only)
+  '''tests/.*\.json''',
+  '''docs/sessions/.*''',
+  # Localization data (player-visible strings, no real secrets)
+  '''CivicSurvival/Localization/.*''',
+  # License-keyed build outputs
+  '''CivicSurvival/Properties/.*''',
+]
+# Allowlist specific strings that look like API tokens but are placeholders.
+regexes = [
+  '''\$\{0\}''',
+  '''\$\{?[A-Z_]+\}?''',
+]
+
+# Custom rule: internal server URLs should never appear in the public mirror.
+[[rules]]
+id = "civic-internal-server-url"
+description = "Internal server URL that should not be in the public mirror"
+regex = '''https?://[a-z0-9-]+\.civic-internal\.local(:[0-9]+)?(/[^\s]*)?'''
+keywords = ["civic-internal.local"]
