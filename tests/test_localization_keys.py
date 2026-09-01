@@ -7,10 +7,20 @@ LOCALES = ROOT / "CivicSurvival" / "Localization"
 SRC_ROOT = ROOT / "CivicSurvival"
 LOC_NAMES = ("en-US", "uk-UA", "zh-CN")
 
-# Keys whose value is intentionally identical across every locale. Audit
-# discovered this exact 13-key set; any cross-locale identical key not in
-# this list is untranslated residue. All 13 are proper nouns, raw numbers,
-# or format templates — none are translatable sentences.
+# Keys whose value is intentionally identical across every locale. This is
+# the verified, hand-reviewed allowlist of legitimate exceptions: every entry
+# is a proper noun, a raw number, a percent, a format template, or a single
+# punctuation character. The audit discovered exactly this set; the test
+# below asserts the runtime auto-discovery matches it -- any new identical
+# key (drift) or any allowlist entry that no longer holds (rot) is rejected
+# with a precise diff.
+#
+# If you need to add a new legitimate entry:
+#   1. Confirm the value is genuinely untranslatable (proper noun / number
+#      / format template / punctuation).
+#   2. Update this set.
+#   3. The test will fail until step 2 is complete, with a precise list of
+#      keys that need to be added or removed.
 LEGIT_IDENTICAL = {
     "DISTRICT_VIP",  # "VIP"
     "JOURNALIST_COUNT",  # "5"
@@ -26,6 +36,23 @@ LEGIT_IDENTICAL = {
     "UI_MARKET_NA",  # "—" (em dash)
     "UI_WAVE_BADGE_V2",  # "V2"
 }
+
+
+def _auto_identical_keys() -> set[str]:
+    """Compute the set of keys whose value is identical across all locales.
+
+    This is the runtime ground truth. The test below compares it against the
+    verified ``LEGIT_IDENTICAL`` allowlist; any divergence points to either
+    (a) new untranslated residue slipping in, or (b) allowlist rot that
+    needs cleanup.
+    """
+    data = {name: _load_locale(name) for name in LOC_NAMES}
+    return {
+        key
+        for key in data["en-US"]
+        if len({data[name][key] for name in LOC_NAMES}) == 1
+    }
+
 
 # Localized-file references inside .cs: Get("KEY"), L<T>.Key, HasKey("KEY"),
 # GetPositiveInt("KEY"), GetRandom("PREFIX").
@@ -65,15 +92,38 @@ def test_locale_keysets_are_identical():
 
 
 def test_no_untranslated_residue_across_locales():
-    data = {name: _load_locale(name) for name in LOC_NAMES}
-    for key in data["en-US"]:
-        values = {data[name][key] for name in LOC_NAMES}
-        if len(values) > 1:
-            continue
-        assert key in LEGIT_IDENTICAL, (
-            f"Key {key!r} is identical across all locales (={next(iter(values))!r}) "
-            f"but is not in the LEGIT_IDENTICAL allowlist — likely untranslated residue."
-        )
+    auto = _auto_identical_keys()
+    missing = sorted(auto - LEGIT_IDENTICAL)
+    extra = sorted(LEGIT_IDENTICAL - auto)
+    assert not missing and not extra, (
+        "Cross-locale identical keys drifted from the LEGIT_IDENTICAL allowlist.\n"
+        f"  New identical keys (NOT in allowlist, possible untranslated residue): {missing}\n"
+        f"  Allowlist entries no longer identical (rot, possibly translation now diverges): {extra}\n"
+        "Update LEGIT_IDENTICAL in tests/test_localization_keys.py to acknowledge."
+    )
+
+
+def test_legit_identical_values_are_genuinely_untranslatable():
+    """Sanity check: every entry in the allowlist must look like a proper noun,
+    number, format template, or single punctuation character -- never a full
+    sentence. This catches the case where someone adds a translatable key to
+    the allowlist by mistake.
+    """
+    for name in LOC_NAMES:
+        data = _load_locale(name)
+        for key in LEGIT_IDENTICAL:
+            value = data[key]
+            assert len(value) <= 32, (
+                f"Allowlist key {key!r} in locale {name} has value {value!r} longer than 32 chars -- "
+                "looks like a translatable sentence, not a legitimate identical value."
+            )
+            assert " " not in value.strip() or value.strip() in {
+                "Civic Survival",
+                "Discord Webhook",
+            }, (
+                f"Allowlist key {key!r} in locale {name} has value {value!r} with internal whitespace -- "
+                "looks like a phrase, not a proper noun or numeric template."
+            )
 
 
 def test_code_referenced_direct_keys_exist_in_all_locales():
