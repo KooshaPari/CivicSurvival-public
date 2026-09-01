@@ -1,7 +1,7 @@
 {
-    "name": "CivicSurvival",
-    "version_number": "0.3.25",
-    "website_url": "https://github.com/KooshaPari/CivicSurvival-public",
-    "description": "Infrastructure Crisis Simulator. Manage blackouts, batteries, and corruption while your city reacts.",
-    "dependencies": []
+  "name": "CivicSurvival",
+  "version_number": "0.3.25",
+  "website_url": "https://github.com/KooshaPari/CivicSurvival-public",
+  "description": "Infrastructure Crisis Simulator. Manage blackouts, batteries, and corruption while your city reacts.",
+  "dependencies": []
 }

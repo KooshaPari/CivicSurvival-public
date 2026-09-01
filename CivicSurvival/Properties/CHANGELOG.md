@@ -222,11 +222,13 @@ shipped to subscribers. Keep this file in sync with the `<ChangeLog>` element in
 ## v0.2.3 — Patriot interceptors, Gepard, new radar, air-defense rebalance
 
 New:
+
 - Visible Patriot interceptors — the Patriot now launches a real interceptor missile that flies out and detonates on the incoming threat, instead of firing invisible gun tracers.
 - Flakpanzer Gepard — a new mobile anti-air unit joins the defense roster, with its own 3D model and a streamlined defense panel.
 - New command-post radar — the threat radar is redesigned as a tactical map with coastline and water, a camera marker, and clickable air-defense sites that pan the camera to them.
 
 Balance:
+
 - Air-defense rebalance — Patriot/AA ammunition now scales with city size, per-wave resupply is capped, the manpower pool is larger with cheaper crews, and gun accuracy is tuned toward saturation defense.
 - Gentler first wave — the opening attack is no longer a forced massive strike; it is now at most 20% stronger than a regular wave.
 - Shorter pre-war — the pre-war phase is trimmed from 30 to 20 days.
@@ -236,6 +238,7 @@ Balance:
 ## v0.2.2 — Tracers, radar target boxes, bug fixes
 
 New:
+
 - AA tracers — anti-air fire now renders as visible world-space tracers (orange-red, hot head with a fading tail). Previously the shells were effectively invisible.
 - Threat radar target boxes — buildings under attack now show as schematic 3D boxes on the threat radar.
 - Richer news feed — the in-game chronicle now reacts to scenario, mobilization and cognitive-warfare beats.
