@@ -41,9 +41,11 @@ WP01 [planned] public audit green; formal evidence and licensed adapter pending
 
 ## Next Meaningful Work
 
-1. Merge the protected worktree-reconciliation record and complete the proven-safe local cleanup without deleting refs.
-2. Close the AgilePlus evidence-recording gap and obtain licensed adapter evidence for WP01.
-3. Begin WP02-A native ABI/schema boundary work only after WP01 acceptance.
+1. Require protected checks and both review bots to pass on the corrective worktree-reconciliation successor PR.
+2. Complete the proven-safe local cleanup without deleting refs, then record the actual post-cleanup evidence on that branch.
+3. Merge the completed reconciliation record through protection.
+4. Close the AgilePlus evidence-recording gap and obtain licensed adapter evidence for WP01.
+5. Begin WP02-A native ABI/schema boundary work only after WP01 acceptance.
 
 ## Refresh Commands
 
