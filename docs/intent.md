@@ -16,9 +16,12 @@ requirements (`QR-001` through `QR-020`), and 20 ordered work packages.
 
 ## Current Ownership Snapshot (2026-09-01)
 
-The sole writable repository is `KooshaPari/CivicSurvival-public` at verified
-main `4f34815f4a29be55799c37071db55dcb30e6a2ee`. Theorist100 is a read-only
-upstream. The preserved `feat/civic-warfare-program` ref remains immutable at
+The sole writable repository is `KooshaPari/CivicSurvival-public`. At
+2026-09-01 09:32 UTC, fork main and this successor branch's base were observed
+at `7f221f897f877aa5b2fea50b5969c67845928c01`; the reconciliation evidence is a
+dated snapshot at `4f34815f4a29be55799c37071db55dcb30e6a2ee`, not an unbounded
+claim about current main. Theorist100 is a read-only upstream. The preserved
+`feat/civic-warfare-program` ref remains immutable at
 `3bd4431b083101669fc9244e2e09afe182c2b10b`. PR #2 was closed unmerged as
 superseded by focused successor PR #3; the source ref remains the provenance
 record rather than an integration candidate.
@@ -146,12 +149,13 @@ provenance. It is not the current hosted state. The current fork state is:
 | PR #2  | open, unmerged                                       | source branch preserved; provenance only                      |
 
 On 2026-09-01 at 04:17:22 UTC, PR #2 was closed unmerged as superseded by PR
-#3. Its head remains preserved at
+PR #3. Its head remains preserved at
 `3bd4431b083101669fc9244e2e09afe182c2b10b` through GitHub's PR ref and the
 local `origin/feat/civic-warfare-program` tracking ref.
 
-The current required branch-protection contexts are `ci / lint`, `ci / test`,
-`Civic Evidence Gate`, `Security Scan`, and `Dependency Delta`. The invalid
+At 2026-09-01 09:32 UTC, the required branch-protection contexts were
+`ci / lint`, `ci / test`, `Civic Evidence Gate`, `Security Scan`,
+`Dependency Delta`, `Kilo Code Review`, and `CodeRabbit`. The invalid
 `phenotype/core` reviewer request was removed from the active Mergify rules.
 The public snapshot still cannot produce a full solution build because private
 runtime adapters are absent; this remains a WP01 licensed-host boundary, not a

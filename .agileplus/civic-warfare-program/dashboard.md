@@ -1,7 +1,9 @@
 # Civic Warfare Program Dashboard
 
 **Generated from**: provisional local AgilePlus DB `.agileplus/civic-warfare-program-v4.db` plus canonical `plan.md`
-**Feature state**: planned | **Implementation gate**: closed | **Current main**: `4f34815f4a29be55799c37071db55dcb30e6a2ee`
+**Feature state**: planned | **Implementation gate**: closed
+**Dated reconciliation snapshot**: `4f34815f4a29be55799c37071db55dcb30e6a2ee`
+**Observed fork main / branch base (2026-09-01 09:32 UTC)**: `7f221f897f877aa5b2fea50b5969c67845928c01`
 **Canonical MCP state**: healthy service; Civic feature absent; evidence receipt unavailable
 
 ```text
@@ -41,11 +43,13 @@ WP01 [planned] public audit green; formal evidence and licensed adapter pending
 
 ## Next Meaningful Work
 
-1. Require protected checks and both review bots to pass on the corrective worktree-reconciliation successor PR.
-2. Complete the proven-safe local cleanup without deleting refs, then record the actual post-cleanup evidence on that branch.
-3. Merge the completed reconciliation record through protection.
-4. Close the AgilePlus evidence-recording gap and obtain licensed adapter evidence for WP01.
-5. Begin WP02-A native ABI/schema boundary work only after WP01 acceptance.
+1. Commit and push the corrective evidence, and attach it to the worktree-reconciliation successor PR.
+2. Require all protected checks plus substantive CodeRabbit and Kilo reviews to pass before cleanup.
+3. Complete only the proven-safe local cleanup without deleting refs.
+4. Record the actual post-cleanup worktree count, ref-preservation evidence, primary-checkout state, and hosted rerun IDs on the successor branch.
+5. Merge the completed reconciliation record through protection.
+6. Close the AgilePlus evidence-recording gap and obtain licensed-adapter evidence for WP01.
+7. Begin WP02-A native ABI/schema boundary work only after WP01 acceptance.
 
 ## Refresh Commands
 

@@ -47,12 +47,15 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
 
 ## Current State
 
-- Repository reconciliation: current fork main is
+- Repository reconciliation: the dated evidence snapshot is
   `4f34815f4a29be55799c37071db55dcb30e6a2ee`; PRs #46 and #47 extend the
-  previously verified `ed78823` snapshot. Exact-main CI, Trunk, public audit,
-  and OpenSSF Scorecard pass. The 88-Pillar workflow completes successfully as
-  informational evidence, but its exact-main score is `13/88`, below the
-  configured threshold; it is not a passing Civic or WP01 gate.
+  previously verified `ed78823` snapshot. At 2026-09-01 09:32 UTC, fork main
+  and this successor branch's base were observed at
+  `7f221f897f877aa5b2fea50b5969c67845928c01`. CI, Trunk, public audit, and
+  OpenSSF Scorecard passed for the dated `4f34815` snapshot; these runs are not
+  an unbounded claim about later main. The 88-Pillar workflow completed
+  successfully as informational evidence, but its snapshot score was `13/88`,
+  below the configured threshold; it is not a passing Civic or WP01 gate.
 - Local estate: all 15 auxiliary worktrees are represented by merged history
   through tree equality, patch equivalence, or ancestry. Cleanup is pending a
   protected preservation PR; no branch/ref deletion is authorized. Evidence
@@ -84,15 +87,18 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
 
 ## Next Meaningful Work
 
-1. Publish the corrective worktree-reconciliation successor PR, then require
-   protected checks and both review bots to pass before cleanup.
-2. Retire only the proven-redundant worktrees while preserving refs, and update
-   the successor branch with the actual post-cleanup evidence.
-3. Merge the completed reconciliation record through protection.
-4. Close the AgilePlus evidence-recording gap without direct database
+1. Commit and push the corrective evidence, and attach it to the
+   worktree-reconciliation successor PR.
+2. Require all protected checks plus substantive CodeRabbit and Kilo reviews
+   to pass before cleanup.
+3. Retire only the proven-redundant worktrees while preserving refs.
+4. Record the actual post-cleanup worktree count, ref-preservation evidence,
+   primary-checkout state, and hosted rerun IDs on the successor branch.
+5. Merge the completed reconciliation record through protection.
+6. Close the AgilePlus evidence-recording gap without direct database
    fabrication.
-5. Obtain licensed game-adapter build and launch-smoke evidence.
-6. Prepare a fresh WP02-A successor PR from current `origin/main`, with
+7. Obtain licensed game-adapter build and launch-smoke evidence.
+8. Prepare a fresh WP02-A successor PR from current `origin/main`, with
    test-first ABI/schema/golden-vector evidence only after WP01 acceptance.
-7. Keep production warfare implementation closed until WP01 is formally
+9. Keep production warfare implementation closed until WP01 is formally
    accepted.
