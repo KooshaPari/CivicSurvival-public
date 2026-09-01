@@ -49,7 +49,11 @@ def main() -> int:
         return fail(f"manifest cannot be read: {exc}", 2)
     if not isinstance(data, dict):
         return fail("manifest top level must be an object")
-    if data.get("schema") != "civic.wp01.evidence" or type(data.get("schema_version")) is not int or data["schema_version"] != 1:
+    if (
+        data.get("schema") != "civic.wp01.evidence"
+        or type(data.get("schema_version")) is not int
+        or data["schema_version"] != 1
+    ):
         return fail("schema_version must be 1")
     decision = data.get("decision")
     if not isinstance(decision, dict):
@@ -76,23 +80,42 @@ def main() -> int:
     if subject_commit != current_head:
         return fail(f"subject.commit does not match repository HEAD ({current_head})")
     environment = data.get("environment")
-    if not isinstance(environment, dict) or environment.get("host_class") != "licensed-game" or not environment.get("license_basis"):
+    if (
+        not isinstance(environment, dict)
+        or environment.get("host_class") != "licensed-game"
+        or not environment.get("license_basis")
+    ):
         return fail("environment must declare a licensed-game host and license_basis")
     artifacts = data.get("artifacts")
     if not isinstance(artifacts, list):
         return fail("artifacts must be a list")
     for artifact in artifacts:
-        if not isinstance(artifact, dict) or not isinstance(artifact.get("artifact_id"), str) or not artifact["artifact_id"]:
+        if (
+            not isinstance(artifact, dict)
+            or not isinstance(artifact.get("artifact_id"), str)
+            or not artifact["artifact_id"]
+        ):
             return fail("each artifact needs a non-empty string artifact_id")
     artifact_map = {item["artifact_id"]: item for item in artifacts}
     if len(artifact_map) != len(artifacts):
         return fail("artifact IDs must be unique")
     for artifact in artifacts:
-        if not all(isinstance(artifact.get(key), str) and artifact[key] for key in ("artifact_id", "path", "sha256")):
+        if not all(
+            isinstance(artifact.get(key), str) and artifact[key]
+            for key in ("artifact_id", "path", "sha256")
+        ):
             return fail("each artifact needs artifact_id, path, and sha256")
-        if not isinstance(artifact.get("size_bytes"), int) or isinstance(artifact["size_bytes"], bool) or artifact["size_bytes"] < 0:
+        if (
+            not isinstance(artifact.get("size_bytes"), int)
+            or isinstance(artifact["size_bytes"], bool)
+            or artifact["size_bytes"] < 0
+        ):
             return fail(f"artifact {artifact.get('artifact_id')} needs a non-negative size_bytes")
-        if len(artifact["sha256"]) != 64 or artifact["sha256"] != artifact["sha256"].lower() or any(char not in "0123456789abcdef" for char in artifact["sha256"]):
+        if (
+            len(artifact["sha256"]) != 64
+            or artifact["sha256"] != artifact["sha256"].lower()
+            or any(char not in "0123456789abcdef" for char in artifact["sha256"])
+        ):
             return fail(f"invalid sha256 for {artifact['artifact_id']}")
         path = (repo / artifact["path"]).resolve()
         if repo not in path.parents or not path.is_file():
@@ -123,20 +146,32 @@ def main() -> int:
         if item.get("status") != "pass" or item.get("subject_commit") != subject_commit:
             return fail(f"evidence {item.get('evidence_id')} must pass for the subject commit")
         command_refs = item.get("command_ids")
-        if not isinstance(command_refs, list) or not command_refs or any(
-            not isinstance(command_id, str) or not command_id for command_id in command_refs
+        if (
+            not isinstance(command_refs, list)
+            or not command_refs
+            or any(not isinstance(command_id, str) or not command_id for command_id in command_refs)
         ):
-            return fail(f"evidence {item.get('evidence_id')} command_ids must be a list of non-empty strings")
+            return fail(
+                f"evidence {item.get('evidence_id')} command_ids must be a list of non-empty strings"
+            )
         artifact_refs = item.get("artifact_ids")
-        if not isinstance(artifact_refs, list) or not artifact_refs or any(
-            not isinstance(artifact_id, str) or not artifact_id for artifact_id in artifact_refs
+        if (
+            not isinstance(artifact_refs, list)
+            or not artifact_refs
+            or any(
+                not isinstance(artifact_id, str) or not artifact_id for artifact_id in artifact_refs
+            )
         ):
-            return fail(f"evidence {item.get('evidence_id')} artifact_ids must be a list of non-empty strings")
+            return fail(
+                f"evidence {item.get('evidence_id')} artifact_ids must be a list of non-empty strings"
+            )
         if not set(command_refs).issubset(command_ids):
             return fail(f"evidence {item.get('evidence_id')} references unknown commands")
         if not set(artifact_refs).issubset(artifact_map):
             return fail(f"evidence {item.get('evidence_id')} references unknown artifacts")
-    print(f"WP01 evidence accepted structurally: {len(evidence)} evidence records and {len(artifacts)} artifacts verified")
+    print(
+        f"WP01 evidence accepted structurally: {len(evidence)} evidence records and {len(artifacts)} artifacts verified"
+    )
     return 0
 
 

@@ -66,9 +66,7 @@ PILLARS = [
     {
         "id": 18,
         "name": "ENV_EXAMPLE",
-        "check": lambda p: (
-            (p / ".env.example").exists() or (p / ".env.template").exists()
-        ),
+        "check": lambda p: (p / ".env.example").exists() or (p / ".env.template").exists(),
     },
     {
         "id": 19,
@@ -82,16 +80,13 @@ PILLARS = [
     {
         "id": 20,
         "name": "CODEOWNERS",
-        "check": lambda p: (
-            (p / ".github/CODEOWNERS").exists() or (p / "CODEOWNERS").exists()
-        ),
+        "check": lambda p: (p / ".github/CODEOWNERS").exists() or (p / "CODEOWNERS").exists(),
     },
     {
         "id": 21,
         "name": "DEPENDABOT",
         "check": lambda p: (
-            (p / ".github/dependabot.yml").exists()
-            or (p / ".github/dependabot.yaml").exists()
+            (p / ".github/dependabot.yml").exists() or (p / ".github/dependabot.yaml").exists()
         ),
     },
     {
@@ -125,9 +120,7 @@ PILLARS = [
     {
         "id": 26,
         "name": "MUTANT_TESTS",
-        "check": lambda p: (
-            (p / "mutants.out").exists() or (p / "mutants.toml").exists()
-        ),
+        "check": lambda p: (p / "mutants.out").exists() or (p / "mutants.toml").exists(),
     },
     {
         "id": 27,
@@ -143,8 +136,7 @@ PILLARS = [
         "id": 28,
         "name": "INTEGRATION_TESTS",
         "check": lambda p: (
-            (p / "tests" / "integration").exists()
-            or (p / "test" / "integration").exists()
+            (p / "tests" / "integration").exists() or (p / "test" / "integration").exists()
         ),
     },
     {
@@ -169,9 +161,7 @@ PILLARS = [
     {
         "id": 32,
         "name": "FORMATTING",
-        "check": lambda p: (
-            (p / ".prettierrc").exists() or (p / "rustfmt.toml").exists()
-        ),
+        "check": lambda p: (p / ".prettierrc").exists() or (p / "rustfmt.toml").exists(),
     },
     {
         "id": 33,
@@ -189,9 +179,7 @@ PILLARS = [
     {
         "id": 35,
         "name": "OPENAPI_SPEC",
-        "check": lambda p: (
-            any(p.glob("**/openapi.json")) or any(p.glob("**/swagger.json"))
-        ),
+        "check": lambda p: any(p.glob("**/openapi.json")) or any(p.glob("**/swagger.json")),
     },
     {
         "id": 36,
@@ -227,23 +215,17 @@ PILLARS = [
     {
         "id": 43,
         "name": "MONITORING",
-        "check": lambda p: (
-            (p / "monitoring").exists() or (p / "prometheus.yml").exists()
-        ),
+        "check": lambda p: (p / "monitoring").exists() or (p / "prometheus.yml").exists(),
     },
     {
         "id": 44,
         "name": "TRACING",
-        "check": lambda p: (
-            any(p.glob("**/*opentelemetry*")) or any(p.glob("**/*tracing*"))
-        ),
+        "check": lambda p: any(p.glob("**/*opentelemetry*")) or any(p.glob("**/*tracing*")),
     },
     {
         "id": 45,
         "name": "ALERTING",
-        "check": lambda p: (
-            (p / "alerts.yml").exists() or (p / "alerting_rules.yml").exists()
-        ),
+        "check": lambda p: (p / "alerts.yml").exists() or (p / "alerting_rules.yml").exists(),
     },
     {
         "id": 46,
@@ -269,9 +251,7 @@ PILLARS = [
     {
         "id": 55,
         "name": "KUBERNETES",
-        "check": lambda p: (
-            any(p.glob("**/k8s/*.yml")) or any(p.glob("**/kubernetes/*.yml"))
-        ),
+        "check": lambda p: any(p.glob("**/k8s/*.yml")) or any(p.glob("**/kubernetes/*.yml")),
     },
     {"id": 56, "name": "HELM", "check": lambda p: (p / "Chart.yaml").exists()},
     {"id": 57, "name": "TERRAFORM", "check": lambda p: any(p.glob("**/*.tf"))},
@@ -306,9 +286,7 @@ PILLARS = [
     {
         "id": 66,
         "name": "IAAC",
-        "check": lambda p: (
-            any(p.glob("**/terraform/*.tf")) or any(p.glob("**/ansible/*.yml"))
-        ),
+        "check": lambda p: any(p.glob("**/terraform/*.tf")) or any(p.glob("**/ansible/*.yml")),
     },
     {"id": 67, "name": "CDN", "check": lambda p: any(p.glob("**/*cdn*"))},
     {"id": 68, "name": "FIREWALL", "check": lambda p: any(p.glob("**/*firewall*"))},
@@ -393,9 +371,7 @@ PILLARS = [
     {
         "id": 87,
         "name": "SHIPPING",
-        "check": lambda p: (
-            (p / ".releaserc").exists() or (p / "release.config.js").exists()
-        ),
+        "check": lambda p: (p / ".releaserc").exists() or (p / "release.config.js").exists(),
     },
     {
         "id": 88,
@@ -415,9 +391,7 @@ def audit_repo(repo_path):
             passed = pillar["check"](path)
             if isinstance(passed, list):
                 passed = len(passed) > 0
-            results.append(
-                {"id": pillar["id"], "name": pillar["name"], "passed": bool(passed)}
-            )
+            results.append({"id": pillar["id"], "name": pillar["name"], "passed": bool(passed)})
             if passed:
                 score += 1
         except Exception as e:
@@ -443,24 +417,14 @@ def load_baseline(path, total, expected_source_revision=None):
     except OSError as error:
         raise ValueError(f"Unable to read baseline file {path}: {error}") from error
     except json.JSONDecodeError as error:
-        raise ValueError(
-            f"Baseline file {path} is not valid JSON: {error.msg}"
-        ) from error
+        raise ValueError(f"Baseline file {path} is not valid JSON: {error.msg}") from error
 
     if baseline.get("schema_version") != 1:
         raise ValueError("Baseline schema_version must equal 1")
-    if (
-        not isinstance(baseline.get("source_revision"), str)
-        or not baseline["source_revision"]
-    ):
+    if not isinstance(baseline.get("source_revision"), str) or not baseline["source_revision"]:
         raise ValueError("Baseline source_revision must be a non-empty string")
-    if (
-        expected_source_revision
-        and baseline["source_revision"] != expected_source_revision
-    ):
-        raise ValueError(
-            "Baseline source_revision does not match the expected source revision"
-        )
+    if expected_source_revision and baseline["source_revision"] != expected_source_revision:
+        raise ValueError("Baseline source_revision does not match the expected source revision")
     score = baseline.get("score")
     baseline_total = baseline.get("total")
     passed_pillar_ids = baseline.get("passed_pillar_ids")
@@ -471,9 +435,7 @@ def load_baseline(path, total, expected_source_revision=None):
     if not isinstance(passed_pillar_ids, list):
         raise ValueError("Baseline passed_pillar_ids must be a list")
     if any(
-        not isinstance(pillar_id, int)
-        or isinstance(pillar_id, bool)
-        or not 1 <= pillar_id <= total
+        not isinstance(pillar_id, int) or isinstance(pillar_id, bool) or not 1 <= pillar_id <= total
         for pillar_id in passed_pillar_ids
     ):
         raise ValueError(
@@ -490,13 +452,9 @@ def main():
     parser = argparse.ArgumentParser(description="88-Pillar Scorecard Audit")
     parser.add_argument("path", help="Path to repository")
     parser.add_argument("--threshold", type=int, default=85)
-    parser.add_argument(
-        "--output", choices=["text", "json", "markdown"], default="text"
-    )
+    parser.add_argument("--output", choices=["text", "json", "markdown"], default="text")
     parser.add_argument("--fail-on-drop", action="store_true")
-    parser.add_argument(
-        "--baseline-file", help="JSON baseline evidence used by --fail-on-drop"
-    )
+    parser.add_argument("--baseline-file", help="JSON baseline evidence used by --fail-on-drop")
     parser.add_argument(
         "--expected-source-revision",
         help="Require baseline evidence from this source revision",
@@ -507,20 +465,14 @@ def main():
             raise ValueError(f"Threshold must be at least {MINIMUM_THRESHOLD}")
         report = audit_repo(args.path)
         baseline = (
-            load_baseline(
-                args.baseline_file, report["total"], args.expected_source_revision
-            )
+            load_baseline(args.baseline_file, report["total"], args.expected_source_revision)
             if args.baseline_file
             else None
         )
-        current_pillar_ids = {
-            result["id"] for result in report["results"] if result["passed"]
-        }
+        current_pillar_ids = {result["id"] for result in report["results"] if result["passed"]}
         baseline_score = baseline["score"] if baseline else None
         missing_baseline_pillar_ids = (
-            sorted(set(baseline["passed_pillar_ids"]) - current_pillar_ids)
-            if baseline
-            else []
+            sorted(set(baseline["passed_pillar_ids"]) - current_pillar_ids) if baseline else []
         )
         report["baseline_score"] = baseline_score
         report["score_delta"] = (
@@ -533,13 +485,9 @@ def main():
             print(json.dumps(report, indent=2))
         elif args.output == "markdown":
             print("# 88-Pillar Scorecard Report\n")
-            print(
-                f"**Score:** {report['score']}/{report['total']} ({report['percentage']:.1f}%)\n"
-            )
+            print(f"**Score:** {report['score']}/{report['total']} ({report['percentage']:.1f}%)\n")
             print(f"**Threshold:** {args.threshold}\n")
-            print(
-                f"**Status:** {'PASS' if report['score'] >= args.threshold else 'FAIL'}\n"
-            )
+            print(f"**Status:** {'PASS' if report['score'] >= args.threshold else 'FAIL'}\n")
             print(f"**Baseline score:** {json.dumps(report['baseline_score'])}\n")
             print(f"**Score delta:** {json.dumps(report['score_delta'])}\n")
             print(
@@ -549,13 +497,9 @@ def main():
             print(f"**Regression:** {json.dumps(report['regression'])}\n")
             print("## Results\n| ID | Pillar | Status |\n|---|--------|--------|")
             for r in report["results"]:
-                print(
-                    f"| {r['id']} | {r['name']} | {'PASS' if r['passed'] else 'FAIL'} |"
-                )
+                print(f"| {r['id']} | {r['name']} | {'PASS' if r['passed'] else 'FAIL'} |")
         else:
-            print(
-                f"Scorecard: {report['score']}/{report['total']} ({report['percentage']:.1f}%)"
-            )
+            print(f"Scorecard: {report['score']}/{report['total']} ({report['percentage']:.1f}%)")
             print(f"Threshold: {args.threshold}")
             print(
                 "Status: PASS"

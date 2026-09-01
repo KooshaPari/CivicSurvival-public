@@ -53,7 +53,9 @@ def test_binding_manifest_rejects_stale_or_generated_only_values(tmp_path):
     root = projection_fixture(tmp_path)
     generated = root / "CivicSurvival/UI/src/hooks/bindingNames.generated.ts"
     text = generated.read_text()
-    generated.write_text(text.replace('    Group: "CivicSurvival",\n', "", 1) + '    StaleOnly: "StaleOnly",\n')
+    generated.write_text(
+        text.replace('    Group: "CivicSurvival",\n', "", 1) + '    StaleOnly: "StaleOnly",\n'
+    )
 
     result = run(GENERATOR, root)
 
@@ -65,7 +67,9 @@ def test_binding_manifest_rejects_member_rename_with_same_value(tmp_path):
     root = projection_fixture(tmp_path)
     generated = root / "CivicSurvival/UI/src/hooks/bindingNames.generated.ts"
     generated.write_text(
-        generated.read_text().replace('    Group: "CivicSurvival",', '    RenamedGroup: "CivicSurvival",', 1)
+        generated.read_text().replace(
+            '    Group: "CivicSurvival",', '    RenamedGroup: "CivicSurvival",', 1
+        )
     )
 
     result = run(GENERATOR, root)

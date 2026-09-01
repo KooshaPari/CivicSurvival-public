@@ -160,9 +160,7 @@ class ScorecardBaselineTests(unittest.TestCase):
                 "Regression": report["regression"],
             }
             for label, value in expected_fields.items():
-                self.assertIn(
-                    f"**{label}:** {json.dumps(value)}", markdown_result.stdout
-                )
+                self.assertIn(f"**{label}:** {json.dumps(value)}", markdown_result.stdout)
 
     def test_rejects_baseline_without_pillar_identity_evidence(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

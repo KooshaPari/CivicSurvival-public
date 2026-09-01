@@ -83,9 +83,7 @@ def _csharp_plan(repo: Path, changed_path: str) -> list[ScanCommand]:
     solution = repo / "CivicSurvival.sln"
     changed = _repo_path(repo, changed_path)
     lockfile = (
-        changed
-        if changed.name == "packages.lock.json"
-        else changed.parent / "packages.lock.json"
+        changed if changed.name == "packages.lock.json" else changed.parent / "packages.lock.json"
     )
     if not solution.exists() or not lockfile.exists():
         raise DependencyDeltaError(
@@ -93,9 +91,7 @@ def _csharp_plan(repo: Path, changed_path: str) -> list[ScanCommand]:
             "available so restore can run in --locked-mode"
         )
     return [
-        ScanCommand(
-            "csharp", repo, ("dotnet", "restore", "CivicSurvival.sln", "--locked-mode")
-        ),
+        ScanCommand("csharp", repo, ("dotnet", "restore", "CivicSurvival.sln", "--locked-mode")),
         ScanCommand(
             "csharp",
             repo,
@@ -162,9 +158,7 @@ def _is_metadata_only_csproj_diff(diff_text: str) -> bool:
     return metadata_only
 
 
-def _unsupported(
-    changed_path: str, ecosystem: str, remedy: str
-) -> DependencyDeltaError:
+def _unsupported(changed_path: str, ecosystem: str, remedy: str) -> DependencyDeltaError:
     return DependencyDeltaError(f"{changed_path}: {ecosystem}: {remedy}")
 
 
@@ -294,8 +288,7 @@ def _dotnet_vulnerability_findings(stdout: str | bytes) -> list[str]:
                 raise _invalid_dotnet_json("problem level and text must be strings")
             problem_details.append(f"{level}: {text}")
         raise DependencyDeltaError(
-            "dotnet vulnerability report contains problems:\n"
-            + "\n".join(problem_details)
+            "dotnet vulnerability report contains problems:\n" + "\n".join(problem_details)
         )
 
     projects = payload.get("projects")
@@ -308,9 +301,7 @@ def _dotnet_vulnerability_findings(stdout: str | bytes) -> list[str]:
 
     findings: list[str] = []
     for project in projects:
-        if not isinstance(project, dict) or not isinstance(
-            project.get("frameworks"), list
-        ):
+        if not isinstance(project, dict) or not isinstance(project.get("frameworks"), list):
             raise _invalid_dotnet_json("each project must contain a frameworks array")
         project_path = project.get("path", "<unknown-project>")
         if not isinstance(project_path, str):
@@ -327,29 +318,21 @@ def _dotnet_vulnerability_findings(stdout: str | bytes) -> list[str]:
                     raise _invalid_dotnet_json(f"{package_kind} must be an array")
                 for package in packages:
                     if not isinstance(package, dict):
-                        raise _invalid_dotnet_json(
-                            f"each {package_kind} entry must be an object"
-                        )
+                        raise _invalid_dotnet_json(f"each {package_kind} entry must be an object")
                     package_id = package.get("id", "<unknown-package>")
                     vulnerabilities = package.get("vulnerabilities", [])
-                    if not isinstance(package_id, str) or not isinstance(
-                        vulnerabilities, list
-                    ):
+                    if not isinstance(package_id, str) or not isinstance(vulnerabilities, list):
                         raise _invalid_dotnet_json(
                             "package id must be a string and vulnerabilities must be an array"
                         )
                     for vulnerability in vulnerabilities:
                         if not isinstance(vulnerability, dict):
-                            raise _invalid_dotnet_json(
-                                "each vulnerability must be an object"
-                            )
+                            raise _invalid_dotnet_json("each vulnerability must be an object")
                         severity = vulnerability.get("severity", "unknown")
                         advisory = vulnerability.get(
                             "advisoryurl", vulnerability.get("advisoryUrl", "unknown")
                         )
-                        if not isinstance(severity, str) or not isinstance(
-                            advisory, str
-                        ):
+                        if not isinstance(severity, str) or not isinstance(advisory, str):
                             raise _invalid_dotnet_json(
                                 "vulnerability severity and advisory URL must be strings"
                             )
@@ -414,14 +397,11 @@ def run_scan_plan(plan: Sequence[ScanCommand], runner: Runner = subprocess.run) 
             findings = _dotnet_vulnerability_findings(result.stdout)
             if findings:
                 raise DependencyDeltaError(
-                    "dotnet vulnerability scan found vulnerable packages:\n"
-                    + "\n".join(findings)
+                    "dotnet vulnerability scan found vulnerable packages:\n" + "\n".join(findings)
                 )
 
 
-def changed_paths(
-    repo: Path, base: str, head: str, runner: Runner = subprocess.run
-) -> list[str]:
+def changed_paths(repo: Path, base: str, head: str, runner: Runner = subprocess.run) -> list[str]:
     result = runner(
         ("git", "diff", "--name-only", "-z", "--diff-filter=ACMRD", base, head),
         cwd=repo,
@@ -438,21 +418,15 @@ def changed_paths(
             f"{str(stderr).strip()}"
         )
     if not isinstance(result.stdout, bytes):
-        raise DependencyDeltaError(
-            "malformed NUL-delimited git diff output: expected bytes"
-        )
+        raise DependencyDeltaError("malformed NUL-delimited git diff output: expected bytes")
     if not result.stdout:
         return []
     if not result.stdout.endswith(b"\0"):
-        raise DependencyDeltaError(
-            "malformed NUL-delimited git diff output: missing final NUL"
-        )
+        raise DependencyDeltaError("malformed NUL-delimited git diff output: missing final NUL")
 
     raw_paths = result.stdout[:-1].split(b"\0")
     if any(not raw_path for raw_path in raw_paths):
-        raise DependencyDeltaError(
-            "malformed NUL-delimited git diff output: empty path"
-        )
+        raise DependencyDeltaError("malformed NUL-delimited git diff output: empty path")
     paths = [os.fsdecode(raw_path) for raw_path in raw_paths]
     for path in paths:
         _repo_path(repo, path)

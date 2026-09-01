@@ -47,11 +47,7 @@ def _auto_identical_keys() -> set[str]:
     needs cleanup.
     """
     data = {name: _load_locale(name) for name in LOC_NAMES}
-    return {
-        key
-        for key in data["en-US"]
-        if len({data[name][key] for name in LOC_NAMES}) == 1
-    }
+    return {key for key in data["en-US"] if len({data[name][key] for name in LOC_NAMES}) == 1}
 
 
 # Localized-file references inside .cs: Get("KEY"), L<T>.Key, HasKey("KEY"),
@@ -158,9 +154,7 @@ def test_getrandom_prefixes_have_complete_variant_sequences():
                 for m in [re.fullmatch(rf"{re.escape(prefix)}_(\d+)", key)]
                 if m
             )
-            assert variants, (
-                f"Locale {name}: GetRandom prefix {prefix!r} has no _N variants"
-            )
+            assert variants, f"Locale {name}: GetRandom prefix {prefix!r} has no _N variants"
             assert variants == list(range(1, len(variants) + 1)), (
                 f"Locale {name}: GetRandom prefix {prefix!r} has non-contiguous "
                 f"variants: {variants}"

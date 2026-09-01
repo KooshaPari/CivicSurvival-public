@@ -103,9 +103,7 @@ def test_npm_shrinkwrap_takes_precedence_when_both_node_lockfiles_exist(tmp_path
 def test_civic_quality_node_cache_supports_both_npm_lockfiles():
     workflow = load_workflow(ROOT / ".github" / "workflows" / "ci.yml")
     steps = workflow["jobs"]["civic-quality"]["steps"]
-    setup_node = next(
-        step for step in steps if "actions/setup-node@" in step.get("uses", "")
-    )
+    setup_node = next(step for step in steps if "actions/setup-node@" in step.get("uses", ""))
 
     assert setup_node["with"]["cache"] == "npm"
     assert setup_node["with"]["cache-dependency-path"].splitlines() == [
@@ -122,9 +120,7 @@ def test_csharp_lockfile_change_runs_locked_restore_then_vulnerability_scan(tmp_
     project.mkdir()
     (project / "packages.lock.json").write_text("{}")
 
-    plan = module.build_scan_plan(
-        tmp_path, ["CivicSurvival.Contracts/packages.lock.json"]
-    )
+    plan = module.build_scan_plan(tmp_path, ["CivicSurvival.Contracts/packages.lock.json"])
 
     assert [(item.ecosystem, item.cwd, item.command) for item in plan] == [
         (
@@ -189,9 +185,7 @@ def test_csharp_project_without_lockfile_fails_with_path_ecosystem_and_remedy(tm
     (project / "CivicSurvival.Contracts.csproj").write_text("<Project />")
 
     with pytest.raises(module.DependencyDeltaError) as excinfo:
-        module.build_scan_plan(
-            tmp_path, ["CivicSurvival.Contracts/CivicSurvival.Contracts.csproj"]
-        )
+        module.build_scan_plan(tmp_path, ["CivicSurvival.Contracts/CivicSurvival.Contracts.csproj"])
 
     message = str(excinfo.value)
     assert "CivicSurvival.Contracts/CivicSurvival.Contracts.csproj" in message
@@ -369,9 +363,7 @@ def test_csproj_version_only_diff_in_real_git_repo_is_accepted(tmp_path):
 def test_civicignore_silently_skips_matched_paths(tmp_path):
     module = load_module()
     (tmp_path / ".civicignore").write_text(
-        "# ignored manifests\n"
-        "CivicSurvival/CivicSurvival.csproj\n"
-        "CivicSurvival/UI/package.json\n"
+        "# ignored manifests\nCivicSurvival/CivicSurvival.csproj\nCivicSurvival/UI/package.json\n"
     )
 
     plan = module.build_scan_plan(
@@ -426,11 +418,7 @@ def test_civicignore_supports_fnmatch_globs(tmp_path):
 def test_civicignore_blank_and_comment_lines_are_ignored(tmp_path):
     module = load_module()
     (tmp_path / ".civicignore").write_text(
-        "\n"
-        "   \n"
-        "# this is a comment\n"
-        "CivicSurvival/CivicSurvival.csproj\n"
-        "# trailing comment\n"
+        "\n   \n# this is a comment\nCivicSurvival/CivicSurvival.csproj\n# trailing comment\n"
     )
     ui = tmp_path / "CivicSurvival" / "UI"
     ui.mkdir(parents=True)
@@ -531,9 +519,7 @@ def dotnet_scan_command(module, cwd):
 
 
 def dotnet_result(payload):
-    return type(
-        "Result", (), {"returncode": 0, "stdout": json.dumps(payload), "stderr": ""}
-    )()
+    return type("Result", (), {"returncode": 0, "stdout": json.dumps(payload), "stderr": ""})()
 
 
 def test_dotnet_scan_accepts_machine_readable_zero_vulnerability_result(tmp_path):
@@ -610,15 +596,11 @@ def test_dotnet_scan_fails_when_machine_readable_result_contains_vulnerabilities
         json.dumps({"version": 1, "projects": "bad"}),
     ],
 )
-def test_dotnet_scan_fails_closed_on_malformed_machine_readable_result(
-    tmp_path, stdout
-):
+def test_dotnet_scan_fails_closed_on_malformed_machine_readable_result(tmp_path, stdout):
     module = load_module()
     result = type("Result", (), {"returncode": 0, "stdout": stdout, "stderr": ""})()
 
-    with pytest.raises(
-        module.DependencyDeltaError, match="invalid dotnet vulnerability JSON"
-    ):
+    with pytest.raises(module.DependencyDeltaError, match="invalid dotnet vulnerability JSON"):
         module.run_scan_plan(
             [dotnet_scan_command(module, tmp_path)],
             runner=lambda *_args, **_kwargs: result,
@@ -707,9 +689,7 @@ def test_changed_paths_uses_nul_delimiters_and_preserves_odd_repo_relative_names
         b"../npm-shrinkwrap.json",
     ],
 )
-def test_changed_paths_rejects_absolute_or_parent_traversal_paths(
-    tmp_path, unsafe_path
-):
+def test_changed_paths_rejects_absolute_or_parent_traversal_paths(tmp_path, unsafe_path):
     module = load_module()
     result = type(
         "Result",
@@ -718,9 +698,7 @@ def test_changed_paths_rejects_absolute_or_parent_traversal_paths(
     )()
 
     with pytest.raises(module.DependencyDeltaError, match="unsafe changed path"):
-        module.changed_paths(
-            tmp_path, "base", "head", runner=lambda *_args, **_kwargs: result
-        )
+        module.changed_paths(tmp_path, "base", "head", runner=lambda *_args, **_kwargs: result)
 
 
 def test_changed_paths_rejects_malformed_non_terminated_output(tmp_path):
@@ -732,9 +710,7 @@ def test_changed_paths_rejects_malformed_non_terminated_output(tmp_path):
     )()
 
     with pytest.raises(module.DependencyDeltaError, match="malformed NUL-delimited"):
-        module.changed_paths(
-            tmp_path, "base", "head", runner=lambda *_args, **_kwargs: result
-        )
+        module.changed_paths(tmp_path, "base", "head", runner=lambda *_args, **_kwargs: result)
 
 
 def test_deleted_node_lockfile_fails_closed_with_actionable_remedy(tmp_path):
@@ -771,9 +747,7 @@ def test_hostile_dotnet_problem_fixture_makes_cli_exit_nonzero(tmp_path):
     repo = tmp_path / "repo"
     repo.mkdir()
     subprocess.run(["git", "init", "--quiet"], cwd=repo, check=True)
-    subprocess.run(
-        ["git", "config", "user.email", "tests@example.invalid"], cwd=repo, check=True
-    )
+    subprocess.run(["git", "config", "user.email", "tests@example.invalid"], cwd=repo, check=True)
     subprocess.run(["git", "config", "user.name", "Civic tests"], cwd=repo, check=True)
     (repo / "CivicSurvival.sln").write_text("Microsoft Visual Studio Solution File")
     project = repo / "CivicSurvival.Contracts"
@@ -790,9 +764,7 @@ def test_hostile_dotnet_problem_fixture_makes_cli_exit_nonzero(tmp_path):
 
     (project / "packages.lock.json").write_text("{}")
     subprocess.run(["git", "add", "."], cwd=repo, check=True)
-    subprocess.run(
-        ["git", "commit", "--quiet", "-m", "hostile lock change"], cwd=repo, check=True
-    )
+    subprocess.run(["git", "commit", "--quiet", "-m", "hostile lock change"], cwd=repo, check=True)
     head = subprocess.run(
         ["git", "rev-parse", "HEAD"],
         cwd=repo,
@@ -838,22 +810,15 @@ def test_hostile_dotnet_problem_fixture_makes_cli_exit_nonzero(tmp_path):
 def test_ci_aggregate_gates_reject_failed_or_skipped_required_results():
     workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text()
     python_job = workflow.split("  python:\n", 1)[1].split("\n  go:\n", 1)[0]
-    security_job = workflow.split("  security:\n", 1)[1].split("\n  dep-review:\n", 1)[
-        0
-    ]
-    dependency_job = workflow.split("  dep-review:\n", 1)[1].split(
-        "\n  civic-quality:\n", 1
-    )[0]
+    security_job = workflow.split("  security:\n", 1)[1].split("\n  dep-review:\n", 1)[0]
+    dependency_job = workflow.split("  dep-review:\n", 1)[1].split("\n  civic-quality:\n", 1)[0]
 
     assert "continue-on-error" not in security_job
     assert "continue-on-error" not in dependency_job
     assert "actions/dependency-review-action" not in dependency_job
     assert "python3 scripts/dependency_delta.py" in dependency_job
     assert "continue-on-error" not in python_job
-    assert (
-        "ruff check scripts/dependency_delta.py tests/test_ci_dependency_delta.py"
-        in python_job
-    )
+    assert "ruff check scripts/dependency_delta.py tests/test_ci_dependency_delta.py" in python_job
     assert (
         "ruff format --check scripts/dependency_delta.py tests/test_ci_dependency_delta.py"
         in python_job
@@ -861,10 +826,7 @@ def test_ci_aggregate_gates_reject_failed_or_skipped_required_results():
     assert "python3 -m pytest -q tests/test_ci_dependency_delta.py" in python_job
     assert "|| echo" not in python_job
     assert 'if [ "$name" = "security" ]; then' in workflow
-    assert (
-        'if [ "$event_name" = "pull_request" ] && [ "$name" = "dep-review" ]; then'
-        in workflow
-    )
+    assert 'if [ "$event_name" = "pull_request" ] && [ "$name" = "dep-review" ]; then' in workflow
     assert 'if [ "$required" -eq 1 ] && [ "$result" != "success" ]; then' in workflow
     assert 'lint_result="${{ needs.lint.result }}"' in workflow
     assert 'if [ "$lint_result" != "success" ]; then' in workflow

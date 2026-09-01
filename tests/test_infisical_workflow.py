@@ -35,9 +35,7 @@ EXPECTED_VALIDATION_STATEMENTS = [
     ),
 ]
 INFISICAL_VERSION = "0.43.128"
-INFISICAL_LINUX_AMD64_SHA256 = (
-    "a3f460be321ad46fefba99cba883bcc601d0f18b02849d2d30ae9b398a8d99dc"
-)
+INFISICAL_LINUX_AMD64_SHA256 = "a3f460be321ad46fefba99cba883bcc601d0f18b02849d2d30ae9b398a8d99dc"
 EXPECTED_INSTALL_STATEMENTS = [
     "set -euo pipefail",
     f'version="{INFISICAL_VERSION}"',
@@ -87,9 +85,7 @@ puts JSON.generate(YAML.safe_load(source, aliases: true))
 def _named_step(workflow: dict, name: str) -> dict:
     steps = workflow["jobs"]["sync-secrets"]["steps"]
     matches = [step for step in steps if step.get("name") == name]
-    assert len(matches) == 1, (
-        f"expected exactly one {name!r} step, found {len(matches)}"
-    )
+    assert len(matches) == 1, f"expected exactly one {name!r} step, found {len(matches)}"
     return matches[0]
 
 
