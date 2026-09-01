@@ -385,7 +385,6 @@ def run_scan_plan(plan: Sequence[ScanCommand], runner: Runner = subprocess.run) 
                     + "\n".join(findings)
                 )
 
-
 def changed_paths(
     repo: Path, base: str, head: str, runner: Runner = subprocess.run
 ) -> list[str]:
