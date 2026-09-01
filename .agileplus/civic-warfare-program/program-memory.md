@@ -71,7 +71,13 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
 - Canonical DAG/WBS: complete in `plan.md`; the CLI-generated serial graph is explicitly superseded.
 - Architecture/data model/public contracts: complete for planning baseline.
 - Governance/dashboard/checklist/validation: complete; branch publication complete.
-- WP01: public audit green; conditional NO-GO remains for production warfare until licensed adapter and AgilePlus evidence paths exist.
+- WP01: public audit green; runner portability fix landed
+  (`a128593`, `CivicSurvival.PublicAudit` now targets net8.0 with
+  LatestMajor roll-forward so the runner executes on any installed
+  .NET 8/9/10 runtime). The runner now passes all three public-audit
+  gates (contracts build, localization parity, source roots) on a
+  fresh host. Conditional NO-GO remains for production warfare until
+  the licensed adapter and AgilePlus evidence paths exist.
 - WP02-A reconnaissance: native workspace absent; ABI/schema risks recorded in `wp01-go-no-go.md`.
 - WP02-A implementation evidence: no `native/` or `tests/wp02/` paths exist in the current `chore/civic-program-docs` checkout. Earlier notes describing a native boundary slice are historical claims from another workspace and are not current evidence; they must be reimplemented and independently verified in a successor PR.
 - Gameplay implementation: intentionally not started.
