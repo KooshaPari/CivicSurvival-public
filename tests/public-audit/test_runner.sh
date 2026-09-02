@@ -15,3 +15,4 @@ printf '%s\n' "$report"
 [[ "$report" == *'"contractsBuild":"pass"'* ]]
 [[ "$report" == *'"localizationParity":"pass"'* ]]
 [[ "$report" == *'"sourceRoots":"pass"'* ]]
+[[ "$report" == *'"flatbuffersSchema":"pass"'* ]]
