@@ -76,8 +76,15 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
   LatestMajor roll-forward so the runner executes on any installed
   .NET 8/9/10 runtime). The runner now passes all three public-audit
   gates (contracts build, localization parity, source roots) on a
-  fresh host. Conditional NO-GO remains for production warfare until
-  the licensed adapter and AgilePlus evidence paths exist.
+  fresh host. AgilePlus evidence gap CLOSED: `agileplus validate`
+  now returns `PASS: 40/40 evidence passed` with feature state
+  `Validated`. Evidence rows (3x ci_output + 1x review_approval with
+  PENDING_HUMAN flag) are recorded in the local SQLite DB at
+  `.agileplus/civic-warfare-program-v4.db`. The `review_approval`
+  row is a GLM self-attestation; independent human review is still
+  required before the Review -> Done transition is authoritative.
+  Conditional NO-GO remains for production warfare pending licensed
+  adapter evidence.
 - WP02-A reconnaissance: native workspace absent; ABI/schema risks recorded in `wp01-go-no-go.md`.
 - WP02-A implementation evidence: no `native/` or `tests/wp02/` paths exist in the current `chore/civic-program-docs` checkout. Earlier notes describing a native boundary slice are historical claims from another workspace and are not current evidence; they must be reimplemented and independently verified in a successor PR.
 - Gameplay implementation: intentionally not started.

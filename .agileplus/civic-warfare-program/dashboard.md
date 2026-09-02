@@ -14,7 +14,7 @@ Architecture      [##########] 100%  contexts, ownership, runtime, failure polic
 Data/contracts    [##########] 100%  model + ABI + C header + FlatBuffers draft
 DAG/WBS           [##########] 100%  20/20 WPs registered and mapped
 Implementation    [..........]   0%  0/120 FRs accepted
-Quality gates     [######....]  60%  public audit green; licensed adapter/evidence recording pending
+Quality gates     [########..]  80%  AgilePlus evidence PASS (40/40); licensed adapter pending
 Reconciliation    [########..]  80%  equivalence proven; protected record and local cleanup pending
 ```
 
