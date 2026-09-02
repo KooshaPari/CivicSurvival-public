@@ -15,18 +15,18 @@ and `civic_warfare.h`) before any native Rust code is written.
 
 ### What it validates
 
-| Check | Condition |
-|-------|-----------|
-| Required enum members (CommandKind) | All 8 members present (NoOp, SetPolicy, SetBudget, RecruitFormation, SetMission, Negotiate, ConductCovertOperation, RespondToCivilEvent) |
-| Required enum members (DecisionCode) | All 4 members present (InsufficientResources, Aborted, Accepted, InProgress) |
-| File identifier | Exactly `CSWP` |
-| Root type | Exactly `CommandDispatch` |
-| Required csw_* ABI functions | csw_init, csw_status_into, csw_poll_into, csw_arena_command, csw_warfare_faction_snapshot |
-| Proprietary game SDK symbols | Zero occurrences of ColossalOrder, Colossal, CO DLL, or CO:: in the public header |
+| Check                                | Condition                                                                                                                                |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Required enum members (CommandKind)  | All 8 members present (NoOp, SetPolicy, SetBudget, RecruitFormation, SetMission, Negotiate, ConductCovertOperation, RespondToCivilEvent) |
+| Required enum members (DecisionCode) | All 4 members present (InsufficientResources, Aborted, Accepted, InProgress)                                                             |
+| File identifier                      | Exactly `CSWP`                                                                                                                           |
+| Root type                            | Exactly `CommandDispatch`                                                                                                                |
+| Required csw\_\* ABI functions       | csw_init, csw_status_into, csw_poll_into, csw_arena_command, csw_warfare_faction_snapshot                                                |
+| Proprietary game SDK symbols         | Zero occurrences of ColossalOrder, Colossal, CO DLL, or CO:: in the public header                                                        |
 
 ### Anti-drift enforcement
 
-The gate enforces that the wire contract can never be *shrunk* — enum
+The gate enforces that the wire contract can never be _shrunk_ — enum
 members, structs, file_identifier, and ABI functions can only be added,
 never removed. Adding members is allowed. Removing or renaming any of the
 above is a hard public-audit failure.

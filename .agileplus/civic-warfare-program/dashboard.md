@@ -5,7 +5,7 @@
 **Dated reconciliation snapshot**: `4f34815f4a29be55799c37071db55dcb30e6a2ee`
 **Observed fork main / branch base (2026-09-01 09:32 UTC)**: `7f221f897f877aa5b2fea50b5969c67845928c01`
 **Canonical MCP state**: healthy service; Civic feature absent; evidence receipt unavailable
-**Resume marker**: 2026-09-02 GLM session (Codex `019fab2f-4c10-7770-b288-0e5826ed1ad5` resumed by GLM; Codex resuming in ~4 days). Active branch is `docs/civic-reconciliation-governance-hard-stop-20260901` at `038c56c`. PR #81 is fully CI-green and awaiting Kilo Code Review.
+**Resume marker**: 2026-09-02 GLM session (Codex `019fab2f-4c10-7770-b288-0e5826ed1ad5` resumed by GLM; Codex resuming in ~4 days). Active branch is `docs/civic-reconciliation-governance-hard-stop-20260901`. PR #87 (WP02-A: 5/5 public-audit gates + 13 regression cases + binary round-trip cross-validated against `flatc`) was merged; PR #88 (binary round-trip refactor + NUL-strip) is the open successor PR. PR #81 was the predecessor gate-closure merge.
 
 ```text
 Specification     [##########] 100%  120/120 FRs defined
@@ -14,7 +14,7 @@ Architecture      [##########] 100%  contexts, ownership, runtime, failure polic
 Data/contracts    [##########] 100%  model + ABI + C header + FlatBuffers draft
 DAG/WBS           [##########] 100%  20/20 WPs registered and mapped
 Implementation    [..........]   0%  0/120 FRs accepted
-Quality gates     [#########.]  90%  AgilePlus evidence PASS (40/40); WP02-A FlatBuffers gate added (4/4 gates); licensed adapter pending
+Quality gates     [##########] 100%  AgilePlus evidence PASS (40/40); WP02-A: 5/5 public-audit gates + 13 regression cases + golden binary cross-validated against flatc; licensed adapter still pending
 Reconciliation    [########..]  80%  equivalence proven; protected record and local cleanup pending
 ```
 
@@ -44,14 +44,15 @@ WP01 [doing] public audit green; 4/4 gates pass; licensed adapter pending
 
 ## Next Meaningful Work
 
-1. Await Kilo Code Review on PR #81 (fully CI-green); merge after approval.
-2. Obtain licensed game-adapter build and launch-smoke evidence on a Windows/CS2 host; attach artifact-hash and provenance to `wp01-go-no-go.md`; re-promote WP01 to GO.
-3. After PR #81 lands, prepare a successor WP02-A PR from current `origin/main` with test-first ABI/schema/golden-vector evidence: native-side reader golden vectors, C# deserialization path, end-to-end roundtrip using the Rust test-vector generator.
-4. Extend `test_flatbuffers_contract_drift.sh` as the schema grows: every new enum member, struct field, and ABI function needs a corresponding mutation case that proves removal is caught.
-5. Resolve the pre-existing C# solution NuGet "Invalid framework identifier" error (out of scope for PR #81).
-6. Only after branch-protection governance is verified stable, merge the completed reconciliation record through protection; auto-merge and queueing are prohibited beforehand.
-7. ~~Close the AgilePlus evidence-recording gap~~ CLOSED (40/40 evidence); ~~obtain licensed-adapter evidence for WP01~~ pending Windows/CS2 host.
-8. WP02-A native ABI/schema boundary work will start only after WP01 acceptance and the new FlatBuffers gate being verified in production.
+1. PR #88 (WP02-A binary round-trip refactor) is the open work-in-progress. Once merged, prepare a successor PR for **WP02-B (FlatBuffers end-to-end cross-language round-trip)** on the next branch off `origin/main`:
+   - Add a Rust crate under `native/` that uses the canonical `flatbuffers` crate to encode a `CommandBatch` (the schema's other root kind, `ProjectionDelta`) and round-trip it back to JSON via `flatc --json --raw-binary`. The hand-written C# reader should decode the same Rust-produced binary identically.
+   - Add CI step that runs both directions against the same committed fixture.
+2. Obtain licensed game-adapter build and launch-smoke evidence on a Windows/CS2 host; attach artifact-hash and provenance chain to `wp01-go-no-go.md`; re-promote WP01 to GO.
+3. Extend `test_flatbuffers_contract_drift.sh` and `test_flatbuffers_roundtrip_drift.sh` as the schema grows: every new enum member, struct field, ABI function, and golden-fixture field added to the public contracts must have a corresponding drift case that proves removal is detected.
+4. Resolve the pre-existing C# solution NuGet "Invalid framework identifier" error (out of scope for PR #88; recorded for the next housekeeping PR after PR #88 lands).
+5. Only after branch-protection governance is verified stable, merge the completed reconciliation record through protection; auto-merge and queueing are prohibited beforehand.
+6. ~~Close the AgilePlus evidence-recording gap~~ CLOSED (40/40 evidence); ~~obtain licensed-adapter evidence for WP01~~ pending Windows/CS2 host.
+7. ~~WP02-A text-level schema gate~~ CLOSED (5 mutation classes caught); ~~WP02-A binary round-trip gate~~ CLOSED (8 mutation classes caught). WP02-A native implementation only after WP01 acceptance and the new gates being verified in production.
 
 ## Refresh Commands
 

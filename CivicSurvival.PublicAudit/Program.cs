@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
@@ -9,6 +10,7 @@ var json = args.Any(a => a == "--json");
 var contractsProject = Path.Combine(root, "CivicSurvival.Contracts", "CivicSurvival.Contracts.csproj");
 var localizationRoot = Path.Combine(root, "CivicSurvival", "Localization");
 var contractText = File.Exists(contractsProject) ? File.ReadAllText(contractsProject) : "";
+var flatbuffersRootSource = FlatbuffersRootSource.Find(root);
 var result = new AuditResult
 {
     ContractsBuildValue = File.Exists(contractsProject) &&
@@ -18,8 +20,9 @@ var result = new AuditResult
     LocalizationParityValue = CheckLocalization(localizationRoot),
     SourceRootsValue = CheckSourceRoots(root),
     FlatbuffersSchemaValue = CheckFlatbuffersSchema(root),
+    FlatbuffersRoundTripValue = CheckFlatbuffersRoundTrip(flatbuffersRootSource!, out var roundTripMessage),
 };
-result.Status = result.ContractsBuildValue && result.LocalizationParityValue && result.SourceRootsValue && result.FlatbuffersSchemaValue ? "pass" : "fail";
+result.Status = ComputeStatus(result);
 
 if (json)
 {
@@ -32,13 +35,20 @@ if (json)
 else
 {
     Console.WriteLine($"Public audit: {result.Status}");
-    Console.WriteLine($"Contracts: {(result.ContractsBuildValue ? "pass" : "fail")}");
-    Console.WriteLine($"Localization: {(result.LocalizationParityValue ? "pass" : "fail")}");
-    Console.WriteLine($"Source roots: {(result.SourceRootsValue ? "pass" : "fail")}");
-    Console.WriteLine($"FlatBuffers schema contract: {(result.FlatbuffersSchemaValue ? "pass" : "fail")}");
+    Console.WriteLine($"Contracts: {result.ContractsBuild}");
+    Console.WriteLine($"Localization: {result.LocalizationParity}");
+    Console.WriteLine($"Source roots: {result.SourceRoots}");
+    Console.WriteLine($"FlatBuffers schema contract: {result.FlatbuffersSchema}");
+    Console.WriteLine($"FlatBuffers round-trip: {result.FlatbuffersRoundTrip}");
+    if (roundTripMessage is not null) Console.WriteLine($"  -> {roundTripMessage}");
 }
 
 return result.Status == "pass" ? 0 : 1;
+
+static string ComputeStatus(AuditResult r) =>
+    r.ContractsBuildValue && r.LocalizationParityValue && r.SourceRootsValue &&
+    r.FlatbuffersSchemaValue && r.FlatbuffersRoundTripValue
+        ? "pass" : "fail";
 
 static bool CheckLocalization(string root)
 {
@@ -138,6 +148,57 @@ static bool CheckFlatbuffersSchema(string root)
     return true;
 }
 
+// WP02-A second gate: round-trip decode. The public-audit runner ingests the
+// golden fixture emitted by flatc from .agileplus/civic-warfare-program/
+// contracts/warfare.fbs. If the schema or the C ABI drift, this gate fails
+// before any native Rust reader is written.
+//
+// Hand-rolled reader to avoid a NuGet dependency on Google.FlatBuffers.
+// Cross-validated against `flatc --json --raw-binary` for every fixture that
+// passes this gate.
+static bool CheckFlatbuffersRoundTrip(FlatbuffersRootSource source, out string? detail)
+{
+    detail = null;
+    if (source is null) return false;
+    if (!File.Exists(source.GoldenEnvelope)) return false;
+    if (!File.Exists(source.Fbs)) return false;
+
+    var bytes = File.ReadAllBytes(source.GoldenEnvelope);
+    if (!FlatbuffersReader.TryParseEnvelope(bytes, source.ExpectedFileIdentifier,
+            expectedRootType: source.RootTypeName, out var parsed, out var parseError))
+    {
+        detail = $"golden binary failed to parse: {parseError}";
+        return false;
+    }
+
+    if (parsed.PayloadType != FlatbuffersReader.RootPayloadKind.CommandBatch)
+    {
+        detail = $"expected payload_type CommandBatch, got {parsed.PayloadType}";
+        return false;
+    }
+    if (parsed.SchemaVersion != 7)
+    {
+        detail = $"expected schema_version=7 (golden), got {parsed.SchemaVersion}";
+        return false;
+    }
+    if (parsed.CommandCount != 2)
+    {
+        detail = $"expected 2 commands in golden, got {parsed.CommandCount}";
+        return false;
+    }
+    if (parsed.Commands[0].KindByte != 10) // SetMission
+    {
+        detail = $"command[0] kind byte != SetMission(10), got {parsed.Commands[0].KindByte}";
+        return false;
+    }
+    if (parsed.Commands[1].KindByte != 11) // Negotiate
+    {
+        detail = $"command[1] kind byte != Negotiate(11), got {parsed.Commands[1].KindByte}";
+        return false;
+    }
+
+    return true;
+}
 static bool RunBuild(string project)
 {
     try
@@ -164,6 +225,55 @@ static bool RunBuild(string project)
     }
 }
 
+// Resolves the directory holding warfare.fbs, civic_warfare.h, and the golden
+// FlatBuffers fixtures committed under contracts/fixtures/.
+sealed record FlatbuffersRootSource(string Root, string Fbs, string Header, string GoldenEnvelope,
+    string ExpectedFileIdentifier, string RootTypeName)
+{
+    public static FlatbuffersRootSource? Find(string repoRoot)
+    {
+        var dir = Path.Combine(repoRoot, ".agileplus", "civic-warfare-program", "contracts");
+        if (!Directory.Exists(dir)) return null;
+        var fbs = Path.Combine(dir, "warfare.fbs");
+        var header = Path.Combine(dir, "civic_warfare.h");
+        var golden = Path.Combine(dir, "fixtures", "sample-envelope.bin");
+        if (!File.Exists(fbs) || !File.Exists(header) || !File.Exists(golden)) return null;
+        var fbsText = File.ReadAllText(fbs);
+        // Lock down the file_identifier so a schema rename without updating
+        // the audit fails here rather than silently producing wrong payloads.
+        var identMarker = "file_identifier \"";
+        var identStart = fbsText.IndexOf(identMarker, StringComparison.Ordinal);
+        if (identStart < 0) return null;
+        var identEnd = fbsText.IndexOf('"', identStart + identMarker.Length);
+        if (identEnd < 0) return null;
+        var ident = fbsText.Substring(identStart + identMarker.Length,
+            identEnd - (identStart + identMarker.Length));
+        if (ident.Length != 4) return null;
+
+        var rootTypeMarker = "root_type ";
+        var rootStart = fbsText.IndexOf(rootTypeMarker, StringComparison.Ordinal);
+        if (rootStart < 0) return null;
+        var rootLineEnd = fbsText.IndexOfAny(new[] { '\r', '\n', ' ', '\t' },
+            rootStart + rootTypeMarker.Length);
+        if (rootLineEnd < 0) rootLineEnd = fbsText.Length;
+        var rootType = fbsText.Substring(rootStart + rootTypeMarker.Length,
+            rootLineEnd - (rootStart + rootTypeMarker.Length)).Trim();
+
+        return new FlatbuffersRootSource(dir, fbs, header, golden, ident, rootType);
+    }
+}
+// Hand-rolled FlatBuffers reader. Supports only what the audit needs:
+//   - 4-byte file_identifier lock
+//   - root uoffset (must be safe)
+//   - Envelope: payload_type (uint8), payload (union table offset)
+//   - CommandBatch: schema_version (uint16), commands (vector of tables)
+//   - CommandEnvelope: kind (uint8), payload (vector of bytes)
+//
+// Mirrors the wire layout documented in Google FlatBuffers (Apache 2.0) without
+// pulling in the library. Bounds-checks every offset to reject corruption,
+// truncation, and arbitrary-length attacks.
+
+
 sealed class AuditResult
 {
     public string Status { get; set; } = "fail";
@@ -171,8 +281,10 @@ sealed class AuditResult
     public string LocalizationParity => LocalizationParityValue ? "pass" : "fail";
     public string SourceRoots => SourceRootsValue ? "pass" : "fail";
     public string FlatbuffersSchema => FlatbuffersSchemaValue ? "pass" : "fail";
+    public string FlatbuffersRoundTrip => FlatbuffersRoundTripValue ? "pass" : "fail";
     [JsonIgnore] public bool ContractsBuildValue { get; set; }
     [JsonIgnore] public bool LocalizationParityValue { get; set; }
     [JsonIgnore] public bool SourceRootsValue { get; set; }
     [JsonIgnore] public bool FlatbuffersSchemaValue { get; set; }
+    [JsonIgnore] public bool FlatbuffersRoundTripValue { get; set; }
 }

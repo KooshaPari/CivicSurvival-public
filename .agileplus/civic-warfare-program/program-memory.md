@@ -85,22 +85,54 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
   required before the Review -> Done transition is authoritative.
   Conditional NO-GO remains for production warfare pending licensed
   adapter evidence.
-- WP02-A: A 4th public-audit gate (FlatBuffers schema contract check)
-  is added to `CivicSurvival.PublicAudit/Program.cs`. The gate
-  validates the `.agileplus/civic-warfare-program/contracts/warfare.fbs`
-  schema and `civic_warfare.h` header:
-  - required enum members present (NoOp, SetPolicy, SetMission, etc.)
-  - required enum members present in DecisionCode
-  - file_identifier present and CSWP
-  - root_type present and CommandDispatch
-  - required csw\_\* ABI functions declared (csw_init, csw_status_into,
-    csw_poll_into, csw_arena_command, csw_warfare_faction_snapshot)
-  - no ColossalOrder proprietary references in public header
-    A regression test `tests/public-audit/test_flatbuffers_contract_drift.sh`
-    proves all 5 mutation cases (shrunk enum member, changed file_identifier,
-    removed ABI function, proprietary reference injection) are caught.
-    All 4 public-audit gates pass: contracts build, localization parity,
-    source roots, flatbuffersSchema.
+- WP02-A: Two public-audit gates are now part of
+  `CivicSurvival.PublicAudit/Program.cs` (5/5 gates pass):
+  1. `flatbuffersSchema` — validates
+     `.agileplus/civic-warfare-program/contracts/warfare.fbs` and
+     `civic_warfare.h`:
+     - All 14 `CommandKind` enum members (None, SetPolicy, SetBudget,
+       RecruitFormation, SetMission, Negotiate, ConductCovertOperation,
+       RespondToCivilEvent, RaiseAlert, AllocateCivicFunds,
+       InsurgencyEscalationAndCounterOperation, ...) present.
+     - All 10 `DecisionCode` enum members (None, InsufficientResources,
+       FactionRejected, Aborted, Stale, AcceptedWithWarning, Accepted,
+       InProgress, CommandRejectedByPolicy, EscalationRequired) present.
+     - `file_identifier` == `CSWP`.
+     - `root_type` == `Envelope`.
+     - All 10 `csw_*` ABI functions declared
+       (csw_init, csw_status_into, csw_poll_into, csw_arena_command,
+       csw_warfare_faction_snapshot, csw_projection_delta_into,
+       csw_save_envelope_into, csw_replay_hash, csw_register_logger,
+       csw_post_decision_observed).
+     - Zero `ColossalOrder` / proprietary CS2 SDK references in the
+       public header.
+  2. `flatbuffersRoundTrip` — hand-written FlatBuffers reader
+     (extracted to `CivicSurvival.PublicAudit/FlatbuffersReader.cs`,
+     193 lines, no new dependencies) cross-validated against
+     `flatc --binary` golden vectors. Validates:
+     - Root uoffset, 8-byte minimum, `CSWP` file_identifier.
+     - Enum-union discriminator (`payload_type` ==
+       `RootPayloadKind.CommandBatch`).
+     - Walks `CommandBatch.commands` vector and verifies
+       `schema_version` (uint16 == 7 in the golden fixture),
+       `count` (= 2), per-command `kind` byte, and `payload` byte
+       vector length. Negative cases (truncation, bit-flip in validated
+       byte, payload_type corruption, wrong file_identifier, uoffset
+       past EOF, empty buffer, buffer < 8 bytes, root offset zero) all
+       trigger `flatbuffersRoundTrip:fail`.
+       Regression tests:
+  - `tests/public-audit/test_flatbuffers_contract_drift.sh` — 5/5
+    schema mutations caught (removed CommandKind, removed DecisionCode,
+    changed file_identifier, removed csw_status_into, ColossalOrder).
+  - `tests/public-audit/test_flatbuffers_roundtrip_drift.sh` — 8/8
+    binary mutations caught (truncation, schema_version bit-flip,
+    payload_type bit-flip, wrong file_identifier, uoffset past EOF,
+    empty buffer, buffer < 8 bytes, root offset zero).
+    Golden fixture:
+    `.agileplus/civic-warfare-program/contracts/fixtures/sample-envelope.bin`
+    committed (216 bytes, deterministic, decodes round-trip to identical
+    JSON via `flatc --json --raw-binary`). The hand-rolled C# reader
+    produces the same decoded values as `flatc` for the same fixture.
 - WP02-A reconnaissance: native workspace absent; ABI/schema risks recorded in `wp01-go-no-go.md`.
 - WP02-A implementation evidence: no `native/` or `tests/wp02/` paths exist in the current `chore/civic-program-docs` checkout. Earlier notes describing a native boundary slice are historical claims from another workspace and are not current evidence; they must be reimplemented and independently verified in a successor PR.
 - Gameplay implementation: intentionally not started.
@@ -116,26 +148,52 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
 
 ## Next Meaningful Work
 
-1. PR #81 CI is FULLY GREEN as of this writing: Analyze (csharp),
+<<<<<<< HEAD
+
+1. PR #87 (WP02-A) is open and is the natural merge target.
+   Once merged, prepare a successor PR for **WP02-B (FlatBuffers
+   end-to-end cross-language round-trip)** on the next branch off
+   `origin/main`:
+   - Add a Rust crate under `native/` that uses the canonical
+     `flatbuffers` crate to **encode** a `CommandBatch` (the schema's
+     other root kind, `ProjectionDelta`) and round-trip it back to
+     JSON via `flatc --json --raw-binary`. The hand-written C#
+     reader should decode the same Rust-produced binary identically.
+   - Add CI step that runs both directions against the same
+     committed fixture.
+2. Obtain licensed game-adapter build and launch-smoke evidence on a
+   Windows/CS2 host; attach the artifact-hash and provenance chain to
+   `wp01-go-no-go.md` and re-promote the WP01 decision to GO.
+3. The `test_flatbuffers_contract_drift.sh` and
+   `test_flatbuffers_roundtrip_drift.sh` regression tests must be
+   extended as the schema grows: every new enum member, struct field,
+   ABI function, and golden-fixture field added to the public contracts
+   must have a corresponding drift case that proves removal is detected.
+4. Resolve the pre-existing C# solution NuGet "Invalid framework
+   identifier" error (out of scope for PR #87; recorded for the
+   next housekeeping PR after PR #87 lands).
+5. # Keep production warfare implementation closed until WP01 is formally
+6. PR #81 CI is FULLY GREEN as of this writing: Analyze (csharp),
    Analyze (javascript-typescript), Lint & Format, public-audit x2,
    scorecard, semgrep-cloud-platform/scan, Socket Security x2 all pass.
    Kilo Code Review is pending. Await final Kilo review and any
    remaining CodeRabbit review before merge consideration.
-2. Obtain licensed game-adapter build and launch-smoke evidence on a
+7. Obtain licensed game-adapter build and launch-smoke evidence on a
    Windows/CS2 host; attach the artifact-hash and provenance chain to
    `wp01-go-no-go.md` and re-promote the WP01 decision to GO.
-3. After PR #81 lands, prepare a successor WP02-A PR from current
+8. After PR #81 lands, prepare a successor WP02-A PR from current
    `origin/main` with test-first ABI/schema/golden-vector evidence
    for the FlatBuffers boundary: native-side reader golden vectors,
    C# deserialization path, and end-to-end roundtrip test using
    the Rust test-vector generator.
-4. The `test_flatbuffers_contract_drift.sh` regression test must
+9. The `test_flatbuffers_contract_drift.sh` regression test must
    be extended as the schema grows: every new enum member, struct
    field, and ABI function added to the public contracts must have
    a corresponding `check_contracts.sh`-style test that proves
    removal is detected.
-5. Resolve the pre-existing C# solution NuGet "Invalid framework
-   identifier" error (out of scope for PR #81; recorded for the
-   next housekeeping PR after PR #81 lands).
-6. Keep production warfare implementation closed until WP01 is formally
-   accepted and Kilo/CodeRabbit reviews confirm no governance concerns.
+10. Resolve the pre-existing C# solution NuGet "Invalid framework
+    identifier" error (out of scope for PR #81; recorded for the
+    next housekeeping PR after PR #81 lands).
+11. Keep production warfare implementation closed until WP01 is formally
+    > > > > > > > origin/main
+    > > > > > > > accepted and Kilo/CodeRabbit reviews confirm no governance concerns.
