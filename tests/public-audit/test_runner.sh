@@ -19,12 +19,10 @@ printf '%s\n' "$report"
 [[ "$report" == *'"flatbuffersRoundTrip":"pass"'* ]]
 [[ "$report" == *'"flatbuffersCrossLang":"pass"'* ]]
 
-# Run the cross-language drift test (Python reader)
-if [[ -f "$repo_root/tests/test_cross_lang_drift.py" ]]; then
-  cross_lang_output=$(python3 -m pytest "$repo_root/tests/test_cross_lang_drift.py" -q 2>&1 || true)
-  if [[ "$cross_lang_output" != *"9 passed"* ]]; then
-    echo "FAIL: cross-language drift test did not pass" >&2
-    echo "$cross_lang_output" >&2
-    exit 1
-  fi
+# Run the cross-language drift test (Python reader, dependency-free)
+cross_lang_output=$(python3 "$repo_root/tests/run_cross_lang_drift.py" 2>&1 || true)
+echo "$cross_lang_output"
+if [[ "$cross_lang_output" != *"9/9 cross-lang drift cases passed"* ]]; then
+  echo "FAIL: cross-language drift test did not pass" >&2
+  exit 1
 fi
