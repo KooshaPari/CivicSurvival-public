@@ -42,7 +42,10 @@ jobs:
 
       - name: Build C# (required for CodeQL manual build mode)
         if: matrix.language == 'csharp'
-        run: dotnet build CivicSurvival.sln --nologo
+        # Build only the public-audit project (depends on contracts) to avoid
+        # the proprietary game-SDK reference in CivicSurvival.csproj which
+        # cannot be restored in CI (requires licensed CS2 toolchain).
+        run: dotnet build CivicSurvival.PublicAudit/CivicSurvival.PublicAudit.csproj --nologo
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@ff0a06e83cb2de871e5a09832bc6a81e7276941f # v3.28.18
