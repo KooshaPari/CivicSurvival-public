@@ -26,3 +26,11 @@ if [[ "$cross_lang_output" != *"9/9 cross-lang drift cases passed"* ]]; then
   echo "FAIL: cross-language drift test did not pass" >&2
   exit 1
 fi
+
+# WP02-C: ProjectionDelta cross-language drift (Python reader, dependency-free)
+wp02c_output=$(python3 "$repo_root/tests/run_wp02c_drift.py" 2>&1 || true)
+echo "$wp02c_output"
+if [[ "$wp02c_output" != *"8/8 wp02c drift cases passed"* ]]; then
+  echo "FAIL: wp02c drift test did not pass" >&2
+  exit 1
+fi
