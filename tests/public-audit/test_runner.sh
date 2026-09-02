@@ -16,3 +16,4 @@ printf '%s\n' "$report"
 [[ "$report" == *'"localizationParity":"pass"'* ]]
 [[ "$report" == *'"sourceRoots":"pass"'* ]]
 [[ "$report" == *'"flatbuffersSchema":"pass"'* ]]
+[[ "$report" == *'"flatbuffersRoundTrip":"pass"'* ]]
