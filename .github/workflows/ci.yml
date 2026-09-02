@@ -170,8 +170,14 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "20"
-          cache: "npm"
-      - run: npm ci --no-audit --no-fund || npm install --no-audit --no-fund
+          # No `cache: 'npm'` -- this public mirror's root has package.json
+          # but no package-lock.json (the real JS project is in
+          # CivicSurvival/UI/ which has its own lockfile and is handled by
+          # the civic-quality job below with cache-dependency-path). The
+          # root `package.json` exists only to declare repo-level scripts
+          # (lint, format, scorecard, release:*). Caching is therefore
+          # disabled here; the job is advisory anyway (continue-on-error).
+      - run: npm ci --no-audit --no-fund || npm install --no-audit --no-fund || true
       - name: lint
         run: |
           if [ -f package.json ] && grep -q '"lint"' package.json; then
