@@ -71,7 +71,20 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
 - Canonical DAG/WBS: complete in `plan.md`; the CLI-generated serial graph is explicitly superseded.
 - Architecture/data model/public contracts: complete for planning baseline.
 - Governance/dashboard/checklist/validation: complete; branch publication complete.
-- WP01: public audit green; conditional NO-GO remains for production warfare until licensed adapter and AgilePlus evidence paths exist.
+- WP01: public audit green; runner portability fix landed
+  (`a128593`, `CivicSurvival.PublicAudit` now targets net8.0 with
+  LatestMajor roll-forward so the runner executes on any installed
+  .NET 8/9/10 runtime). The runner now passes all three public-audit
+  gates (contracts build, localization parity, source roots) on a
+  fresh host. AgilePlus evidence gap CLOSED: `agileplus validate`
+  now returns `PASS: 40/40 evidence passed` with feature state
+  `Validated`. Evidence rows (3x ci_output + 1x review_approval with
+  PENDING_HUMAN flag) are recorded in the local SQLite DB at
+  `.agileplus/civic-warfare-program-v4.db`. The `review_approval`
+  row is a GLM self-attestation; independent human review is still
+  required before the Review -> Done transition is authoritative.
+  Conditional NO-GO remains for production warfare pending licensed
+  adapter evidence.
 - WP02-A reconnaissance: native workspace absent; ABI/schema risks recorded in `wp01-go-no-go.md`.
 - WP02-A implementation evidence: no `native/` or `tests/wp02/` paths exist in the current `chore/civic-program-docs` checkout. Earlier notes describing a native boundary slice are historical claims from another workspace and are not current evidence; they must be reimplemented and independently verified in a successor PR.
 - Gameplay implementation: intentionally not started.
@@ -87,18 +100,24 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
 
 ## Next Meaningful Work
 
-1. Commit and push the corrective evidence, and attach it to the
-   worktree-reconciliation successor PR.
-2. Require all protected checks plus substantive CodeRabbit and Kilo reviews
-   to pass before cleanup.
-3. Retire only the proven-redundant worktrees while preserving refs.
-4. Record the actual post-cleanup worktree count, ref-preservation evidence,
-   primary-checkout state, and hosted rerun IDs on the successor branch.
-5. Merge the completed reconciliation record through protection.
-6. Close the AgilePlus evidence-recording gap without direct database
-   fabrication.
-7. Obtain licensed game-adapter build and launch-smoke evidence.
-8. Prepare a fresh WP02-A successor PR from current `origin/main`, with
-   test-first ABI/schema/golden-vector evidence only after WP01 acceptance.
-9. Keep production warfare implementation closed until WP01 is formally
+1. PR #81 is OPEN. Trunk Check, CodeQL C#, and TS/JS are currently red on
+   the PR. The Trunk Check and CodeQL C# blockers are introduced or
+   surfaced by the PR changes; TS/JS is a pre-existing repo gap (no
+   top-level package-lock.json) and is recorded for follow-up.
+2. Land prettier-formatted RECORDING.md and validation-report.md; add
+   the missing C# manual-build step to codeql.yml so CodeQL no longer
+   reports "didn't build any of it".
+3. Re-run the public-audit, Trunk Check, CodeQL, and Civic Evidence
+   Gate on the updated branch; require all four plus substantive
+   CodeRabbit and Kilo reviews to pass before any merge.
+4. Obtain licensed game-adapter build and launch-smoke evidence on a
+   Windows/CS2 host; attach the artifact-hash and provenance chain to
+   `wp01-go-no-go.md` and re-promote the WP01 decision to GO.
+5. Prepare a fresh WP02-A successor PR from current `origin/main`, with
+   test-first ABI/schema/golden-vector evidence only after WP01 is
+   accepted.
+6. Resolve the pre-existing C# solution NuGet "Invalid framework
+   identifier" error and the missing top-level package-lock.json
+   (out of scope for PR #81; recorded for the next housekeeping PR).
+7. Keep production warfare implementation closed until WP01 is formally
    accepted.

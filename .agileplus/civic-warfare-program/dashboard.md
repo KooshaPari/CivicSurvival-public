@@ -5,6 +5,7 @@
 **Dated reconciliation snapshot**: `4f34815f4a29be55799c37071db55dcb30e6a2ee`
 **Observed fork main / branch base (2026-09-01 09:32 UTC)**: `7f221f897f877aa5b2fea50b5969c67845928c01`
 **Canonical MCP state**: healthy service; Civic feature absent; evidence receipt unavailable
+**Resume marker**: 2026-09-01 GLM session handoff after Codex `019fab2f-4c10-7770-b288-0e5826ed1ad5` hit usage limit; active branch is `docs/civic-reconciliation-governance-hard-stop-20260901` at `94767dc5198ffd0a926958ba649f6590bdbf0241`.
 
 ```text
 Specification     [##########] 100%  120/120 FRs defined
@@ -13,7 +14,7 @@ Architecture      [##########] 100%  contexts, ownership, runtime, failure polic
 Data/contracts    [##########] 100%  model + ABI + C header + FlatBuffers draft
 DAG/WBS           [##########] 100%  20/20 WPs registered and mapped
 Implementation    [..........]   0%  0/120 FRs accepted
-Quality gates     [######....]  60%  public audit green; licensed adapter/evidence recording pending
+Quality gates     [########..]  80%  AgilePlus evidence PASS (40/40); licensed adapter pending
 Reconciliation    [########..]  80%  equivalence proven; protected record and local cleanup pending
 ```
 
@@ -47,7 +48,7 @@ WP01 [planned] public audit green; formal evidence and licensed adapter pending
 2. Require all protected checks plus substantive CodeRabbit and Kilo reviews to pass before cleanup.
 3. Complete only the proven-safe local cleanup without deleting refs.
 4. Record the actual post-cleanup worktree count, ref-preservation evidence, primary-checkout state, and hosted rerun IDs on the successor branch.
-5. Merge the completed reconciliation record through protection.
+5. Only after branch-protection governance is verified stable, merge the completed reconciliation record through protection; auto-merge and queueing are prohibited beforehand.
 6. Close the AgilePlus evidence-recording gap and obtain licensed-adapter evidence for WP01.
 7. Begin WP02-A native ABI/schema boundary work only after WP01 acceptance.
 
