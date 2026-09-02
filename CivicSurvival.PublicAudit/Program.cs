@@ -21,6 +21,7 @@ var result = new AuditResult
     SourceRootsValue = CheckSourceRoots(root),
     FlatbuffersSchemaValue = CheckFlatbuffersSchema(root),
     FlatbuffersRoundTripValue = CheckFlatbuffersRoundTrip(flatbuffersRootSource!, out var roundTripMessage),
+    FlatbuffersCrossLangValue = FlatbuffersCrossLangCheck.CheckFlatbuffersCrossLang(root, out var crossLangMessage),
 };
 result.Status = ComputeStatus(result);
 
@@ -41,14 +42,16 @@ else
     Console.WriteLine($"FlatBuffers schema contract: {result.FlatbuffersSchema}");
     Console.WriteLine($"FlatBuffers round-trip: {result.FlatbuffersRoundTrip}");
     if (roundTripMessage is not null) Console.WriteLine($"  -> {roundTripMessage}");
+    Console.WriteLine($"FlatBuffers cross-lang: {result.FlatbuffersCrossLang}");
+    if (crossLangMessage is not null) Console.WriteLine($"  -> {crossLangMessage}");
 }
 
 return result.Status == "pass" ? 0 : 1;
 
 static string ComputeStatus(AuditResult r) =>
-    r.ContractsBuildValue && r.LocalizationParityValue && r.SourceRootsValue &&
-    r.FlatbuffersSchemaValue && r.FlatbuffersRoundTripValue
-        ? "pass" : "fail";
+    r.ContractsBuildValue && r.LocalizationParityValue && r.SourceRootsValue
+    && r.FlatbuffersSchemaValue && r.FlatbuffersRoundTripValue && r.FlatbuffersCrossLangValue
+    ? "pass" : "fail";
 
 static bool CheckLocalization(string root)
 {
@@ -199,6 +202,7 @@ static bool CheckFlatbuffersRoundTrip(FlatbuffersRootSource source, out string? 
 
     return true;
 }
+
 static bool RunBuild(string project)
 {
     try
@@ -262,17 +266,6 @@ sealed record FlatbuffersRootSource(string Root, string Fbs, string Header, stri
         return new FlatbuffersRootSource(dir, fbs, header, golden, ident, rootType);
     }
 }
-// Hand-rolled FlatBuffers reader. Supports only what the audit needs:
-//   - 4-byte file_identifier lock
-//   - root uoffset (must be safe)
-//   - Envelope: payload_type (uint8), payload (union table offset)
-//   - CommandBatch: schema_version (uint16), commands (vector of tables)
-//   - CommandEnvelope: kind (uint8), payload (vector of bytes)
-//
-// Mirrors the wire layout documented in Google FlatBuffers (Apache 2.0) without
-// pulling in the library. Bounds-checks every offset to reject corruption,
-// truncation, and arbitrary-length attacks.
-
 
 sealed class AuditResult
 {
@@ -282,9 +275,12 @@ sealed class AuditResult
     public string SourceRoots => SourceRootsValue ? "pass" : "fail";
     public string FlatbuffersSchema => FlatbuffersSchemaValue ? "pass" : "fail";
     public string FlatbuffersRoundTrip => FlatbuffersRoundTripValue ? "pass" : "fail";
+    public string FlatbuffersCrossLang => FlatbuffersCrossLangValue ? "pass" : "fail";
+    public string FlatbuffersCrossLangDetail { get; set; } = "";
     [JsonIgnore] public bool ContractsBuildValue { get; set; }
     [JsonIgnore] public bool LocalizationParityValue { get; set; }
     [JsonIgnore] public bool SourceRootsValue { get; set; }
     [JsonIgnore] public bool FlatbuffersSchemaValue { get; set; }
     [JsonIgnore] public bool FlatbuffersRoundTripValue { get; set; }
+    [JsonIgnore] public bool FlatbuffersCrossLangValue { get; set; }
 }
