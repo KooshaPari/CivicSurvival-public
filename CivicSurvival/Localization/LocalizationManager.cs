@@ -669,9 +669,14 @@ namespace CivicSurvival.Localization
         public const string NOTIFY_CONSCRIPTION_ACTIVE_MSG = "NOTIFY_CONSCRIPTION_ACTIVE_MSG";
         public const string NOTIFY_CONSCRIPTION_ENDED_MSG = "NOTIFY_CONSCRIPTION_ENDED_MSG";
         public const string NOTIFY_INSUFFICIENT_MANPOWER_MSG = "NOTIFY_INSUFFICIENT_MANPOWER_MSG";
-        public const string NEWS_MANPOWER_CRITICAL = "NEWS_MANPOWER_CRITICAL";
-        public const string CHIRP_MANPOWER_CRITICAL = "CHIRP_MANPOWER_CRITICAL";
-        public const string NEWS_CONSCRIPTION_ACTIVATED = "NEWS_CONSCRIPTION_ACTIVATED";
-        public const string CHIRP_CONSCRIPTION = "CHIRP_CONSCRIPTION";
+        // NOTE: NEWS_MANPOWER_CRITICAL, CHIRP_MANPOWER_CRITICAL,
+        // NEWS_CONSCRIPTION_ACTIVATED, and CHIRP_CONSCRIPTION exist only as
+        // variant chains (suffix _1, _2) for GetRandom. There is no base key
+        // in the locale JSON for any of them, and no caller uses these as
+        // direct Get keys. They were orphan L entries pointing at missing
+        // base keys -- removed by test_localization_typed_constants.py.
+        // If a future contributor wants a deterministic-pick variant (always
+        // variant 1 for example), they should add a typed constant naming the
+        // specific variant, e.g. CHIRP_MANPOWER_CRITICAL_1.
     }
 }
