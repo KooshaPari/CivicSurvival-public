@@ -42,10 +42,10 @@ state, or the WP state beyond what `agileplus implement` already wrote.
 The contract itself (in `governance_contracts.rules` for this feature)
 declares two required evidence keys:
 
-| Transition          | Required evidence key | Type             |
-| ------------------- | --------------------- | ---------------- |
-| WP01: Doing -> Review | `FR-CI`             | `ci_output`      |
-| WP01: Review -> Done  | `FR-REVIEW`         | `review_approval`|
+| Transition            | Required evidence key | Type              |
+| --------------------- | --------------------- | ----------------- |
+| WP01: Doing -> Review | `FR-CI`               | `ci_output`       |
+| WP01: Review -> Done  | `FR-REVIEW`           | `review_approval` |
 
 `agileplus validate --feature civic-warfare-program` therefore accepts
 the public-audit CI rows (Doing -> Review) and a self-attested review

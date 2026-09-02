@@ -100,20 +100,24 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
 
 ## Next Meaningful Work
 
-1. Commit and push the corrective evidence, and attach it to the
-   worktree-reconciliation successor PR.
-2. Require all protected checks plus substantive CodeRabbit and Kilo reviews
-   to pass before cleanup.
-3. Retire only the proven-redundant worktrees while preserving refs.
-4. Record the actual post-cleanup worktree count, ref-preservation evidence,
-   primary-checkout state, and hosted rerun IDs on the successor branch.
-5. Only after branch-protection governance is verified stable, merge the
-   completed reconciliation record through protection; auto-merge and queueing
-   are prohibited beforehand.
-6. Close the AgilePlus evidence-recording gap without direct database
-   fabrication.
-7. Obtain licensed game-adapter build and launch-smoke evidence.
-8. Prepare a fresh WP02-A successor PR from current `origin/main`, with
-   test-first ABI/schema/golden-vector evidence only after WP01 acceptance.
-9. Keep production warfare implementation closed until WP01 is formally
+1. PR #81 is OPEN. Trunk Check, CodeQL C#, and TS/JS are currently red on
+   the PR. The Trunk Check and CodeQL C# blockers are introduced or
+   surfaced by the PR changes; TS/JS is a pre-existing repo gap (no
+   top-level package-lock.json) and is recorded for follow-up.
+2. Land prettier-formatted RECORDING.md and validation-report.md; add
+   the missing C# manual-build step to codeql.yml so CodeQL no longer
+   reports "didn't build any of it".
+3. Re-run the public-audit, Trunk Check, CodeQL, and Civic Evidence
+   Gate on the updated branch; require all four plus substantive
+   CodeRabbit and Kilo reviews to pass before any merge.
+4. Obtain licensed game-adapter build and launch-smoke evidence on a
+   Windows/CS2 host; attach the artifact-hash and provenance chain to
+   `wp01-go-no-go.md` and re-promote the WP01 decision to GO.
+5. Prepare a fresh WP02-A successor PR from current `origin/main`, with
+   test-first ABI/schema/golden-vector evidence only after WP01 is
+   accepted.
+6. Resolve the pre-existing C# solution NuGet "Invalid framework
+   identifier" error and the missing top-level package-lock.json
+   (out of scope for PR #81; recorded for the next housekeeping PR).
+7. Keep production warfare implementation closed until WP01 is formally
    accepted.

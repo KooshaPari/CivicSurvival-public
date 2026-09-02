@@ -40,6 +40,10 @@ jobs:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
 
+      - name: Build C# (required for CodeQL manual build mode)
+        if: matrix.language == 'csharp'
+        run: dotnet build CivicSurvival.sln --nologo
+
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@ff0a06e83cb2de871e5a09832bc6a81e7276941f # v3.28.18
         with:
