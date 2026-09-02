@@ -4,6 +4,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CivicSurvival", "CivicSurvival\CivicSurvival.csproj", "{B7C3D4E5-F6A7-8901-BCDE-F23456789012}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CivicSurvival.Analyzers", "CivicSurvival.Analyzers\CivicSurvival.Analyzers.csproj", "{A1B2C3D4-E5F6-7890-1234-56789ABCDEF0}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CivicSurvival.Contracts", "CivicSurvival.Contracts\CivicSurvival.Contracts.csproj", "{C0A2CE2A-9B3B-4E1D-A40C-B0F27DBE0C5A}"
 EndProject
 Global

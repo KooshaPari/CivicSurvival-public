@@ -156,12 +156,16 @@
     </ItemGroup>
 
 
-    <!-- Contracts (wire types). The CivicSurvival.Analyzers project is private and not
-         published in this public snapshot; its ProjectReference is removed here. -->
+    <!-- Contracts (wire types) and source generators -->
     <ItemGroup>
         <ProjectReference Include="..\CivicSurvival.Contracts\CivicSurvival.Contracts.csproj" />
+        <ProjectReference Include="..\CivicSurvival.Analyzers\CivicSurvival.Analyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
     </ItemGroup>
 
+    <!-- System.Collections.Immutable for generated null-object patterns -->
+    <ItemGroup>
+        <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
+    </ItemGroup>
     <!-- Static Analyzers -->
     <ItemGroup>
         <PackageReference Include="Roslynator.Analyzers" Version="4.12.9">
