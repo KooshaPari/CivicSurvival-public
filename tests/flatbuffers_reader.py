@@ -34,22 +34,22 @@ from pathlib import Path
 # Authoritative schema (must match .agileplus/civic-warfare-program/contracts/warfare.fbs)
 # ---------------------------------------------------------------------------
 
-# enum CommandKind : ushort (offset-by-zero in declaration order)
+# enum CommandKind : ushort (offset-by-zero in declaration order; mirrors warfare.fbs)
 COMMAND_KIND_VALUES = (
-    "None",
-    "RaiseAlert",
-    "ReduceAlert",
-    "MobilizeReserve",
-    "DemobilizeReserve",
-    "RequisitionEquipment",
-    "RequisitionPersonnel",
-    "AllocateResources",
-    "TransferFunds",
-    "EnterNegotiation",
-    "ExecuteMission",
-    "IssueDirective",
-    "DispatchAdvisory",
-    "RecallUnit",
+    "None",                          # 0
+    "SetPolicy",                     # 1
+    "SetDelegation",                 # 2
+    "Procure",                       # 3
+    "Construct",                     # 4
+    "Mobilize",                      # 5
+    "AssignForce",                   # 6
+    "CreateOperation",               # 7
+    "UpdateOperation",               # 8
+    "CancelOperation",               # 9
+    "SetMission",                    # 10
+    "Negotiate",                     # 11
+    "ConductCovertOperation",        # 12
+    "RespondToCivilEvent",           # 13
 )
 COMMAND_KIND_INDEX = {name: idx for idx, name in enumerate(COMMAND_KIND_VALUES)}
 
@@ -201,8 +201,6 @@ def decode_envelope(buf: bytes) -> dict:
         payload = _decode_payload(buf, payload_off, payload_type_name)
 
     return {
-        "file_identifier": buf[4:8].decode("ascii", errors="replace"),
-        "root_off": root_off,
         "payload_type": payload_type_name,
         "payload": payload,
     }
@@ -247,50 +245,40 @@ def _decode_command_batch(buf: bytes, cb_off: int) -> dict:
 def _decode_command_envelope(buf: bytes, cmd_off: int) -> dict:
     _, _, f = _follow_table(buf, cmd_off)
 
-    # CommandEnvelope fields (from warfare.fbs):
-    # 0: command_id ([uint8; 16])  - inline fixed-size array
-    # 1: campaign_id (vector<uint8>)
-    # 2: issuer_id (vector<uint8>)
-    # 3: submitted_tick (uint64)
-    # 4: scheduled_tick (uint64)
-    # 5: priority (int32)
-    # 6: expected_revision (int32)
-    # 7: kind (ushort)  - CommandKind enum
-    # 8: payload (vector<uint8>)
-    # 9: notes (string)
+    # CommandEnvelope fields (must mirror warfare.fbs):
+    #   0: command_id        ([ubyte;16])  inline fixed-size array (SKIPPED)
+    #   1: campaign_id       ([ubyte])     vector                 (SKIPPED)
+    #   2: issuer_id         ([ubyte])     vector                 (SKIPPED)
+    #   3: submitted_tick    (ulong)       uint64
+    #   4: scheduled_tick    (ulong)       uint64
+    #   5: priority          (int)         int32
+    #   6: expected_revision (ulong)       uint64   (NOT int32; ulongs exceed int32 range)
+    #   7: kind              (CommandKind) ushort
+    #   8: payload           ([ubyte])     vector                 (SKIPPED)
+    #
+    # Byte-vector fields (command_id, campaign_id, issuer_id, payload) are
+    # intentionally NOT decoded. They are not part of the cross-language check
+    # and FlatBuffers [ubyte] vectors can be ambiguous at small sizes (a 16-byte
+    # vector reads identically to the inline 16-byte command_id), so skipping
+    # them keeps the output unambiguous and aligned with the C# reader (which
+    # only emits kind + payload_byte_count).
 
     out: dict = {}
 
-    # command_id: 16-byte inline fixed array at cmd_off + 4 (after vtable soff)
-    # But per FlatBuffers, inline arrays are stored inline at cmd_off + voff[0].
-    if len(f) > 0 and f[0]:
-        cid_off = cmd_off + f[0]
-        _need(buf, cid_off, 16, "command_id")
-        out["command_id"] = list(buf[cid_off : cid_off + 16])
-
-    # vectors
-    for vec_idx, name in [(1, "campaign_id"), (2, "issuer_id"), (8, "payload")]:
-        if len(f) > vec_idx and f[vec_idx]:
-            vslot = cmd_off + f[vec_idx]
-            voff = _follow_uoffset(buf, vslot)
-            vcount = _u32(buf, voff)
-            vdata = voff + 4
-            _need(buf, vdata, vcount, f"{name} data")
-            out[name] = list(buf[vdata : vdata + vcount])
-
-    # uint64
+    # ulong fields (uint64 per .fbs — not i32, since values may exceed int32 range)
     if len(f) > 3 and f[3]:
         out["submitted_tick"] = _u64(buf, cmd_off + f[3])
     if len(f) > 4 and f[4]:
         out["scheduled_tick"] = _u64(buf, cmd_off + f[4])
 
-    # int32
+    # priority is int (int32)
     if len(f) > 5 and f[5]:
         out["priority"] = _i32(buf, cmd_off + f[5])
+    # expected_revision is ulong (uint64)
     if len(f) > 6 and f[6]:
-        out["expected_revision"] = _i32(buf, cmd_off + f[6])
+        out["expected_revision"] = _u64(buf, cmd_off + f[6])
 
-    # ushort enum
+    # ushort CommandKind enum
     if len(f) > 7 and f[7]:
         kind_raw = _u16(buf, cmd_off + f[7])
         out["kind"] = (
@@ -298,19 +286,6 @@ def _decode_command_envelope(buf: bytes, cmd_off: int) -> dict:
             if kind_raw < len(COMMAND_KIND_VALUES)
             else f"Unknown({kind_raw})"
         )
-
-    # string (notes): uoffset to vector<uint8> + null terminator expected
-    if len(f) > 9 and f[9]:
-        nslot = cmd_off + f[9]
-        noff = _follow_uoffset(buf, nslot)
-        ncount = _u32(buf, noff)
-        ndata = noff + 4
-        _need(buf, ndata, ncount, "notes data")
-        # Strip trailing NUL (FlatBuffers string convention)
-        raw = buf[ndata : ndata + ncount]
-        if raw and raw[-1] == 0:
-            raw = raw[:-1]
-        out["notes"] = raw.decode("utf-8", errors="replace")
 
     return out
 
