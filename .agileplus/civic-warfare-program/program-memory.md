@@ -148,52 +148,9 @@ Audit CivicSurvival in extreme depth and evolve it into a state-of-the-art, full
 
 ## Next Meaningful Work
 
-<<<<<<< HEAD
-
-1. PR #87 (WP02-A) is open and is the natural merge target.
-   Once merged, prepare a successor PR for **WP02-B (FlatBuffers
-   end-to-end cross-language round-trip)** on the next branch off
-   `origin/main`:
-   - Add a Rust crate under `native/` that uses the canonical
-     `flatbuffers` crate to **encode** a `CommandBatch` (the schema's
-     other root kind, `ProjectionDelta`) and round-trip it back to
-     JSON via `flatc --json --raw-binary`. The hand-written C#
-     reader should decode the same Rust-produced binary identically.
-   - Add CI step that runs both directions against the same
-     committed fixture.
-2. Obtain licensed game-adapter build and launch-smoke evidence on a
-   Windows/CS2 host; attach the artifact-hash and provenance chain to
-   `wp01-go-no-go.md` and re-promote the WP01 decision to GO.
-3. The `test_flatbuffers_contract_drift.sh` and
-   `test_flatbuffers_roundtrip_drift.sh` regression tests must be
-   extended as the schema grows: every new enum member, struct field,
-   ABI function, and golden-fixture field added to the public contracts
-   must have a corresponding drift case that proves removal is detected.
-4. Resolve the pre-existing C# solution NuGet "Invalid framework
-   identifier" error (out of scope for PR #87; recorded for the
-   next housekeeping PR after PR #87 lands).
-5. # Keep production warfare implementation closed until WP01 is formally
-6. PR #81 CI is FULLY GREEN as of this writing: Analyze (csharp),
-   Analyze (javascript-typescript), Lint & Format, public-audit x2,
-   scorecard, semgrep-cloud-platform/scan, Socket Security x2 all pass.
-   Kilo Code Review is pending. Await final Kilo review and any
-   remaining CodeRabbit review before merge consideration.
-7. Obtain licensed game-adapter build and launch-smoke evidence on a
-   Windows/CS2 host; attach the artifact-hash and provenance chain to
-   `wp01-go-no-go.md` and re-promote the WP01 decision to GO.
-8. After PR #81 lands, prepare a successor WP02-A PR from current
-   `origin/main` with test-first ABI/schema/golden-vector evidence
-   for the FlatBuffers boundary: native-side reader golden vectors,
-   C# deserialization path, and end-to-end roundtrip test using
-   the Rust test-vector generator.
-9. The `test_flatbuffers_contract_drift.sh` regression test must
-   be extended as the schema grows: every new enum member, struct
-   field, and ABI function added to the public contracts must have
-   a corresponding `check_contracts.sh`-style test that proves
-   removal is detected.
-10. Resolve the pre-existing C# solution NuGet "Invalid framework
-    identifier" error (out of scope for PR #81; recorded for the
-    next housekeeping PR after PR #81 lands).
-11. Keep production warfare implementation closed until WP01 is formally
-    > > > > > > > origin/main
-    > > > > > > > accepted and Kilo/CodeRabbit reviews confirm no governance concerns.
+1. **WP02-B Cross-language Validation (this turn, COMPLETE)**: A 6th public-audit gate (`flatbuffersCrossLang`) now cross-validates the C# FlatBuffers reader against a hand-rolled Python reader (`tests/flatbuffers_reader.py`). Both readers are cross-validated against `flatc --json --raw-binary` canonical output of the same committed golden fixture. 9/9 Python drift cases detected, 8/8 C# drift cases detected, 5/5 schema-drift cases detected. All 6 gates pass: `contractsBuild`, `localizationParity`, `sourceRoots`, `flatbuffersSchema`, `flatbuffersRoundTrip`, `flatbuffersCrossLang`.
+2. **WP02-C Rust encoder**: Add a Rust crate under `native/` that uses the canonical `flatbuffers` crate to **encode** a `ProjectionDelta` (the schema's other root kind) and round-trip it back to JSON via `flatc --json --raw-binary`. The hand-written C# and Python readers should both decode the Rust-produced binary identically. This is the only remaining piece before the wire contract can be claimed truly language-agnostic.
+3. **License-gated production path**: Obtain licensed game-adapter build and launch-smoke evidence on a Windows/CS2 host; attach the artifact-hash and provenance chain to `wp01-go-no-go.md` and re-promote the WP01 decision to GO. This is the only blocker on WP01 production-warfare acceptance.
+4. **Schema growth discipline**: As the warfare.fbs schema grows, every new enum member, struct field, ABI function, and golden-fixture field must have a corresponding drift case in either `test_flatbuffers_contract_drift.sh` (schema-level) or `test_flatbuffers_roundtrip_drift.sh` / `test_cross_lang_drift.py` (binary-level). Without drift coverage, the "enforced" claim is misleading.
+5. **PR backlog housekeeping**: Resolve the pre-existing C# solution NuGet "Invalid framework identifier" error (out of scope for WP02-A/WP02-B; recorded for the next housekeeping PR).
+6. **Production warfare gate remains closed**: Implementation remains blocked until WP01 is formally accepted and independent review (CodeRabbit / Kilo Code Review / operator) confirms no governance concerns.
