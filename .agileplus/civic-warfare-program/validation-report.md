@@ -2,7 +2,7 @@ Validation summary: PASS: Evidence 40/40 passed, policies 0/0 passed, missing ev
 
 # Validation Report: civic-warfare-program
 
-**Timestamp**: 2026-09-02T08:29:33Z | **Result**: PASS
+**Timestamp**: 2026-09-02T08:41:41Z | **Result**: PASS
 
 ## Evidence Checks
 
@@ -52,8 +52,8 @@ Validation summary: PASS: Evidence 40/40 passed, policies 0/0 passed, missing ev
 ## Governance Exceptions
 
 - Force flag used: expected state 'Implementing', got 'validated' for feature 'civic-warfare-program'
-  [2m2026-09-02T08:29:33.001661Z[0m [32m INFO[0m persisted state transition event [3mentity[0m[2m=[0m"feature" [3mfeature_id[0m[2m=[0m1 [3mfrom[0m[2m=[0m"Implementing" [3mto[0m[2m=[0m"Validated" [3msequence[0m[2m=[0m8 [3mhash[0m[2m=[0m[20, 205, 67, 144, 79, 195, 207, 118, 24, 159, 106, 36, 224, 0, 222, 1, 125, 153, 95, 35, 93, 168, 165, 65, 187, 73, 91, 5, 137, 97, 110, 172]
-  [2m2026-09-02T08:29:33.001835Z[0m [32m INFO[0m validate completed [3mcommand[0m[2m=[0m"validate" [3mslug[0m[2m=[0mcivic-warfare-program [3msummary[0m[2m=[0mPASS: Evidence 40/40 passed, policies 0/0 passed, missing evidence 0, exceptions 1 [3melapsed_ms[0m[2m=[0m4
+  [2m2026-09-02T08:41:41.528017Z[0m [32m INFO[0m persisted state transition event [3mentity[0m[2m=[0m"feature" [3mfeature_id[0m[2m=[0m1 [3mfrom[0m[2m=[0m"Implementing" [3mto[0m[2m=[0m"Validated" [3msequence[0m[2m=[0m10 [3mhash[0m[2m=[0m[128, 59, 85, 178, 242, 19, 43, 165, 138, 35, 14, 190, 210, 105, 191, 116, 131, 187, 12, 192, 70, 78, 222, 25, 183, 183, 83, 153, 102, 157, 110, 137]
+  [2m2026-09-02T08:41:41.528430Z[0m [32m INFO[0m validate completed [3mcommand[0m[2m=[0m"validate" [3mslug[0m[2m=[0mcivic-warfare-program [3msummary[0m[2m=[0mPASS: Evidence 40/40 passed, policies 0/0 passed, missing evidence 0, exceptions 1 [3melapsed_ms[0m[2m=[0m5
   Feature 'civic-warfare-program' validated successfully.
   State: Implementing -> Validated
   Report: kitty-specs/civic-warfare-program/validation-report.md
