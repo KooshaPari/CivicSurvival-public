@@ -42,3 +42,11 @@ if [[ "$wp02d_output" != *"8/8 wp02d drift cases passed"* ]]; then
   echo "FAIL: wp02d drift test did not pass" >&2
   exit 1
 fi
+
+# WP02-S: Cross-language stress fuzzing (50 fixtures per union arm, 150 total)
+wp02s_output=$(python3 "$repo_root/tests/run_wp02s_stress.py" 2>&1 || true)
+echo "$wp02s_output"
+if [[ "$wp02s_output" != *"150/150 wp02s stress cases pass"* ]]; then
+  echo "FAIL: wp02s stress test did not pass" >&2
+  exit 1
+fi
