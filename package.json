@@ -10,7 +10,9 @@
     "scorecard": "python scripts/scorecard_ci.py .",
     "scorecard:check": "python scripts/scorecard_ci.py . --fail-on-drop --baseline-file .github/scorecard-baseline.json",
     "release:current": "python scripts/release.py current",
-    "release:verify": "python scripts/release.py verify"
+    "release:verify": "python scripts/release.py verify",
+    "docs:dev": "vitepress dev docs-site --port 5180 --host 127.0.0.1",
+    "docs:build": "vitepress build docs-site"
   },
   "keywords": [
     "civic-survival",
@@ -30,5 +32,8 @@
     "url": "https://github.com/KooshaPari/CivicSurvival-public/issues"
   },
   "private": true,
-  "note": "This package.json exists for monorepo tooling consistency and to satisfy the scorecard PACKAGE_JSON detector. The actual game UI is bundled separately under CivicSurvival/UI/."
+  "note": "This package.json exists for monorepo tooling consistency and to satisfy the scorecard PACKAGE_JSON detector. The actual game UI is bundled separately under CivicSurvival/UI/.",
+  "devDependencies": {
+    "vitepress": "^1.6.3"
+  }
 }
