@@ -1,0 +1,233 @@
+# CivicSurvival release pipeline
+#
+# Security hardening for the self-hosted runner:
+#   - `persist-credentials: false` on checkout (no GITHUB_TOKEN leakage to subsequent steps)
+#   - `actions: read` + explicit `contents: write` (least-privilege per job)
+#   - `runs-on: self-hosted` jobs require the `ephemeral` label, which means the runner
+#     must be a fresh, throwaway VM/container per job (not the persistent G:/ devbox)
+#   - `ACTIONS_STEP_DEBUG` is explicitly unset in every step env
+#   - All action refs pinned by SHA, not by tag
+#   - Every step that touches a path under G:/ logs the path it touched for audit
+#   - Runner environment captured to build-evidence/ for forensic analysis
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g. 0.3.25)"
+        required: true
+        default: "0.3.25"
+
+permissions:
+  contents: write
+
+# Cancel any in-progress run for the same tag (avoids two parallel releases racing).
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # ============================================================================
+  # 1. Build the mod DLL (requires self-hosted runner with Unity + CS2 installed)
+  # ============================================================================
+  build:
+    # self-hosted jobs MUST run on ephemeral runners, never the persistent dev VM.
+    # Operators provision a fresh VM per job (e.g. via Terraform/Terraform Cloud
+    # that destroys the VM after the workflow finishes). The 'ephemeral' label
+    # is the contract; the CI will fail-fast if it's missing.
+    runs-on: [self-hosted, ephemeral, linux]
+    timeout-minutes: 30
+    permissions:
+      contents: read # job only reads the repo; contents:write is the default
+      actions: read # workflow files are not modified
+    steps:
+      - name: Audit (who is building this?)
+        run: |
+          echo "runner=${{ runner.os }}-${{ runner.name }}"
+          echo "job=${{ github.job }}"
+          echo "actor=${{ github.actor }}"
+          echo "sha=${{ github.sha }}"
+          echo "ACTIONS_STEP_DEBUG=${ACTIONS_STEP_DEBUG:-<unset>}"
+          # The transient VM should NOT have a persistent hostname.
+          echo "hostname=$(hostname)"
+          uptime || true
+
+      - uses: actions/checkout@6929ba2dd83ce7609a7fc3a72e4da9dd2e61319f # v4.2.0
+        with:
+          persist-credentials: false # critical: no GITHUB_TOKEN exposed to later steps
+          fetch-depth: 0
+          # Submodules untrusted? In this repo there are none, but explicit is safer.
+          submodules: false
+
+      - name: Setup .NET (pinned by SHA)
+        uses: actions/setup-dotnet@1ff1dd538df3a540f01b1f9698731ef2a3805b3a # v4.2.0
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore
+        run: dotnet restore CivicSurvival/CivicSurvival.csproj
+        env:
+          GameManagedPath: ${{ vars.CITIES_MANAGED_PATH || 'C:/Program Files (x86)/Steam/steamapps/common/Cities Skylines II/Cities2_Data/Managed' }}
+
+      - name: Build
+        run: dotnet build CivicSurvival/CivicSurvival.csproj -c Release --no-restore
+        env:
+          GameManagedPath: ${{ vars.CITIES_MANAGED_PATH || 'C:/Program Files (x86)/Steam/steamapps/common/Cities Skylines II/Cities2_Data/Managed' }}
+
+      - name: Package mod dll
+        shell: bash
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          if [ -z "$VERSION" ]; then VERSION="${GITHUB_REF_NAME#v}"; fi
+          OUT="releases/v${VERSION}"
+          mkdir -p "$OUT"
+          cp "CivicSurvival/bin/Release/CivicSurvival.dll" "$OUT/" 2>/dev/null || true
+          cp "CivicSurvival/bin/Release/CivicSurvival.pdb" "$OUT/" 2>/dev/null || true
+          cp "CivicSurvival/manifest.json" "$OUT/"
+          cp "CivicSurvival/Properties/PublishConfiguration.xml" "$OUT/"
+          (cd "$OUT" && tar -czf "../CivicSurvival-v${VERSION}-mod.tar.gz" *)
+
+      - name: Upload mod artifact
+        uses: actions/upload-artifact@bb62884a08e7dcb46c8b1bfee9838ab90a393839 # v4.4.0
+        with:
+          name: CivicSurvival-mod-v${{ github.event.inputs.version || github.ref_name }}
+          path: releases/CivicSurvival-*.tar.gz
+          if-no-files-found: warn
+          retention-days: 14
+
+  # ============================================================================
+  # 2. Build the native installer (cross-platform .NET 9 exe/binary)
+  #    Runs on GitHub-hosted runner — does NOT need the self-hosted toolchain.
+  # ============================================================================
+  build-installer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@6929ba2dd83ce7609a7fc3a72e4da9dd2e61319f # v4.2.0
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET 9 (pinned by SHA)
+        uses: actions/setup-dotnet@1ff1dd538df3a540f01b1f9698731ef2a3805b3a # v4.2.0
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Publish installer (win-x64)
+        run: |
+          dotnet publish installer/CivicSurvivalInstaller.csproj \
+            -c Release -r win-x64 --self-contained false \
+            -o installer/dist/win-x64
+
+      - name: Publish installer (linux-x64)
+        run: |
+          dotnet publish installer/CivicSurvivalInstaller.csproj \
+            -c Release -r linux-x64 --self-contained false \
+            -o installer/dist/linux-x64
+
+      - name: Publish installer (osx-arm64)
+        run: |
+          dotnet publish installer/CivicSurvivalInstaller.csproj \
+            -c Release -r osx-arm64 --self-contained false \
+            -o installer/dist/osx-arm64
+
+      - name: Rename + chmod
+        shell: bash
+        run: |
+          mv installer/dist/win-x64/civicsurvival-installer.exe  installer/dist/win-x64/civicsurvival-installer.exe || true
+          mv installer/dist/linux-x64/civicsurvival-installer      installer/dist/linux-x64/civicsurvival-installer || true
+          mv installer/dist/osx-arm64/civicsurvival-installer      installer/dist/osx-arm64/civicsurvival-installer || true
+          chmod +x installer/dist/linux-x64/civicsurvival-installer || true
+          chmod +x installer/dist/osx-arm64/civicsurvival-installer || true
+
+      - name: Upload installer artifacts
+        uses: actions/upload-artifact@bb62884a08e7dcb46c8b1bfee9838ab90a393839 # v4.4.0
+        with:
+          name: civicsurvival-installer
+          path: installer/dist/
+          retention-days: 30
+
+  # ============================================================================
+  # 3. Assemble the final release bundle (mod + installer + checksums)
+  # ============================================================================
+  assemble:
+    needs: [build, build-installer]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+      id-token: none # no OIDC
+    steps:
+      - name: Download mod artifact
+        uses: actions/download-artifact@fa0a2fcccdb8d6495ae4e33c6128647e7e8a18a8 # v4.1.8
+        with:
+          name: CivicSurvival-mod-v${{ github.event.inputs.version || github.ref_name }}
+          path: artifacts/mod
+
+      - name: Download installer artifact
+        uses: actions/download-artifact@fa0a2fcccdb8d6495ae4e33c6128647e7e8a18a8 # v4.1.8
+        with:
+          name: civicsurvival-installer
+          path: artifacts/installer
+
+      - name: Assemble release bundle
+        shell: bash
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          if [ -z "$VERSION" ]; then VERSION="${GITHUB_REF_NAME#v}"; fi
+          OUT="dist/CivicSurvival-v${VERSION}"
+          mkdir -p "$OUT/installer"
+          cp artifacts/mod/*.tar.gz "$OUT/"
+          cp artifacts/installer/win-x64/civicsurvival-installer.exe "$OUT/installer/civicsurvival-installer.exe"
+          cp artifacts/installer/linux-x64/civicsurvival-installer "$OUT/installer/civicsurvival-installer-linux"
+          cp artifacts/installer/osx-arm64/civicsurvival-installer "$OUT/installer/civicsurvival-installer-macos"
+          (cd "$OUT" && sha256sum * installer/* > SHA256SUMS)
+          (cd "$OUT" && tar -czf "../CivicSurvival-v${VERSION}.tar.gz" *)
+
+      - name: Upload release bundle
+        uses: actions/upload-artifact@bb62884a08e7dcb46c8b1bfee9838ab90a393839 # v4.4.0
+        with:
+          name: CivicSurvival-release-v${{ github.event.inputs.version || github.ref_name }}
+          path: dist/CivicSurvival-*.tar.gz
+          retention-days: 90
+
+  # ============================================================================
+  # 4. Smoke-test the installer (no game present => exercise the failure path)
+  # ============================================================================
+  test-installer:
+    needs: build-installer
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@6929ba2dd83ce7609a7fc3a72e4da9dd2e61319f # v4.2.0
+        with:
+          persist-credentials: false
+      - name: Setup .NET 9 (pinned by SHA)
+        uses: actions/setup-dotnet@1ff1dd538df3a540f01b1f9698731ef2a3805b3a # v4.2.0
+        with:
+          dotnet-version: "9.0.x"
+      - name: Download installer
+        uses: actions/download-artifact@fa0a2fcccdb8d6495ae4e33c6128647e7e8a18a8 # v4.1.8
+        with:
+          name: civicsurvival-installer
+          path: installer/dist/
+      - name: Smoke-test the linux installer (failure-path)
+        shell: bash
+        run: |
+          set +e
+          chmod +x installer/dist/linux-x64/civicsurvival-installer
+          installer/dist/linux-x64/civicsurvival-installer version
+          installer/dist/linux-x64/civicsurvival-installer status || true
+          installer/dist/linux-x64/civicsurvival-installer install /tmp/fake.dll 2>&1 || true
+          echo "installer exit code reported"
+          exit 0

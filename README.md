@@ -4,7 +4,7 @@
 
 [![AI slop inside](https://sladge.net/badge.svg)](https://sladge.net) [![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/KooshaPari/CivicSurvival-public/total)](https://github.com/KooshaPari/CivicSurvival-public/releases)
 
-> *"Systems critical. Initiating blackout protocol."*
+> _"Systems critical. Initiating blackout protocol."_
 
 Transform your city into an infrastructure survival challenge: keep the power grid
 alive, defend against drone and missile attacks, and mobilize your crews under
@@ -32,12 +32,12 @@ an update. Treat beta saves as disposable until v1.0.
 
 ## One Mod, Two Experiences
 
-| English | Українська |
-|---------|------------|
+| English                           | Українська                  |
+| --------------------------------- | --------------------------- |
 | Neutral infrastructure simulation | Реалістичний контекст кризи |
-| "Power Company" | "ДТЕК" |
-| "Emergency Shelter" | "Пункт Незламності" |
-| "Incoming threat" | "Шахеди на підльоті!" |
+| "Power Company"                   | "ДТЕК"                      |
+| "Emergency Shelter"               | "Пункт Незламності"         |
+| "Incoming threat"                 | "Шахеди на підльоті!"       |
 
 Same mechanics, different storytelling. The language you choose defines the experience.
 
@@ -117,3 +117,16 @@ permitted. Game assets under `Assets/` are licensed separately under
 
 Bug reports and feedback go to our [Discord](https://discord.gg/nhytdnKFeW), not GitHub
 Issues. Pull requests are governed by the license — see [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
+### Development setup
+
+```sh
+# Install lefthook (one-time, per clone) — runs pre-commit + pre-push gates
+go install github.com/evilmartians/lefthook@latest   # or scoop / brew on Windows
+lefthook install                                    # wires the .lefthook.yml config
+
+# Pre-commit runs: ruff format/check, prettier --check (changed files), shellcheck (workflows)
+# Pre-push runs:   ruff, gitleaks full-scan, actionlint, pytest discipline suite
+```
+
+The `.lefthook.yml` config is the contract — gates fail CI and local pre-push identically.

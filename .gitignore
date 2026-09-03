@@ -49,6 +49,8 @@ CivicSurvival.Analyzers/obj/
 # Tracked only when explicitly staged via build-evidence/committed paths.
 build-evidence/*.log
 build-evidence/*.tmp
+# codex-mining dumps are very large (100+ MB per run); exclude from repo.
+build-evidence/codex-mining-*.md
 
 # OS / editor swap files
 *.swp
