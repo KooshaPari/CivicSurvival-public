@@ -363,6 +363,10 @@ def _decode_save_envelope(buf, se_off):
     rules_manifest_hash = _read_table_byte_vec_field(buf, se_off, fields, 5)
     tick = _read_table_u64_field(buf, se_off, fields, 6)
     revision = _read_table_u64_field(buf, se_off, fields, 7)
+    snapshot = _read_table_byte_vec_field(buf, se_off, fields, 8)
+    journal_checkpoint = _read_table_byte_vec_field(buf, se_off, fields, 9)
+    canonical_hash = _read_table_byte_vec_field(buf, se_off, fields, 10)
+    checksum = _read_table_byte_vec_field(buf, se_off, fields, 11)
     return {
         "abi_version": abi_version,
         "schema_version": schema_version,
@@ -372,6 +376,10 @@ def _decode_save_envelope(buf, se_off):
         "rules_manifest_hash": rules_manifest_hash,
         "tick": tick,
         "revision": revision,
+        "snapshot": snapshot,
+        "journal_checkpoint": journal_checkpoint,
+        "canonical_hash": canonical_hash,
+        "checksum": checksum,
     }
 
 
