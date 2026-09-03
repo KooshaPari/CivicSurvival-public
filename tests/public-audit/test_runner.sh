@@ -34,3 +34,11 @@ if [[ "$wp02c_output" != *"8/8 wp02c drift cases passed"* ]]; then
   echo "FAIL: wp02c drift test did not pass" >&2
   exit 1
 fi
+
+# WP02-D: SaveEnvelope cross-language drift (dependency-free Python runner)
+wp02d_output=$(python3 "$repo_root/tests/run_wp02d_drift.py" 2>&1 || true)
+echo "$wp02d_output"
+if [[ "$wp02d_output" != *"8/8 wp02d drift cases passed"* ]]; then
+  echo "FAIL: wp02d drift test did not pass" >&2
+  exit 1
+fi
