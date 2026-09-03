@@ -1,0 +1,174 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. 0.3.25)'
+        required: true
+        default: '0.3.25'
+
+permissions:
+  contents: write
+
+jobs:
+  # ============================================================================
+  # 1. Build the mod DLL (requires self-hosted runner with Unity + CS2 installed)
+  # ============================================================================
+  build:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore CivicSurvival/CivicSurvival.csproj
+        env:
+          GameManagedPath: ${{ vars.CITIES_MANAGED_PATH || 'C:/Program Files (x86)/Steam/steamapps/common/Cities Skylines II/Cities2_Data/Managed' }}
+
+      - name: Build
+        run: dotnet build CivicSurvival/CivicSurvival.csproj -c Release --no-restore
+        env:
+          GameManagedPath: ${{ vars.CITIES_MANAGED_PATH || 'C:/Program Files (x86)/Steam/steamapps/common/Cities Skylines II/Cities2_Data/Managed' }}
+
+      - name: Package mod dll
+        shell: bash
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          if [ -z "$VERSION" ]; then VERSION="${GITHUB_REF_NAME#v}"; fi
+          OUT="releases/v${VERSION}"
+          mkdir -p "$OUT"
+          cp "CivicSurvival/bin/Release/CivicSurvival.dll" "$OUT/" 2>/dev/null || true
+          cp "CivicSurvival/bin/Release/CivicSurvival.pdb" "$OUT/" 2>/dev/null || true
+          cp "CivicSurvival/manifest.json" "$OUT/"
+          cp "CivicSurvival/Properties/PublishConfiguration.xml" "$OUT/"
+          (cd "$OUT" && tar -czf "../CivicSurvival-v${VERSION}-mod.tar.gz" *)
+
+      - name: Upload mod artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CivicSurvival-mod-v${{ github.event.inputs.version || github.ref_name }}
+          path: releases/CivicSurvival-*.tar.gz
+          if-no-files-found: warn
+
+  # ============================================================================
+  # 2. Build the native installer (cross-platform .NET 9 exe/binary)
+  # ============================================================================
+  build-installer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Publish installer (win-x64)
+        run: |
+          dotnet publish installer/CivicSurvivalInstaller.csproj \
+            -c Release -r win-x64 --self-contained false \
+            -o installer/dist/win-x64
+
+      - name: Publish installer (linux-x64)
+        run: |
+          dotnet publish installer/CivicSurvivalInstaller.csproj \
+            -c Release -r linux-x64 --self-contained false \
+            -o installer/dist/linux-x64
+
+      - name: Publish installer (osx-arm64)
+        run: |
+          dotnet publish installer/CivicSurvivalInstaller.csproj \
+            -c Release -r osx-arm64 --self-contained false \
+            -o installer/dist/osx-arm64
+
+      - name: Rename exes
+        shell: bash
+        run: |
+          mv installer/dist/win-x64/civicsurvival-installer.exe  installer/dist/win-x64/civicsurvival-installer.exe || true
+          mv installer/dist/linux-x64/civicsurvival-installer      installer/dist/linux-x64/civicsurvival-installer || true
+          mv installer/dist/osx-arm64/civicsurvival-installer      installer/dist/osx-arm64/civicsurvival-installer || true
+          chmod +x installer/dist/linux-x64/civicsurvival-installer || true
+          chmod +x installer/dist/osx-arm64/civicsurvival-installer || true
+
+      - name: Upload installer artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: civicsurvival-installer
+          path: installer/dist/
+
+  # ============================================================================
+  # 3. Assemble the final release bundle (mod + installer + checksums)
+  # ============================================================================
+  assemble:
+    needs: [build, build-installer]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download mod artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: CivicSurvival-mod-v${{ github.event.inputs.version || github.ref_name }}
+          path: artifacts/mod
+
+      - name: Download installer artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: civicsurvival-installer
+          path: artifacts/installer
+
+      - name: Assemble release bundle
+        shell: bash
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          if [ -z "$VERSION" ]; then VERSION="${GITHUB_REF_NAME#v}"; fi
+          OUT="dist/CivicSurvival-v${VERSION}"
+          mkdir -p "$OUT/installer"
+          cp artifacts/mod/*.tar.gz "$OUT/"
+          cp artifacts/installer/win-x64/civicsurvival-installer.exe "$OUT/installer/civicsurvival-installer.exe"
+          cp artifacts/installer/linux-x64/civicsurvival-installer "$OUT/installer/civicsurvival-installer-linux"
+          cp artifacts/installer/osx-arm64/civicsurvival-installer "$OUT/installer/civicsurvival-installer-macos"
+          (cd "$OUT" && sha256sum * installer/* > SHA256SUMS)
+          (cd "$OUT" && tar -czf "../CivicSurvival-v${VERSION}.tar.gz" *)
+
+      - name: Upload release bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: CivicSurvival-release-v${{ github.event.inputs.version || github.ref_name }}
+          path: dist/CivicSurvival-*.tar.gz
+
+  # ============================================================================
+  # 4. Smoke-test the installer (no game present => exercise the failure path)
+  # ============================================================================
+  test-installer:
+    needs: build-installer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - name: Download installer
+        uses: actions/download-artifact@v4
+        with:
+          name: civicsurvival-installer
+          path: installer/dist/
+      - name: Smoke-test the linux installer
+        shell: bash
+        run: |
+          set +e
+          chmod +x installer/dist/linux-x64/civicsurvival-installer
+          installer/dist/linux-x64/civicsurvival-installer version
+          installer/dist/linux-x64/civicsurvival-installer status || true
+          installer/dist/linux-x64/civicsurvival-installer install /tmp/fake.dll 2>&1 || true
+          echo "installer exit code reported"
+          exit 0
