@@ -21,7 +21,7 @@ source_dir: .
 # Prevent hangs if a hook hangs; aggressive but realistic.
 timeout: 600
 
-fail_fast: false  # run all hooks even if one fails
+fail_fast: false # run all hooks even if one fails
 
 # Use parallel execution: pre-commit + pre-push hooks can run independently
 # (different files, different tools). Lefthook spawns them concurrently.
