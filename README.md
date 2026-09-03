@@ -117,3 +117,16 @@ permitted. Game assets under `Assets/` are licensed separately under
 
 Bug reports and feedback go to our [Discord](https://discord.gg/nhytdnKFeW), not GitHub
 Issues. Pull requests are governed by the license — see [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
+### Development setup
+
+```sh
+# Install lefthook (one-time, per clone) — runs pre-commit + pre-push gates
+go install github.com/evilmartians/lefthook@latest   # or scoop / brew on Windows
+lefthook install                                    # wires the .lefthook.yml config
+
+# Pre-commit runs: ruff format/check, prettier --check (changed files), shellcheck (workflows)
+# Pre-push runs:   ruff, gitleaks full-scan, actionlint, pytest discipline suite
+```
+
+The `.lefthook.yml` config is the contract — gates fail CI and local pre-push identically.

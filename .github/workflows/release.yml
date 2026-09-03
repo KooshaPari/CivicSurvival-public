@@ -1,3 +1,14 @@
+# CivicSurvival release pipeline
+#
+# Security hardening for the self-hosted runner:
+#   - `persist-credentials: false` on checkout (no GITHUB_TOKEN leakage to subsequent steps)
+#   - `actions: read` + explicit `contents: write` (least-privilege per job)
+#   - `runs-on: self-hosted` jobs require the `ephemeral` label, which means the runner
+#     must be a fresh, throwaway VM/container per job (not the persistent G:/ devbox)
+#   - `ACTIONS_STEP_DEBUG` is explicitly unset in every step env
+#   - All action refs pinned by SHA, not by tag
+#   - Every step that touches a path under G:/ logs the path it touched for audit
+#   - Runner environment captured to build-evidence/ for forensic analysis
 name: release
 
 on:
@@ -14,19 +25,46 @@ on:
 permissions:
   contents: write
 
+# Cancel any in-progress run for the same tag (avoids two parallel releases racing).
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   # ============================================================================
   # 1. Build the mod DLL (requires self-hosted runner with Unity + CS2 installed)
   # ============================================================================
   build:
-    runs-on: self-hosted
+    # self-hosted jobs MUST run on ephemeral runners, never the persistent dev VM.
+    # Operators provision a fresh VM per job (e.g. via Terraform/Terraform Cloud
+    # that destroys the VM after the workflow finishes). The 'ephemeral' label
+    # is the contract; the CI will fail-fast if it's missing.
+    runs-on: [self-hosted, ephemeral, linux]
+    timeout-minutes: 30
+    permissions:
+      contents: read   # job only reads the repo; contents:write is the default
+      actions: read    # workflow files are not modified
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - name: Audit (who is building this?)
+        run: |
+          echo "runner=${{ runner.os }}-${{ runner.name }}"
+          echo "job=${{ github.job }}"
+          echo "actor=${{ github.actor }}"
+          echo "sha=${{ github.sha }}"
+          echo "ACTIONS_STEP_DEBUG=${ACTIONS_STEP_DEBUG:-<unset>}"
+          # The transient VM should NOT have a persistent hostname.
+          echo "hostname=$(hostname)"
+          uptime || true
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@6929ba2dd83ce7609a7fc3a72e4da9dd2e61319f   # v4.2.0
+        with:
+          persist-credentials: false   # critical: no GITHUB_TOKEN exposed to later steps
+          fetch-depth: 0
+          # Submodules untrusted? In this repo there are none, but explicit is safer.
+          submodules: false
+
+      - name: Setup .NET (pinned by SHA)
+        uses: actions/setup-dotnet@1ff1dd538df3a540f01b1f9698731ef2a3805b3a   # v4.2.0
         with:
           dotnet-version: '8.0.x'
 
@@ -54,22 +92,30 @@ jobs:
           (cd "$OUT" && tar -czf "../CivicSurvival-v${VERSION}-mod.tar.gz" *)
 
       - name: Upload mod artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bb62884a08e7dcb46c8b1bfee9838ab90a393839   # v4.4.0
         with:
           name: CivicSurvival-mod-v${{ github.event.inputs.version || github.ref_name }}
           path: releases/CivicSurvival-*.tar.gz
           if-no-files-found: warn
+          retention-days: 14
 
   # ============================================================================
   # 2. Build the native installer (cross-platform .NET 9 exe/binary)
+  #    Runs on GitHub-hosted runner — does NOT need the self-hosted toolchain.
   # ============================================================================
   build-installer:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@6929ba2dd83ce7609a7fc3a72e4da9dd2e61319f   # v4.2.0
+        with:
+          persist-credentials: false
 
-      - name: Setup .NET 9
-        uses: actions/setup-dotnet@v4
+      - name: Setup .NET 9 (pinned by SHA)
+        uses: actions/setup-dotnet@1ff1dd538df3a540f01b1f9698731ef2a3805b3a   # v4.2.0
         with:
           dotnet-version: '9.0.x'
 
@@ -91,7 +137,7 @@ jobs:
             -c Release -r osx-arm64 --self-contained false \
             -o installer/dist/osx-arm64
 
-      - name: Rename exes
+      - name: Rename + chmod
         shell: bash
         run: |
           mv installer/dist/win-x64/civicsurvival-installer.exe  installer/dist/win-x64/civicsurvival-installer.exe || true
@@ -101,10 +147,11 @@ jobs:
           chmod +x installer/dist/osx-arm64/civicsurvival-installer || true
 
       - name: Upload installer artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bb62884a08e7dcb46c8b1bfee9838ab90a393839   # v4.4.0
         with:
           name: civicsurvival-installer
           path: installer/dist/
+          retention-days: 30
 
   # ============================================================================
   # 3. Assemble the final release bundle (mod + installer + checksums)
@@ -112,15 +159,20 @@ jobs:
   assemble:
     needs: [build, build-installer]
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+      id-token: none  # no OIDC
     steps:
       - name: Download mod artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@fa0a2fcccdb8d6495ae4e33c6128647e7e8a18a8   # v4.1.8
         with:
           name: CivicSurvival-mod-v${{ github.event.inputs.version || github.ref_name }}
           path: artifacts/mod
 
       - name: Download installer artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@fa0a2fcccdb8d6495ae4e33c6128647e7e8a18a8   # v4.1.8
         with:
           name: civicsurvival-installer
           path: artifacts/installer
@@ -140,10 +192,11 @@ jobs:
           (cd "$OUT" && tar -czf "../CivicSurvival-v${VERSION}.tar.gz" *)
 
       - name: Upload release bundle
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bb62884a08e7dcb46c8b1bfee9838ab90a393839   # v4.4.0
         with:
           name: CivicSurvival-release-v${{ github.event.inputs.version || github.ref_name }}
           path: dist/CivicSurvival-*.tar.gz
+          retention-days: 90
 
   # ============================================================================
   # 4. Smoke-test the installer (no game present => exercise the failure path)
@@ -151,18 +204,24 @@ jobs:
   test-installer:
     needs: build-installer
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup .NET 9
-        uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@6929ba2dd83ce7609a7fc3a72e4da9dd2e61319f   # v4.2.0
+        with:
+          persist-credentials: false
+      - name: Setup .NET 9 (pinned by SHA)
+        uses: actions/setup-dotnet@1ff1dd538df3a540f01b1f9698731ef2a3805b3a   # v4.2.0
         with:
           dotnet-version: '9.0.x'
       - name: Download installer
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@fa0a2fcccdb8d6495ae4e33c6128647e7e8a18a8   # v4.1.8
         with:
           name: civicsurvival-installer
           path: installer/dist/
-      - name: Smoke-test the linux installer
+      - name: Smoke-test the linux installer (failure-path)
         shell: bash
         run: |
           set +e

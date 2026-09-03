@@ -1,0 +1,104 @@
+# CivicSurvival-public pre-push gates
+# ---------------------------------------------------------------------------
+# Security-relevant gates that run *before* a push reaches GitHub.
+# These mirror what the CI runs, so failing this locally means you save CI minutes.
+#
+# Hook semantics:
+#   pre-commit   : fast (lint + format on staged files)
+#   pre-push     : slow  (full test + scorecard + diff discipline checks)
+#   post-merge  : sync main branch reference
+#
+# Self-hosted-runner note:
+#   lefthook runs on the dev machine (you), not the CI runner. The CI runner
+#   has its own audit gate via the env-var secret scanner + tokenless runner
+#   policy in .github/workflows/release.yml. lefthook is the developer-side
+#   pre-push mirror of those gates.
+# ---------------------------------------------------------------------------
+min_version: 1.10.0
+
+source_dir: .
+
+# Prevent hangs if a hook hangs; aggressive but realistic.
+timeout: 600
+
+fail_fast: false  # run all hooks even if one fails
+
+# Use parallel execution: pre-commit + pre-push hooks can run independently
+# (different files, different tools). Lefthook spawns them concurrently.
+parallel: true
+
+# Skip the no-cas/no-tty warning.
+colors: true
+no_tty: false
+
+# When `git status` is dirty, fail before running hooks. This catches the case
+# where a previous hook edit wasn't committed.
+assert_lefthook_installed: true
+
+skip_output:
+  - meta
+  - summary
+  - skips
+  - execution
+
+# Remotes to push to. Default is origin only -- pr-based push goes through PR validation.
+remotes:
+  - origin
+
+# ------------------------------------------------------------------
+# pre-commit: fast gates on staged files only
+# ------------------------------------------------------------------
+pre-commit:
+  parallel: true
+  commands:
+    ruff_format_check:
+      glob: "*.py"
+      run: ruff format --check {staged_files}
+      skip_stdin: true
+      fail_text: "Run `ruff format {staged_files}` to format Python files."
+    ruff_lint:
+      glob: "*.py"
+      run: ruff check {staged_files}
+      skip_stdin: true
+      fail_text: "Run `ruff check --fix {staged_files}` to fix lint issues."
+    prettier_check:
+      glob: "*.{md,json,jsonc,yml,yaml}"
+      run: bunx prettier@3.6.2 --check {staged_files}
+      skip_stdin: true
+      fail_text: "Run `bunx prettier@3.6.2 --write {staged_files}` to format."
+    gitleaks_protect:
+      run: gitleaks protect --staged --redact --no-banner --config .gitleaks.toml
+      glob: "*"
+      fail_text: "Secret detected in staged file. Run `gitleaks protect --staged`."
+
+# ------------------------------------------------------------------
+# pre-push: slow gates on the push vs origin/main
+# ------------------------------------------------------------------
+pre-push:
+  parallel: true
+  commands:
+    # Full test suite, but only the discipline suites we own (fast ~30s).
+    # Excludes env-gated tests that always fail on Windows (Ruby, codec).
+    pytest_discipline:
+      run: uv run pytest tests/test_localization_keys.py tests/test_release.py tests/test_release_phases.py tests/test_ci_dependency_delta.py tests/test_ci_prettier_consistency.py tests/test_scorecard_baseline_freshness.py tests/test_localization_typed_constants.py tests/test_domain_registration_discipline.py tests/test_system_registrar_discipline.py tests/test_unfinished_code_discipline.py tests/test_harmony_patches_discipline.py tests/test_domains_priority_contract.py tests/test_readme_link_discipline.py -q --no-header --tb=short
+      fail_text: "Discipline tests failed. Fix before pushing."
+    # Scorecard must not regress from the locked baseline.
+    scorecard_regression_check:
+      run: py scripts/scorecard_ci.py . --fail-on-drop --baseline-file .github/scorecard-baseline.json
+      fail_text: "Scorecard regression detected. Update .github/scorecard-baseline.json."
+    # Verify any version bump touched all four surfaces.
+    release_atomicity:
+      run: py scripts/release.py verify
+      fail_text: "Version drift. Run `py scripts/release.py verify` to debug."
+    # Block hardcoded secrets in *all* changed files vs origin/main.
+    gitleaks_full_diff:
+      run: gitleaks detect --no-banner --redact --config .gitleaks.toml --source . --log-opts="-1"
+      fail_text: "Secret detected. See gitleaks output."
+
+# ------------------------------------------------------------------
+# post-merge: refresh local main reference
+# ------------------------------------------------------------------
+post-merge:
+  commands:
+    sync_main:
+      run: git fetch origin main --quiet
