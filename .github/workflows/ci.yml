@@ -129,7 +129,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install test and lint tools
-        run: python3 -m pip install pytest ruff
+        run: python3 -m pip install pip-audit pytest ruff
       - name: Ruff check dependency delta
         run: ruff check scripts/dependency_delta.py tests/test_ci_dependency_delta.py tests/test_public_audit_workflow.py tests/test_ci_action_pins.py
       - name: Ruff format dependency delta
