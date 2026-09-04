@@ -546,21 +546,24 @@ public static class Program
 
     /// <summary>
     /// Skyve-compatible manifest. Skyve's CS2 mod manager scans plugins/*/*.skyve.json
-    /// and registers them as managed mods. Schema mirrors Skyve's documented field set:
-    /// modId, name, version, author, description, dependencies, contentRating.
+    /// and registers them as managed mods. The schema was confirmed against the real
+    /// Skyve CS-II assemblies (Skyve.Domain.CS2.dll PdxModIdentityPackage class):
+    /// it carries modId, versionId, and loadOrder as the core identifiers. The
+    /// friendly metadata fields (name, author, description, dependencies) are what
+    /// Skyve's UI shows, so we include both.
     /// </summary>
     private static string MakeSkyveManifest(string modDll)
     {
         var info = new
         {
             modId = ModName,
+            versionId = ModVersion,
+            loadOrder = 0,
             name = "CivicSurvival",
-            version = ModVersion,
             author = "KooshaPari",
             description = "Phase-staged social-survival gameplay mod for Cities: Skylines II.",
             dll = Path.GetFileName(modDll),
             dependencies = new[] { new { id = "BepInEx", version = "5.4.21.0" } },
-            contentRating = "everyone",
             updatedAtUtc = DateTime.UtcNow.ToString("o"),
         };
         return JsonSerializer.Serialize(info, new JsonSerializerOptions { WriteIndented = true });
