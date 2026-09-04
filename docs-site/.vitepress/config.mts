@@ -4,7 +4,6 @@ export default defineConfig({
   title: 'CivicSurvival Public',
   description: 'CivicSurvival public audit / governance fork',
   lang: 'en-US',
-  srcDir: 'docs-site',
   base: '/CivicSurvival-public/',
   lastUpdated: true,
   cleanUrls: true,
