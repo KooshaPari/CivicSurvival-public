@@ -19,11 +19,11 @@ Three equivalent task runners are shipped so contributors can use whichever is
 installed. **All three ship identical recipes** — pick the one that exists on your
 PATH:
 
-| Runner | Install | Invoke |
-|---|---|---|
-| **GNU make** | bundled on Linux/macOS; `choco install make` on Windows | `make help` |
-| **just** (casey/just) | `cargo install just` / `scoop install just` / `brew install just` | `just` |
-| **Task** (go-task) | `go install github.com/go-task/task/v3/cmd/task@latest` / `scoop install go-task` | `task` |
+| Runner                | Install                                                                           | Invoke      |
+| --------------------- | --------------------------------------------------------------------------------- | ----------- |
+| **GNU make**          | bundled on Linux/macOS; `choco install make` on Windows                           | `make help` |
+| **just** (casey/just) | `cargo install just` / `scoop install just` / `brew install just`                 | `just`      |
+| **Task** (go-task)    | `go install github.com/go-task/task/v3/cmd/task@latest` / `scoop install go-task` | `task`      |
 
 The recipes mirror each other (lint / format / test / scorecard / ci / build /
 install / launch / update / remove). For a list of every recipe:
@@ -60,28 +60,28 @@ make launch
 
 Equivalent recipes (full matrix):
 
-| Recipe | Make | Just | Task | Purpose |
-|---|---|---|---|---|
-| Lint Python | `make lint` | `just lint` | `task lint` | ruff check |
-| Format Python | `make format` | `just format` | `task format` | ruff format (auto-fix) |
-| Verify format | `make format-check` | `just format-check` | `task format-check` | ruff format --check |
-| Run tests | `make test` | `just test` | `task test` | pytest (excludes env-broken) |
-| Scorecard | `make scorecard` | `just scorecard` | `task scorecard` | 88-pillar scorecard |
-| Scorecard + regress guard | `make scorecard-check` | `just scorecard-check` | `task scorecard-check` | with --fail-on-drop |
-| Build mod | `make build` | `just build` | `task build` | C# Release build |
-| Dev build | `make build-dev` | `just build-dev` | `task build-dev` | C# Debug, no restore |
-| Build installer | `make build-installer` | `just build-installer` | `task build-installer` | .NET 9 win-x64 |
-| Build all RIDs | `make build-installer-all` | `just build-installer-all` | `task build-installer-all` | win+linux+mac |
-| Install mod | `make install` | `just install` | `task install` | install into CS2 |
-| Update mod | `make update` | `just update` | `task update` | preserve config |
-| Remove mod | `make remove` | `just remove` | `task remove` | full uninstall |
-| Check CS2 | `make status-cs2` | `just status-cs2` | `task status-cs2` | discover + verify |
-| Check mod | `make status-mod` | `just status-mod` | `task status-mod` | show installed |
-| Launch CS2 | `make launch` | `just launch` | `task launch` | Steam URL handler |
-| Full CI parity | `make ci` | `just ci` | `task ci` | lint+fmt+test+scorecard |
-| Loc regression | `make loc-audit` | `just loc-audit` | `task loc-audit` | localization suite |
-| Current version | `make release-current` | `just release-current` | `task release-current` | from csproj/manifest |
-| Verify release | `make release-verify` | `just release-verify` | `task release-verify` | all surfaces agree |
+| Recipe                    | Make                       | Just                       | Task                       | Purpose                      |
+| ------------------------- | -------------------------- | -------------------------- | -------------------------- | ---------------------------- |
+| Lint Python               | `make lint`                | `just lint`                | `task lint`                | ruff check                   |
+| Format Python             | `make format`              | `just format`              | `task format`              | ruff format (auto-fix)       |
+| Verify format             | `make format-check`        | `just format-check`        | `task format-check`        | ruff format --check          |
+| Run tests                 | `make test`                | `just test`                | `task test`                | pytest (excludes env-broken) |
+| Scorecard                 | `make scorecard`           | `just scorecard`           | `task scorecard`           | 88-pillar scorecard          |
+| Scorecard + regress guard | `make scorecard-check`     | `just scorecard-check`     | `task scorecard-check`     | with --fail-on-drop          |
+| Build mod                 | `make build`               | `just build`               | `task build`               | C# Release build             |
+| Dev build                 | `make build-dev`           | `just build-dev`           | `task build-dev`           | C# Debug, no restore         |
+| Build installer           | `make build-installer`     | `just build-installer`     | `task build-installer`     | .NET 9 win-x64               |
+| Build all RIDs            | `make build-installer-all` | `just build-installer-all` | `task build-installer-all` | win+linux+mac                |
+| Install mod               | `make install`             | `just install`             | `task install`             | install into CS2             |
+| Update mod                | `make update`              | `just update`              | `task update`              | preserve config              |
+| Remove mod                | `make remove`              | `just remove`              | `task remove`              | full uninstall               |
+| Check CS2                 | `make status-cs2`          | `just status-cs2`          | `task status-cs2`          | discover + verify            |
+| Check mod                 | `make status-mod`          | `just status-mod`          | `task status-mod`          | show installed               |
+| Launch CS2                | `make launch`              | `just launch`              | `task launch`              | Steam URL handler            |
+| Full CI parity            | `make ci`                  | `just ci`                  | `task ci`                  | lint+fmt+test+scorecard      |
+| Loc regression            | `make loc-audit`           | `just loc-audit`           | `task loc-audit`           | localization suite           |
+| Current version           | `make release-current`     | `just release-current`     | `task release-current`     | from csproj/manifest         |
+| Verify release            | `make release-verify`      | `just release-verify`      | `task release-verify`      | all surfaces agree           |
 
 ## Pre-build hooks (lefthook)
 
@@ -128,9 +128,27 @@ false) is enforced by `tests/test_runner_hardening_discipline.py`.
 
    On a fresh CS2 install this folder is populated by the toolkit's first-run setup.
 
-3. **Unity mod-project** (for Burst AOT). Only needed when building with Burst
-   enabled (`EnableCivicBurst=true`). The build post-processor uses the Unity mod
-   project to compile native Burst output.
+3. **Unity mod-project** + Unity Entities version, for the source-generators that
+   emit `*NullObject.g.cs`. The CS2 Analyzers project runs Roslyn source-generators
+   at compile time that reference Unity types (`Unity.Entities.Entity`,
+   `Unity.Mathematics.float3`, `Colossal.Core.*`, etc.). Without a Unity mod-project
+   whose `Library/PackageCache/` is populated, the build fails with `CS0246` for those
+   types.
+
+   Required env vars (in addition to the ones above):
+   - `CSII_UNITYMODPROJECTPATH` — absolute path to a Unity project with `Packages/manifest.json`
+     containing `com.unity.entities`. The canonical template that ships with CS2 lives at:
+     `C:/Program Files (x86)/Steam/steamapps/common/Cities Skylines II/Cities2_Data/Content/Game/.ModdingToolchain/UnityModsProject.zip` — extract it once and set
+     `CSII_UNITYMODPROJECTPATH=<extract-path>`.
+   - `CSII_ENTITIESVERSION` — exact `com.unity.entities@<version>` (e.g. `1.3.10`) to verify
+     the Unity project's `Library/PackageCache` matches what `Mod.targets` expects.
+   - `CSII_MODPOSTPROCESSORPATH` — directory containing `ModPostProcessor.exe` (the post-build
+     tool that injects Unity ECS source-generator code into the compiled DLL). Auto-resolved
+     to: `Cities2_Data/Content/Game/.ModdingToolchain/ModPostProcessor`.
+
+   Open the Unity project once in Unity Editor (`Unity.exe -projectPath ... -quit`) to
+   populate `Library/PackageCache/`. Subsequent builds will work until PackageCache is
+   cleared.
 
 4. **Python and Node.js** — the prebuild step runs code generators and contract
    checks (`scripts/generate.py`, `scripts/contract_check.py`,
