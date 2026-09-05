@@ -74,7 +74,7 @@ The client source here is published for **transparency and auditability**, not a
 one-click build. Anyone can read the client code and confirm the mod does exactly what
 it claims — nothing more.
 
-> **This is not a one-click build distribution.** A full build requires a configured
+> **This is not a buildable distribution from an unconfigured clone, nor a one-click build.** A full build requires a configured
 > Cities: Skylines II modding environment (the game itself, the CS2 Modding Toolkit,
 > a Unity mod-project for Burst, prebuild code generators, and a UI toolchain). The
 > Roslyn source generators are included in the public snapshot under
